@@ -1,9 +1,11 @@
+"""
+This module holds the base classes.
+"""
 
 
 class Robot:
     """
     This class represents a robot, regardless of the team.
-    A robot doesn't 
     """
 
     def __init__(self):
@@ -14,5 +16,19 @@ class Robot:
         # components
         self.dribbler = None
         self.kicker = None
-        self.wheels = [None] * 4
+        self.wheels = []
         self.battery = None
+
+
+class Team:
+    pass
+
+
+class Ball:
+    pass
+
+
+class Field:
+    pass
+
+
