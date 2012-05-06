@@ -1,0 +1,25 @@
+message CommandWheel {
+  required uint32 id    = 1;
+  required double speed = 2;
+}
+
+message CommandKicker {
+  required double speed  = 1;
+  optional bool   forced = 2 [default = false];
+}
+
+message CommandDribbler {
+  required double speed  = 1;
+  optional bool   forced = 2 [default = false];
+}
+
+message CommandRobot {
+  required uint32          id       = 1;
+  repeated CommandWheel    wheels   = 2;
+  optional CommandKicker   kicker   = 3;
+  optional CommandDribbler dribbler = 4;
+}
+
+message ToTransmission {
+  repeated CommandRobot robots = 1;
+}
