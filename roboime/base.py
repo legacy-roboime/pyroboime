@@ -1,39 +1,40 @@
 """
 This module holds the base classes.
 """
+from numpy import ndarray, isnan
 
 
-class Partciple:
+class Partciple(ndarray):
     """Every object that has a position subclasses this class."""
-    #TODO: math this
     
-    def __init__(self):
-        self.pos = [None, None, None]
-        self.radius = None
+    def __new__(cls, *args, **kwargs):
+        self = ndarray.__new__(cls, shape=(3))
+        self[0] = self[1] = self[2] = None
+        return self
 
     @property
     def x(self):
-        return self.pos[0]
+        return self[0] if not isnan(self[0]) else None
 
     @x.setter
-    def x(self, pos):
-        self.pos[0] = pos
+    def x(self, value):
+        self[0] = value
 
     @property
     def y(self):
-        return self.pos[1]
+        return self[1] if not isnan(self[1]) else None
 
     @y.setter
-    def y(self, pos):
-        self.pos[1] = pos
+    def y(self, value):
+        self[1] = value
 
     @property
     def z(self):
-        return self.pos[2]
+        return self[2] if not isnan(self[2]) else None
 
     @z.setter
-    def z(self, pos):
-        self.pos[2] = pos
+    def z(self, value):
+        self[2] = value
 
 
 class Component:
@@ -52,7 +53,7 @@ class Robot(Partciple):
     """This class represents a robot, regardless of the team."""
 
     def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None):
-        super().__init__()
+        self.angle = None
 
         # basic
         self.uid = uid
@@ -92,7 +93,7 @@ class Team(list):
     """This is basically a list of robots."""
     
     def __init__(self, color, robots=[]):
-        super().__init__(robots)
+        super(Team, self).__init__(robots)
 
         self.color = color
         self.field = None
@@ -106,12 +107,15 @@ class Ball(Partciple):
     """Well, a ball."""
     
     def __init__(self):
-        super().__init__()
         self.radius = None
 
 
-class Goal:
-    pass
+class Goal(Partciple):
+
+    def __init__(self):
+        self.width = None
+        self.depth = None
+        self.wall_width = None
 
 
 class Field:
@@ -131,9 +135,9 @@ class Field:
         self.penalty_line_distance = None
 
         # objects
-        self.right_goal = None
+        self.right_goal = Goal()
         self.right_team = None
-        self.left_goal = None
+        self.left_goal = Goal()
         self.left_team = None
 
 
