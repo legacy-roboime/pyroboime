@@ -1,4 +1,5 @@
 *.py[cod]
+*.swp
 *.sln
 *.suo
 *.pyproj
