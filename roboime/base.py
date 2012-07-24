@@ -6,7 +6,8 @@ from .utils import Particle
 Yellow = 'yellow'
 Blue = 'blue'
 
-class Component:
+
+class Component(object):
     """Use this class to build components such as kicker or dribbler"""
 
     def __init__(self):
@@ -79,7 +80,7 @@ class Ball(Partciple):
         self.radius = None
 
 
-class Field:
+class Field(object):
 
     def __init__(self, right_team, left_team):
         # metric constants
