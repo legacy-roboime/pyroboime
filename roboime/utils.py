@@ -4,9 +4,9 @@ Some utils.
 from numpy import ndarray, isnan
 
 
-class Particle(ndarray):
+class Particle(ndarray, object):
     """Every object that has a position subclasses this class."""
-    
+
     def __new__(cls, *args, **kwargs):
         self = ndarray.__new__(cls, shape=(3))
         self[0] = self[1] = self[2] = None
