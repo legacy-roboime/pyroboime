@@ -6,7 +6,7 @@ class grSimSender(UnicastSender):
     def __init__(self, address=('127.0.0.1', 22011)):
         UnicastSender.__init__(self, address)
 
-    def send(packet):
+    def send_packet(packet):
         data = packet.SerializeToString()
-        UnicastSender.send(self, data)
+        self.send(data)
 
