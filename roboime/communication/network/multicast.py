@@ -14,11 +14,11 @@ class Multicast(object):
         self._sock.close()
 
     @property
-    def host(self):
+    def group(self):
         return self.address[0]
 
-    @host.setter
-    def host(self, value):
+    @group.setter
+    def group(self, value):
         self.address = (value, self.port)
 
     @property
@@ -27,7 +27,7 @@ class Multicast(object):
 
     @port.setter
     def port(self, value):
-        self.address = (self.host, value)
+        self.address = (self.group, value)
 
 
 class MulticastSender(Multicast):
@@ -65,11 +65,11 @@ class MulticastReceiver(Multicast):
         # Set some more multicast options
         intf = socket.gethostbyname(socket.gethostname())
         self._sock.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(intf) + socket.inet_aton('0.0.0.0'))
-        self._sock.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(self.host) + socket.inet_aton('0.0.0.0'))
+        self._sock.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(self.group) + socket.inet_aton('0.0.0.0'))
 
     def recv(self, buf_size=MAX_BUFFER_SIZE):
         # Receive the data, then unregister multicast receive membership, then close the port
         data, sender_addr = self._sock.recvfrom(buf_size)
-        self._sock.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP, socket.inet_aton(self.host) + socket.inet_aton('0.0.0.0'))
+        self._sock.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP, socket.inet_aton(self.group) + socket.inet_aton('0.0.0.0'))
         return data
 
