@@ -6,7 +6,7 @@ from .utils import Particle
 
 class Component:
     """Use this class to build components such as kicker or dribbler"""
-    
+
     def __init__(self):
         self.working = None
         self.active = None
@@ -58,7 +58,7 @@ class Robot(Partciple):
 
 class Team(list):
     """This is basically a list of robots."""
-    
+
     def __init__(self, color, robots=[]):
         super(Team, self).__init__(robots)
 
@@ -72,13 +72,13 @@ class Team(list):
 
 class Ball(Partciple):
     """Well, a ball."""
-    
+
     def __init__(self):
         self.radius = None
 
 
 class Field:
-    
+
     def __init__(self, right_team, left_team):
         # metric constants
         self.width = None
@@ -100,5 +100,10 @@ class Field:
         self.right_team = None
         self.left_team = None
         self.referee = None
+        self.ball = Ball()
+
+    @property
+    def robots(self):
+        return self.right_team + self.left_team
 
 
