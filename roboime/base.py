@@ -3,6 +3,8 @@ This module holds the base classes.
 """
 from .utils import Particle
 
+Yellow = 'yellow'
+Blue = 'blue'
 
 class Component:
     """Use this class to build components such as kicker or dribbler"""
@@ -101,6 +103,24 @@ class Field:
         self.left_team = None
         self.referee = None
         self.ball = Ball()
+
+    @property
+    def yellow_team(self):
+        if self.right_team.color == Yellow:
+            return self.right_team
+        elif self.left_team.color == Yellow:
+            return self.left_team
+        else:
+            raise Exception
+
+    @property
+    def blue_team(self):
+        if self.right_team.color == Blue:
+            return self.right_team
+        elif self.left_team.color == Blue:
+            return self.left_team
+        else:
+            raise Exception
 
     @property
     def robots(self):
