@@ -14,7 +14,7 @@ class Unicast(object):
     def host(self):
         return self.address[0]
 
-    @group.setter
+    @host.setter
     def host(self, value):
         self.address = (value, self.port)
 

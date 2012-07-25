@@ -68,8 +68,11 @@ class MulticastReceiver(Multicast):
         self._sock.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(self.group) + socket.inet_aton('0.0.0.0'))
 
     def recv(self, buf_size=MAX_BUFFER_SIZE):
+
         # Receive the data, then unregister multicast receive membership, then close the port
         data, sender_addr = self._sock.recvfrom(buf_size)
-        self._sock.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP, socket.inet_aton(self.group) + socket.inet_aton('0.0.0.0'))
         return data
+
+    def close(self):
+        self._sock.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP, socket.inet_aton(self.group) + socket.inet_aton('0.0.0.0'))
 
