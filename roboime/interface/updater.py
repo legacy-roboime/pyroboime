@@ -1,3 +1,5 @@
+from math import pi as PI
+
 from ..communication import sslvision
 
 
@@ -6,7 +8,7 @@ def _linear_scale(value):
 
 
 def _angular_scale(value):
-    return value
+    return 180 * value / PI;
 
 
 class Updater(object):
