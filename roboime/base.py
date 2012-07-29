@@ -200,4 +200,17 @@ class Field(object):
     def robots(self):
         return self.right_team + self.left_team
 
+    def iterrobots(self):
+        """F.iterrobots() -> an iterator over the robots of the field F."""
+        for t in (self.right_team, self.left_team):
+            for r in t:
+                yield r
+
+    def iterobjects(self):
+        """F.iterobjects() -> an iterator over the objects of the field F."""
+        yield self.ball
+        for t in (self.right_team, self.left_team):
+            for r in t:
+                yield r
+
 
