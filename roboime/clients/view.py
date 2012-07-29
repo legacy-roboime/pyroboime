@@ -1,5 +1,9 @@
 from Tkinter import *
 import ttk
+from math import pi as PI
+
+from ..base import Field
+from ..interface.updater import SimVisionUpdater
 
 FIELD_GREEN = '#3a0'
 YELLOW = '#ff0'
@@ -13,10 +17,6 @@ class FieldCanvas(Canvas):
 
     def __init__(self, *args, **kwargs):
         Canvas.__init__(self, *args, **kwargs)
-        self['bg'] = FIELD_GREEN
-        self['height'] = self._cc(FIELD_WIDTH + 2 * FIELD_MARGIN)
-        self['width'] = self._cc(FIELD_LENGTH + 2 * FIELD_MARGIN)
-        self.robots = {}
 
         #TODO: make the following dynamic
         self.radius = 0.18
@@ -28,61 +28,91 @@ class FieldCanvas(Canvas):
         self.goal_depth = 0.2
         self.goal_width = 0.7
 
+        self['bg'] = FIELD_GREEN
+        self['width'] = 100 * (self.field_length + 2 * self.field_margin)
+        self['height'] = 100 * (self.field_width + 2 * self.field_margin)
+        self.robots = {}
+
         # lines
-        boundx1, boundy1 = self._cc(FIELD_MARGIN, FIELD_MARGIN)
         self.bounds = self.create_rectangle(
-            boundx1,
-            boundy1,
-            _cc(FIELD_MARGIN + FIELD_LENGTH),
-            _cc(FIELD_MARGIN + FIELD_WIDTH),
+            self._cx(-self.field_length / 2),
+            self._cy(-self.field_width / 2),
+            self._cx(self.field_length / 2),
+            self._cy(self.field_width / 2),
             outline='white',
             width=3)
         self.midline = self.create_line(
-            _cc(FIELD_MARGIN + FIELD_LENGTH / 2),
-            _cc(FIELD_MARGIN),
-            _cc(FIELD_MARGIN + FIELD_LENGTH / 2),
-            _cc(FIELD_MARGIN + FIELD_WIDTH),
-            outline='white',
+            self._cx(0),
+            self._cy(-self.field_width / 2),
+            self._cx(0),
+            self._cy(self.field_width / 2),
+            fill='white',
             width=3)
+        self.center = self.create_oval(
+            self._cx(-self.field_radius),
+            self._cy(-self.field_radius),
+            self._cx(self.field_radius),
+            self._cy(self.field_radius),
+            outline='white',
+            width=3
+        )
 
+    def _cx(self, x):
+        'Convert internal x coord to canvas x coord'
+        return 100 * (self.field_length / 2 + self.field_margin + x)
+
+    def _cy(self, y):
+        'Convert internal x coord to canvas x coord'
+        return 100 * (self.field_width / 2 + self.field_margin - y)
 
     def _cc(self, x, y):
-        "Convert to canvas coords."
-        return map(lambda i: i * 100, (FIELD_LENGTH / 2 + FIELD_MARGIN + x, FIELD_WIDTH / 2 + FIELD_MARGIN - y))
+        'Convert to canvas coords.'
+        return (self._cx(x), self._cy(y))
 
     def draw_robot(self, robot):
-        if not self.robots.has_key(id(robot)):
-            r = self.robots[robot.uid] = self.create_arc(
+        if self.robots.has_key(id(robot)):
+            r = self.robots[id(robot)]
+        else:
+            r = self.robots[id(robot)] = self.create_arc(
                 0, 0, 0, 0,
                 outline='',
                 style=CHORD,
-                extent=ANGLESPAN)
-        else:
-            r = self.robots[id(robot)]
+                extent=self.anglespan)
 
-        x1, y1 = self._cc(robot.x - RADIUS, robot.y - RADIUS)
-        x2, y2 = self._cc(robot.x + RADIUS, robot.y + RADIUS)
-        sa = robot.angle + 180 - ANGLESPAN / 2
-
-        self.coords(r, x1, y1, x2, y2)
-        self.itemconfig(r, start=sa)
-        self.itemconfig(r, state=NORMAL)
+        self.coords(r,
+            self._cx(robot.x - self.radius),
+            self._cy(robot.y - self.radius),
+            self._cx(robot.x + self.radius),
+            self._cy(robot.y + self.radius),
+        )
+        self.itemconfig(r, start=(robot.angle + 180 - self.anglespan / 2))
         self.itemconfig(r, fill=YELLOW if robot.team.is_yellow else BLUE)
 
 
-    def delete_robot(self, robot):
-        if self.robots.has_key(robot.uid):
-            self.delete(self.robots[robot.uid])
+    def delete_robot(self, rid):
+        if self.robots.has_key(rid):
+            self.delete(self.robots[rid])
+            del self.robots[rid]
 
-    def hide_robot(self, robot):
-        if self.robots.has_key(robot.uid):
-            self.itemconfig(self.robots[robot.uid], state=HIDDEN)
+    def draw_field(self, field):
+        # TODO: redraw field size if changed
+        # draw all robots on the field
+        for r in field.iterrobots():
+            self.draw_robot(r)
+        # remove missing robots
+        rids = map(lambda r: id(r), field.iterrobots())
+        for r in self.robots.iterkeys():
+            if r not in rids:
+                self.delete_robot(r)
 
 
 class View(Tk):
 
     def __init__(self):
         Tk.__init__(self)
+
+        self.field = Field()
+        self.updater = SimVisionUpdater(self.field)
 
         self.title('Sample python client.')
         self.resizable(width=False, height=False)#TODO: make this possible
@@ -94,4 +124,14 @@ class View(Tk):
 
         self.canvas = FieldCanvas(self.content)
         self.canvas.grid(row=0, column=0, sticky=NSEW)
+
+    def redraw(self):
+        self.updater.step()
+        self.canvas.draw_field(self.field)
+        # how long should we wait?
+        self.after(10, self.redraw)
+
+    def mainloop(self):
+        self.redraw()
+        Tk.mainloop(self)
 
