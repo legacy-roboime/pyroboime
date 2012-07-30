@@ -26,15 +26,17 @@ class SimCommander(Commander):
             packet.commands.isteamyellow = self.team.is_yellow
             packet.commands.timestamp = time()
             for a in actions:
+                s = a.speeds
+                if not s:
+                    continue
                 c = packet.commands.robot_commands.add()
                 c.id = a.uid
-                c.kickspeedx = a.kick
-                c.kickspeedz = a.chipkick
-                s = a.speeds
+                c.kickspeedx = a.kick or 0.0
+                c.kickspeedz = a.chipkick or 0.0
                 c.veltangent = s[0]
                 c.velnormal = s[1]
                 c.velangular = s[2]
-                c.spinner = a.dribble > 0
+                c.spinner = (a.dribble or 0.0) > 0
                 c.wheelsspeed = False
 
         self.sender.send_packet(packet)
