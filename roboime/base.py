@@ -22,14 +22,14 @@ class Component(object):
 class Action(Particle):
     """An instance of this class determines what will a robot do."""
 
-    def __init__(self, x, y, angle, kick=0, chipkick=0, dribble=0):
-        self.robot = None
-        self.x = x
-        self.y = y
-        self.angle = angle
-        self.kick = kick
-        self.chipkick = chipkick
-        self.dribble = dribble
+    def __init__(self, robot):
+        self.robot = robot
+        self.x = None
+        self.y = None
+        self.angle = None
+        self.kick = None
+        self.chipkick = None
+        self.dribble = None
 
     @property
     def uid(self):
@@ -37,14 +37,15 @@ class Action(Particle):
 
     @property
     def speeds(self):
-        w = .1
-        from math import cos, sin
+        #TODO: implement some PID, should this be really here?
+        if not (self.x or self.y or self.angle):
+            return None
+        from .mathutils import cos, sin
         r = self.robot
         a = r.angle
-        p = (self.x - r.x, self.y - r.y)
-        px = p[0] * cos(a) - p[1] * sin(a)
-        py = p[0] * sin(a) + p[1] * cos(a)
-        return map(lambda i: w * i, [px, py, self.angle - a])
+        vx, vy = self.x - r.x, self.y - r.y
+        vx, vy = vx * cos(a) + vy * sin(a), vy * cos(a) - vx * sin(a)
+        return (0.5 * vx, 0.5 * vy, 0.1 * (self.angle - a))
 
 
 class Robot(Particle):
@@ -65,16 +66,11 @@ class Robot(Particle):
         self.battery = battery
 
         # action to be dispatched by a commander
-        self._action = None
+        self._action = Action(self)
 
     @property
     def action(self):
         return self._action
-
-    @action.setter
-    def action(self, value):
-        self._action = value
-        self._action.robot = self
 
     @property
     def height(self):
