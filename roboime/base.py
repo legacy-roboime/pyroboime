@@ -30,6 +30,18 @@ class Action(Particle):
         self.kick = None
         self.chipkick = None
         self.dribble = None
+        self.speed = None
+
+    @property
+    def target(self):
+        if not (self.x or self.y or self.angle):
+            return None
+        else:
+            return self.x, self.y, self.angle
+
+    @target.setter
+    def target(self, t):
+        self.x, self.y, self.angle = t if t is not None else (None, None, None)
 
     @property
     def uid(self):
@@ -37,21 +49,26 @@ class Action(Particle):
 
     @property
     def speeds(self):
+        s = self.speed or 0.5
         #TODO: implement some PID, should this be really here?
-        if not (self.x or self.y or self.angle):
+        if not self.target:
             return None
         from .mathutils import cos, sin
         r = self.robot
         a = r.angle
+        va = 0.2 * self.angle - a
         vx, vy = self.x - r.x, self.y - r.y
         vx, vy = vx * cos(a) + vy * sin(a), vy * cos(a) - vx * sin(a)
-        return (0.5 * vx, 0.5 * vy, 0.1 * (self.angle - a))
+        return map(lambda t: s * t, (vx, vy, va))
 
 
 class Robot(Particle):
-    """This class represents a robot, regardless of the team."""
 
     def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None):
+        """This class represents a robot, regardless of the team."""
+
+        # ideally robot should inherit from a class that has an angle
+        # and some geometry framework can use that angle
         self.angle = None
 
         # basic
@@ -67,6 +84,9 @@ class Robot(Particle):
 
         # action to be dispatched by a commander
         self._action = Action(self)
+
+        # skill that will be executed
+        self._skill = None
 
     @property
     def action(self):
@@ -93,6 +113,19 @@ class Robot(Particle):
             return self.team.field
         else:
             return None
+
+    @property
+    def skill(self):
+        return self._skill
+
+    @skill.setter
+    def skill(self, nskill):
+        nskill._robot = self
+        self._skill = nskill
+
+    def step(self):
+        if self._skill is not None:
+            self._skill.step()
 
 
 class Team(list):
