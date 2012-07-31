@@ -1,7 +1,7 @@
 """
 This module holds the base classes.
 """
-from .utils import Particle
+from .utils import geom
 
 Yellow = 'yellow'
 Blue = 'blue'
@@ -19,10 +19,11 @@ class Component(object):
         return not self.working if self.working is not None else None
 
 
-class Action(Particle):
+class Action(geom.Point):
     """An instance of this class determines what will a robot do."""
 
     def __init__(self, robot):
+        geom.Point.__init__(self)
         self.robot = robot
         self.x = None
         self.y = None
@@ -53,7 +54,7 @@ class Action(Particle):
         #TODO: implement some PID, should this be really here?
         if not self.target:
             return None
-        from .mathutils import cos, sin
+        from .utils.mathutils import cos, sin
         r = self.robot
         a = r.angle
         va = 0.2 * self.angle - a
@@ -62,10 +63,11 @@ class Action(Particle):
         return map(lambda t: s * t, (vx, vy, va))
 
 
-class Robot(Particle):
+class Robot(geom.Circle):
 
     def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None):
         """This class represents a robot, regardless of the team."""
+        geom.Circle.__init__(self)
 
         # ideally robot should inherit from a class that has an angle
         # and some geometry framework can use that angle
@@ -172,11 +174,11 @@ class Team(list):
         return self.color == Yellow
 
 
-class Ball(Particle):
+class Ball(geom.Circle):
     """Well, a ball."""
 
     def __init__(self):
-        self.radius = None
+        geom.Circle.__init__(self)
 
 
 class Field(object):

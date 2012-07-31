@@ -1,4 +1,4 @@
-from ..mathutils import degrees
+from math import degrees
 from ..communication import sslvision
 
 
