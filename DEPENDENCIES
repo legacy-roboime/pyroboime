@@ -1,0 +1,19 @@
+Python 2.7, it's not known if it'll work on 2.6-
+    apt-get install python
+
+PIP
+    apt-get install python-pip
+
+Google Protobuf for python
+    pip install protobuf
+
+Shapely
+    pip install shapely
+
+
+
+#TODO:
+    create smart dependencies file so one can
+    run `python setup.py install-dependencies`
+    or similar.
+
