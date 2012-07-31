@@ -1,15 +1,22 @@
-Python 2.7, it's not known if it'll work on 2.6-
+Python 2.7
+    # it's not known if it'll work on 2.6-
     apt-get install python
 
 PIP
+    # requires python
     apt-get install python-pip
 
 Google Protobuf for python
+    # requires PIP
     pip install protobuf
 
 Shapely
+    # requires PIP and libgeos
     pip install shapely
 
+libgeos
+    # not sure of the command bellow
+    apt-get install libgeos-c
 
 
 #TODO:
