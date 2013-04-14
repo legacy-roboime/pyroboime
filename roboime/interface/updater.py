@@ -10,6 +10,11 @@ def _angular_scale(value):
     return degrees(value);
 
 
+class Update(object):
+
+    pass
+
+
 class Updater(object):
 
     field = None

@@ -181,7 +181,7 @@ class Ball(geom.Circle):
         geom.Circle.__init__(self)
 
 
-class Field(object):
+class World(object):
 
     def __init__(self, right_team=Team.yellow(), left_team=Team.blue()):
         # metric constants
@@ -232,13 +232,13 @@ class Field(object):
         return self.right_team + self.left_team
 
     def iterrobots(self):
-        """F.iterrobots() -> an iterator over the robots of the field F."""
+        """W.iterrobots() -> an iterator over the robots of the world W."""
         for t in (self.right_team, self.left_team):
             for r in t:
                 yield r
 
     def iterobjects(self):
-        """F.iterobjects() -> an iterator over the objects of the field F."""
+        """W.iterobjects() -> an iterator over the objects of the world W."""
         yield self.ball
         for t in (self.right_team, self.left_team):
             for r in t:

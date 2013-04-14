@@ -2,7 +2,7 @@ from Tkinter import *
 import ttk
 from math import pi as PI
 
-from ..base import Field
+from ..base import World
 from ..interface.updater import SimVisionUpdater
 
 FIELD_GREEN = '#3a0'
@@ -94,13 +94,13 @@ class FieldCanvas(Canvas):
             self.delete(self.robots[rid])
             del self.robots[rid]
 
-    def draw_field(self, field):
+    def draw_field(self, world):
         # TODO: redraw field size if changed
         # draw all robots on the field
-        for r in field.iterrobots():
+        for r in world.iterrobots():
             self.draw_robot(r)
         # remove missing robots
-        rids = map(lambda r: id(r), field.iterrobots())
+        rids = map(lambda r: id(r), world.iterrobots())
         for r in self.robots.iterkeys():
             if r not in rids:
                 self.delete_robot(r)
@@ -111,8 +111,8 @@ class View(Tk):
     def __init__(self):
         Tk.__init__(self)
 
-        self.field = Field()
-        self.updater = SimVisionUpdater(self.field)
+        self.world = World()
+        self.updater = SimVisionUpdater(self.world)
 
         self.title('Sample python client.')
         self.resizable(width=False, height=False)#TODO: make this possible
@@ -127,7 +127,7 @@ class View(Tk):
 
     def redraw(self):
         self.updater.step()
-        self.canvas.draw_field(self.field)
+        self.canvas.draw_field(self.world)
         # how long should we wait?
         self.after(10, self.redraw)
 
