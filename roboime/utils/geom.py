@@ -1,12 +1,12 @@
 """Geometry classes."""
-from shapely import geometry
+#from shapely import geometry
 
-class Point(geometry.Point):
+class Point(object):
     pass
 
 class Circle(Point):
     pass
 
-class Line(geometry.LineString):
+class Line(object):
     pass
 
