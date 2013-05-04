@@ -1,9 +1,10 @@
 from Tkinter import *
-import ttk
-from math import pi as PI
+#import ttk
+#from math import pi as PI
 
 from ..base import World
-from ..interface.updater import SimVisionUpdater
+#from ..interface.updater import SimVisionUpdater
+from ..interface import SimulationInterface
 
 FIELD_GREEN = '#3a0'
 YELLOW = '#ff0'
@@ -11,6 +12,7 @@ BLUE = '#00f'
 GREEN = '#0f0'
 PINK = '#f0f'
 BLACK = '#000'
+ORANGE = '#f80'
 
 
 class FieldCanvas(Canvas):
@@ -20,6 +22,7 @@ class FieldCanvas(Canvas):
 
         #TODO: make the following dynamic
         self.radius = 0.18
+        self.ball_radius = 0.05
         self.anglespan = 260
         self.field_length = 6.0
         self.field_width = 4.0
@@ -32,6 +35,7 @@ class FieldCanvas(Canvas):
         self['width'] = 100 * (self.field_length + 2 * self.field_margin)
         self['height'] = 100 * (self.field_width + 2 * self.field_margin)
         self.robots = {}
+        self.balls = {}
 
         # lines
         self.bounds = self.create_rectangle(
@@ -88,6 +92,22 @@ class FieldCanvas(Canvas):
         self.itemconfig(r, start=(robot.angle + 180 - self.anglespan / 2))
         self.itemconfig(r, fill=YELLOW if robot.team.is_yellow else BLUE)
 
+    def draw_ball(self, ball):
+        if self.balls.has_key(id(ball)):
+            b = self.balls[id(ball)]
+        else:
+            b = self.balls[id(ball)] = self.create_oval(
+                0, 0, 0, 0,
+                outline='')
+
+        self.coords(b,
+            self._cx(ball.x - self.ball_radius),
+            self._cy(ball.y - self.ball_radius),
+            self._cx(ball.x + self.ball_radius),
+            self._cy(ball.y + self.ball_radius),
+        )
+        self.itemconfig(b, fill=ORANGE)
+
 
     def delete_robot(self, rid):
         if self.robots.has_key(rid):
@@ -96,6 +116,7 @@ class FieldCanvas(Canvas):
 
     def draw_field(self, world):
         # TODO: redraw field size if changed
+        self.draw_ball(world.ball)
         # draw all robots on the field
         for r in world.iterrobots():
             self.draw_robot(r)
@@ -112,7 +133,8 @@ class View(Tk):
         Tk.__init__(self)
 
         self.world = World()
-        self.updater = SimVisionUpdater(self.world)
+        #self.updater = SimVisionUpdater(self.world)
+        self.interface = SimulationInterface(self.world)
 
         self.title('Sample python client.')
         self.resizable(width=False, height=False)#TODO: make this possible
@@ -126,12 +148,33 @@ class View(Tk):
         self.canvas.grid(row=0, column=0, sticky=NSEW)
 
     def redraw(self):
-        self.updater.step()
+        #if len(self.world.blue_team) > 0:
+        if 0 in self.world.blue_team:
+            r = self.world.blue_team[0]
+            #import pudb; pudb.set_trace()
+            #print 'hey'
+            a = r.action
+            a.x = 0.0
+            a.y = 0.0
+            a.angle = 0.0
+        #try:
+        #    self.interface.step()
+        #except:
+        ##    pass
+        ##finally:
+        #    self.interface.stop()
+        #else:
+        #    self.canvas.draw_field(self.world)
+        #    # how long should we wait?
+        #    self.after(10, self.redraw)
+        self.interface.step()
         self.canvas.draw_field(self.world)
         # how long should we wait?
         self.after(10, self.redraw)
 
     def mainloop(self):
+        self.interface.start()
         self.redraw()
         Tk.mainloop(self)
+        self.interface.stop()
 

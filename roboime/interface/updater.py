@@ -1,5 +1,11 @@
+from multiprocessing import Process, Queue, Event
 from math import degrees
+
 from ..communication import sslvision
+from .. import base
+
+
+STOP_TIMEOUT = 1
 
 
 def _linear_scale(value):
@@ -12,71 +18,138 @@ def _angular_scale(value):
 
 class Update(object):
 
-    pass
+    def __init__(self, data):
+        self.data = data
+
+    def apply(self):
+        pass
 
 
-class Updater(object):
+class BallUpdate(Update):
 
-    field = None
+    def apply(self, world):
+        ball = world.ball
+        for prop, value in self.data.iteritems():
+            setattr(ball, prop, value)
+
+
+class RobotUpdate(Update):
+
+    def __init__(self, team_color, i, data):
+        Update.__init__(self, data)
+        self.team_color = team_color
+        self.i = i
+
+    def apply(self, world):
+        if self.team_color == base.Blue:
+            team = world.blue_team
+        elif self.team_color == base.Yellow:
+            team = world.yellow_team
+        robot = team[self.i]
+        for prop, value in self.data.iteritems():
+            setattr(robot, prop, value)
+
+
+class GeometryUpdate(Update):
+
+    def apply(self, world):
+        for prop, value in self.data.iteritems():
+            setattr(world, prop, value)
+
+
+class Updater(Process):
+
+    def __init__(self):
+        Process.__init__(self)
+        self.queue = Queue()
+        self._exit = Event()
+
+    def run(self):
+        while not self._exit.is_set():
+            try:
+                self.queue.put(self.receive())
+            except KeyboardInterrupt:
+                break
+
+    def stop(self):
+        self._exit.set()
+        self.join(STOP_TIMEOUT)
+        if self.is_alive():
+            #TODO make a nicer warning
+            print 'Terminating updater:', self
+            self.terminate()
+
+    def receive(self):
+        pass
 
 
 class VisionUpdater(Updater):
 
-    def __init__(self, field, address):
-        self.field = field
-        self.receiver = sslvision.VisionReceiver()
+    def __init__(self, address):
+        Updater.__init__(self)
+        self.receiver = sslvision.VisionReceiver(address)
 
-    def step(self):
-        #TODO: create update objects instead of applying updates directely
+    def receive(self):
+        updates = []
         packet = self.receiver.get_packet()
 
         if packet.HasField('geometry'):
             f = packet.geometry.field
-            self.field.width = _linear_scale(f.field_width)
-            self.field.length = _linear_scale(f.field_length)
-            self.field.line_width = _linear_scale(f.line_width)
-            self.field.boundary_width = _linear_scale(f.boundary_width)
-            self.field.referee_width = _linear_scale(f.referee_width)
-            self.field.center_radius = _linear_scale(f.center_circle_radius)
-            self.field.defense_radius = _linear_scale(f.defense_radius)
-            self.field.defense_stretch = _linear_scale(f.defense_stretch)
-            self.field.free_kick_distance = _linear_scale(f.free_kick_from_defense_dist)
-            self.field.penalty_spot_distance = _linear_scale(f.penalty_spot_from_field_line_dist)
-            self.field.penalty_line_distance = _linear_scale(f.penalty_line_from_spot_dist)
-            self.field.goal_width = _linear_scale(f.goal_width)
-            self.field.goal_depth = _linear_scale(f.goal_depth)
-            self.field.goal_wall_width = _linear_scale(f.goal_wall_width)
-
+            updates.append(GeometryUpdate({
+                'width': _linear_scale(f.field_width),
+                'length': _linear_scale(f.field_length),
+                'line_width': _linear_scale(f.line_width),
+                'boundary_width': _linear_scale(f.boundary_width),
+                'referee_width': _linear_scale(f.referee_width),
+                'center_radius': _linear_scale(f.center_circle_radius),
+                'defense_radius': _linear_scale(f.defense_radius),
+                'defense_stretch': _linear_scale(f.defense_stretch),
+                'free_kick_distance': _linear_scale(f.free_kick_from_defense_dist),
+                'penalty_spot_distance': _linear_scale(f.penalty_spot_from_field_line_dist),
+                'penalty_line_distance': _linear_scale(f.penalty_line_from_spot_dist),
+                'goal_width': _linear_scale(f.goal_width),
+                'goal_depth': _linear_scale(f.goal_depth),
+                'goal_wall_width': _linear_scale(f.goal_wall_width),
+            }))
 
         if packet.HasField('detection'):
 
+            timestamp = packet.detection.t_capture
+
             for b in packet.detection.balls:
-                self.field.ball.x = _linear_scale(b.x)
-                self.field.ball.y = _linear_scale(b.y)
+                updates.append(BallUpdate({
+                    'timestamp': timestamp,
+                    'x': _linear_scale(b.x),
+                    'y': _linear_scale(b.y),
+                }))
 
             for r in packet.detection.robots_yellow:
-                i = r.robot_id
-                self.field.yellow_team[i].x = _linear_scale(r.x)
-                self.field.yellow_team[i].y = _linear_scale(r.y)
-                self.field.yellow_team[i].angle = _angular_scale(r.orientation)
+                updates.append(RobotUpdate(base.Yellow, r.robot_id, {
+                    'timestamp': timestamp,
+                    'x': _linear_scale(r.x),
+                    'y': _linear_scale(r.y),
+                    'angle': _angular_scale(r.orientation),
+                }))
 
             for r in packet.detection.robots_blue:
-                i = r.robot_id
-                self.field.blue_team[i].x = _linear_scale(r.x)
-                self.field.blue_team[i].y = _linear_scale(r.y)
-                self.field.blue_team[i].angle = _angular_scale(r.orientation)
+                updates.append(RobotUpdate(base.Blue, r.robot_id, {
+                    'timestamp': timestamp,
+                    'x': _linear_scale(r.x),
+                    'y': _linear_scale(r.y),
+                    'angle': _angular_scale(r.orientation),
+                }))
+
+        return updates
 
 
 class RealVisionUpdater(VisionUpdater):
 
-    def __init__(self, field):
-        self.field = field
-        self.receiver = sslvision.RealVisionReceiver()
+    def __init__(self):
+        VisionUpdater.__init__(self, ('224.5.23.2', 10002))
 
 
 class SimVisionUpdater(VisionUpdater):
 
-    def __init__(self, field):
-        self.field = field
-        self.receiver = sslvision.SimVisionReceiver()
+    def __init__(self):
+        VisionUpdater.__init__(self, ('224.5.23.2', 11002))
 
