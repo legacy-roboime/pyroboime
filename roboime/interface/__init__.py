@@ -1,5 +1,6 @@
 from . import updater
 from . import commander
+from . import filter
 
 
 def _update_loop(queue, updater):
@@ -40,10 +41,14 @@ class Interface(object):
 
     def step(self):
         # updates injection fase
-        # TODO filtering
         for up in self.updaters:
             while not up.queue.empty():
-                for u in up.queue.get():
+                uu = up.queue.get()
+                for fi in reversed(self.filters):
+                    _uu = fi.filter_updates(uu)
+                    if _uu is not None:
+                        uu = _uu
+                for u in uu:
                     u.apply(self.world)
 
         # actions extraction fase
@@ -53,6 +58,10 @@ class Interface(object):
             for r in co.team:
                 if r.action is not None:
                     actions.append(r.action)
+            for fi in self.filters:
+                _actions = fi.filter_commands(actions)
+                if _actions is not None:
+                    actions = _actions
             #co.queue.put(actions)
             co.send(actions)
 
@@ -76,7 +85,7 @@ class SimulationInterface(Interface):
     def __init__(self, world, filters=[]):
         updaters = [updater.SimVisionUpdater()]
         commanders = [commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)]
-        #self._updaters
+        filters = filters + [filter.Scale()]
         Interface.__init__(self, world, updaters, commanders, filters)
 
     #def start()

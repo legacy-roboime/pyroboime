@@ -1,19 +1,10 @@
 from multiprocessing import Process, Queue, Event
-from math import degrees
 
 from ..communication import sslvision
 from .. import base
 
 
 STOP_TIMEOUT = 1
-
-
-def _linear_scale(value):
-    return value / 1000.0
-
-
-def _angular_scale(value):
-    return degrees(value)
 
 
 class Update(object):
@@ -96,20 +87,20 @@ class VisionUpdater(Updater):
         if packet.HasField('geometry'):
             f = packet.geometry.field
             updates.append(GeometryUpdate({
-                'width': _linear_scale(f.field_width),
-                'length': _linear_scale(f.field_length),
-                'line_width': _linear_scale(f.line_width),
-                'boundary_width': _linear_scale(f.boundary_width),
-                'referee_width': _linear_scale(f.referee_width),
-                'center_radius': _linear_scale(f.center_circle_radius),
-                'defense_radius': _linear_scale(f.defense_radius),
-                'defense_stretch': _linear_scale(f.defense_stretch),
-                'free_kick_distance': _linear_scale(f.free_kick_from_defense_dist),
-                'penalty_spot_distance': _linear_scale(f.penalty_spot_from_field_line_dist),
-                'penalty_line_distance': _linear_scale(f.penalty_line_from_spot_dist),
-                'goal_width': _linear_scale(f.goal_width),
-                'goal_depth': _linear_scale(f.goal_depth),
-                'goal_wall_width': _linear_scale(f.goal_wall_width),
+                'width': f.field_width,
+                'length': f.field_length,
+                'line_width': f.line_width,
+                'boundary_width': f.boundary_width,
+                'referee_width': f.referee_width,
+                'center_radius': f.center_circle_radius,
+                'defense_radius': f.defense_radius,
+                'defense_stretch': f.defense_stretch,
+                'free_kick_distance': f.free_kick_from_defense_dist,
+                'penalty_spot_distance': f.penalty_spot_from_field_line_dist,
+                'penalty_line_distance': f.penalty_line_from_spot_dist,
+                'goal_width': f.goal_width,
+                'goal_depth': f.goal_depth,
+                'goal_wall_width': f.goal_wall_width,
             }))
 
         if packet.HasField('detection'):
@@ -119,24 +110,24 @@ class VisionUpdater(Updater):
             for b in packet.detection.balls:
                 updates.append(BallUpdate({
                     'timestamp': timestamp,
-                    'x': _linear_scale(b.x),
-                    'y': _linear_scale(b.y),
+                    'x': b.x,
+                    'y': b.y,
                 }))
 
             for r in packet.detection.robots_yellow:
                 updates.append(RobotUpdate(base.Yellow, r.robot_id, {
                     'timestamp': timestamp,
-                    'x': _linear_scale(r.x),
-                    'y': _linear_scale(r.y),
-                    'angle': _angular_scale(r.orientation),
+                    'x': r.x,
+                    'y': r.y,
+                    'angle': r.orientation,
                 }))
 
             for r in packet.detection.robots_blue:
                 updates.append(RobotUpdate(base.Blue, r.robot_id, {
                     'timestamp': timestamp,
-                    'x': _linear_scale(r.x),
-                    'y': _linear_scale(r.y),
-                    'angle': _angular_scale(r.orientation),
+                    'x': r.x,
+                    'y': r.y,
+                    'angle': r.orientation,
                 }))
 
         return updates
