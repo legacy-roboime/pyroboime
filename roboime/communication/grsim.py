@@ -13,4 +13,3 @@ class grSimSender(UnicastSender):
     def send_packet(self, packet):
         data = packet.SerializeToString()
         self.send(data)
-

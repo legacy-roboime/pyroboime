@@ -13,7 +13,7 @@ def _linear_scale(value):
 
 
 def _angular_scale(value):
-    return degrees(value);
+    return degrees(value)
 
 
 class Update(object):
@@ -152,4 +152,3 @@ class SimVisionUpdater(VisionUpdater):
 
     def __init__(self):
         VisionUpdater.__init__(self, ('224.5.23.2', 11002))
-

@@ -275,4 +275,3 @@ class World(object):
 
     def __iter__(self):
         return self.iterobjects()
-

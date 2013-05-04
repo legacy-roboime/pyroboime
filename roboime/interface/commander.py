@@ -46,7 +46,7 @@ class SimCommander(Commander):
             for a in actions:
                 if not a:
                     continue
-                vx, vy, va  = a.speeds
+                vx, vy, va = a.speeds
                 c = packet.commands.robot_commands.add()
                 c.id = a.uid
                 c.kickspeedx = a.kick or 0.0

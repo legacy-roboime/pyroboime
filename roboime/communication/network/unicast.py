@@ -31,4 +31,3 @@ class UnicastSender(Unicast):
 
     def send(self, data):
         self._sock.sendto(data, self.address)
-

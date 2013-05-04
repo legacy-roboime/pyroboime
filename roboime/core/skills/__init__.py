@@ -4,6 +4,7 @@ This is the skill package.
 Put new skill in this package, please inherit your skills from Skill.
 """
 
+
 class Skill(object):
     """
     This is the base Skill, currently it only holds a robot, this is intended
@@ -28,6 +29,5 @@ class Skill(object):
         self._robot = nrobot
 
     def step(self):
-        #TODO: raise proper exception
+        # TODO: raise proper exception
         raise Exception("Skill not implemented.")
-

@@ -30,4 +30,3 @@ class RealVisionReceiver(VisionReceiver):
 class SimVisionReceiver(VisionReceiver):
     def __init__(self):
         VisionReceiver.__init__(self, ('224.5.23.2', 11002))
-

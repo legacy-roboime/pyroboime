@@ -1,8 +1,8 @@
 import math
 
-_trigonom_ = ['sin', 'cos', 'tan',]
-_invtrigonom_ = ['a' + f for f in _trigonom_] + ['atan2',]
-_restricted_ = ['trunc',]
+_trigonom_ = ['sin', 'cos', 'tan']
+_invtrigonom_ = ['a' + f for f in _trigonom_] + ['atan2']
+_restricted_ = ['trunc']
 
 for fun in dir(math):
     if fun in _restricted_:
@@ -13,4 +13,3 @@ for fun in dir(math):
         exec '{0} = lambda x: math.degrees(math.{0}(x))'.format(fun) in globals()
     else:
         exec '{0} = math.{0}'.format(fun)
-

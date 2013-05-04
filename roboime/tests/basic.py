@@ -1,6 +1,6 @@
 from time import sleep
 
-from ..base import Action, World
+from ..base import World
 from ..interface.commander import SimCommander
 from ..interface.updater import SimVisionUpdater
 
@@ -8,6 +8,7 @@ from ..interface.updater import SimVisionUpdater
 world = World()
 updater = SimVisionUpdater(world)
 commander = SimCommander(world.blue_team)
+
 
 def basicloop(times=100, delay=10):
     """times: how many cicles?, delay: cicle time in ms."""
@@ -25,4 +26,3 @@ def basicloop(times=100, delay=10):
         updater.step()
         sleep(delay / 1000.0)
         commander.step()
-

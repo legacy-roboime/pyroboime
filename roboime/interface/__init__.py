@@ -1,5 +1,5 @@
-import updater
-import commander
+from . import updater
+from . import commander
 
 
 def _update_loop(queue, updater):
@@ -41,27 +41,27 @@ class Interface(object):
     def step(self):
         # updates injection fase
         # TODO filtering
-        for updater in self.updaters:
-            while not updater.queue.empty():
-                for update in updater.queue.get():
-                    update.apply(self.world)
+        for up in self.updaters:
+            while not up.queue.empty():
+                for u in up.queue.get():
+                    u.apply(self.world)
 
         # actions extraction fase
         # TODO filtering
-        for commander in self.commanders:
+        for co in self.commanders:
             actions = []
-            for r in commander.team:
+            for r in co.team:
                 if r.action is not None:
                     actions.append(r.action)
-            #commander.queue.put(actions)
-            commander.send(actions)
+            #co.queue.put(actions)
+            co.send(actions)
 
     @property
     def processes(self):
-        for updater in self.updaters:
-            yield updater
-        #for commander in self.commanders:
-        #    yield commander
+        for up in self.updaters:
+            yield up
+        #for co in self.commanders:
+        #    yield co
 
     #def __del__(self):
     #    self.stop()
@@ -80,4 +80,3 @@ class SimulationInterface(Interface):
         Interface.__init__(self, world, updaters, commanders, filters)
 
     #def start()
-

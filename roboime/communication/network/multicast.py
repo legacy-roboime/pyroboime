@@ -53,9 +53,10 @@ class MulticastReceiver(Multicast):
         # Set some options to make it multicast-friendly
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-                self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         except AttributeError:
-                pass # Some systems don't support SO_REUSEPORT
+            # Some systems don't support SO_REUSEPORT
+            pass
         self._sock.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, MULTICAST_TTL)
         self._sock.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 1)
 
@@ -76,4 +77,3 @@ class MulticastReceiver(Multicast):
 
     def close(self):
         self._sock.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP, socket.inet_aton(self.group) + socket.inet_aton('0.0.0.0'))
-

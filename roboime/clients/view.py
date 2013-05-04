@@ -1,4 +1,4 @@
-from Tkinter import *
+from Tkinter import Canvas, Frame, Tk, CHORD, NSEW
 #import ttk
 #from math import pi as PI
 
@@ -74,7 +74,7 @@ class FieldCanvas(Canvas):
         return (self._cx(x), self._cy(y))
 
     def draw_robot(self, robot):
-        if self.robots.has_key(id(robot)):
+        if id(robot) in self.robots:
             r = self.robots[id(robot)]
         else:
             r = self.robots[id(robot)] = self.create_arc(
@@ -83,7 +83,8 @@ class FieldCanvas(Canvas):
                 style=CHORD,
                 extent=self.anglespan)
 
-        self.coords(r,
+        self.coords(
+            r,
             self._cx(robot.x - self.radius),
             self._cy(robot.y - self.radius),
             self._cx(robot.x + self.radius),
@@ -93,14 +94,15 @@ class FieldCanvas(Canvas):
         self.itemconfig(r, fill=YELLOW if robot.team.is_yellow else BLUE)
 
     def draw_ball(self, ball):
-        if self.balls.has_key(id(ball)):
+        if id(ball) in self.balls:
             b = self.balls[id(ball)]
         else:
             b = self.balls[id(ball)] = self.create_oval(
                 0, 0, 0, 0,
                 outline='')
 
-        self.coords(b,
+        self.coords(
+            b,
             self._cx(ball.x - self.ball_radius),
             self._cy(ball.y - self.ball_radius),
             self._cx(ball.x + self.ball_radius),
@@ -108,9 +110,8 @@ class FieldCanvas(Canvas):
         )
         self.itemconfig(b, fill=ORANGE)
 
-
     def delete_robot(self, rid):
-        if self.robots.has_key(rid):
+        if rid in self.robots:
             self.delete(self.robots[rid])
             del self.robots[rid]
 
@@ -137,7 +138,8 @@ class View(Tk):
         self.interface = SimulationInterface(self.world)
 
         self.title('Sample python client.')
-        self.resizable(width=False, height=False)#TODO: make this possible
+        # TODO: make this possible
+        self.resizable(width=False, height=False)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
@@ -177,4 +179,3 @@ class View(Tk):
         self.redraw()
         Tk.mainloop(self)
         self.interface.stop()
-
