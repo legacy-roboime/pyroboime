@@ -121,9 +121,9 @@ class Robot(geom.Circle):
             return None
 
     @property
-    def field(self):
+    def world(self):
         if self.team is not None:
-            return self.team.field
+            return self.team.world
         else:
             return None
 
@@ -144,12 +144,12 @@ class Robot(geom.Circle):
 class Team(defaultdict):
     """This is basically a list of robots."""
 
-    def __init__(self, color, robots=[]):
+    def __init__(self, color, robots=[], world=None):
         super(Team, self).__init__(partial(Robot, team=self), imap(lambda r: (r.pattern, r), robots))
         #super(Team, self).__init__(imap(lambda r: (r.uid, r), robots))
 
         self.color = color
-        self.field = None
+        self.world = world
 
         # update robots' team
         for r in self.itervalues():
@@ -185,6 +185,10 @@ class Team(defaultdict):
         return cls(Yellow, *args, **kwargs)
 
     @property
+    def goal(self):
+        self.world.goal(self.color)
+
+    @property
     def is_blue(self):
         return self.color == Blue
 
@@ -210,9 +214,38 @@ class Ball(geom.Circle):
         self.y = 0
 
 
+class Goal(object):
+    def __init__(self, world, left=False):
+        self.world = world
+        self._left = left
+
+    @property
+    def x(self):
+        x = self.world.length / 2.0
+        if self._left:
+            x *= -1
+        return x
+
+    @property
+    def y(self):
+        return 0.0
+
+    @property
+    def width(self):
+        return self.world.goal_width
+
+    @property
+    def depth(self):
+        return self.world.goal_depth
+
+    @property
+    def wall_width(self):
+        return self.world.goal_wall_width
+
+
 class World(object):
 
-    def __init__(self, right_team=Team.yellow(), left_team=Team.blue()):
+    def __init__(self, right_team=None, left_team=None):
         # metric constants
         self.width = None
         self.length = None
@@ -230,8 +263,18 @@ class World(object):
         self.goal_wall_width = None
 
         # objects
-        self.right_team = right_team
-        self.left_team = left_team
+        if right_team is None:
+            self.right_team = Team.yellow(world=self)
+        else:
+            right_team.world = self
+            self.right_team = right_team
+        if left_team is None:
+            self.left_team = Team.blue(world=self)
+        else:
+            left_team.world = self
+            self.left_team = left_team
+        self.right_goal = Goal(True)
+        self.left_goal = Goal(False)
         self.referee = None
         self.ball = Ball()
 
@@ -240,19 +283,33 @@ class World(object):
 
     @property
     def yellow_team(self):
-        if self.right_team.color == Yellow:
+        return self.team(Yellow)
+
+    @property
+    def blue_team(self):
+        return self.team(Blue)
+
+    def team(self, color):
+        if self.right_team.color == color:
             return self.right_team
-        elif self.left_team.color == Yellow:
+        elif self.left_team.color == color:
             return self.left_team
         else:
             raise Exception
 
     @property
-    def blue_team(self):
-        if self.right_team.color == Blue:
-            return self.right_team
-        elif self.left_team.color == Blue:
-            return self.left_team
+    def yellow_goal(self):
+        return self.goal(Yellow)
+
+    @property
+    def blue_goal(self):
+        return self.goal(Blue)
+
+    def goal(self, color):
+        if self.right_team.color == color:
+            return self.right_goal
+        elif self.left_team.color == color:
+            return self.left_goal
         else:
             raise Exception
 
