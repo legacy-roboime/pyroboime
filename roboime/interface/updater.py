@@ -1,4 +1,10 @@
-from multiprocessing import Process, Queue, Event
+from sys import platform
+if platform == 'win32':
+	from Queue import Queue
+	from threading import Event
+	from threading import Thread as Process
+else:
+	from multiprocessing import Process, Queue, Event
 
 from ..communication import sslvision
 from .. import base
