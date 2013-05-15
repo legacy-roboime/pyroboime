@@ -21,8 +21,6 @@ class FieldCanvas(Canvas):
         Canvas.__init__(self, *args, **kwargs)
 
         #TODO: make the following dynamic
-        self.radius = 0.18
-        self.ball_radius = 0.05
         self.anglespan = 260
         self.field_length = 6.0
         self.field_width = 4.0
@@ -30,6 +28,7 @@ class FieldCanvas(Canvas):
         self.field_margin = 1.0
         self.goal_depth = 0.2
         self.goal_width = 0.7
+        self.thickness = 1
 
         self['bg'] = FIELD_GREEN
         self['width'] = 100 * (self.field_length + 2 * self.field_margin)
@@ -44,21 +43,23 @@ class FieldCanvas(Canvas):
             self._cx(self.field_length / 2),
             self._cy(self.field_width / 2),
             outline='white',
-            width=3)
+            width=self.thickness,
+        )
         self.midline = self.create_line(
             self._cx(0),
             self._cy(-self.field_width / 2),
             self._cx(0),
             self._cy(self.field_width / 2),
             fill='white',
-            width=3)
+            width=self.thickness,
+        )
         self.center = self.create_oval(
             self._cx(-self.field_radius),
             self._cy(-self.field_radius),
             self._cx(self.field_radius),
             self._cy(self.field_radius),
             outline='white',
-            width=3
+            width=self.thickness,
         )
 
     def _cx(self, x):
@@ -85,10 +86,10 @@ class FieldCanvas(Canvas):
 
         self.coords(
             r,
-            self._cx(robot.x - self.radius),
-            self._cy(robot.y - self.radius),
-            self._cx(robot.x + self.radius),
-            self._cy(robot.y + self.radius),
+            self._cx(robot.x - robot.radius),
+            self._cy(robot.y - robot.radius),
+            self._cx(robot.x + robot.radius),
+            self._cy(robot.y + robot.radius),
         )
         self.itemconfig(r, start=(robot.angle + 180 - self.anglespan / 2))
         self.itemconfig(r, fill=YELLOW if robot.team.is_yellow else BLUE)
@@ -103,10 +104,10 @@ class FieldCanvas(Canvas):
 
         self.coords(
             b,
-            self._cx(ball.x - self.ball_radius),
-            self._cy(ball.y - self.ball_radius),
-            self._cx(ball.x + self.ball_radius),
-            self._cy(ball.y + self.ball_radius),
+            self._cx(ball.x - ball.radius),
+            self._cy(ball.y - ball.radius),
+            self._cx(ball.x + ball.radius),
+            self._cy(ball.y + ball.radius),
         )
         self.itemconfig(b, fill=ORANGE)
 
@@ -159,6 +160,9 @@ class View(Tk):
             a.x = 0.0
             a.y = 0.0
             a.angle = 0.0
+        if 1 in self.world.blue_team:
+            r = self.world.blue_team[1]
+            r.action.speeds = (1.0, 0.0, 0.0)
         #try:
         #    self.interface.step()
         #except:
