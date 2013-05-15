@@ -26,15 +26,32 @@ class Component(object):
 class Action(object):
     """An instance of this class determines what will a robot do."""
 
-    def __init__(self, robot):
+    def __init__(self, robot, target=None, speeds=None):
+        """
+        The action can do a veeery rudimentary control, for that one has to set
+        a target instead of the speeds.
+
+        For going to the point x=3, y=5 with and angle=30:
+        >>> a = Action(target=(3.0, 5.0, 30.0))
+
+        This will also work:
+        >>> a.target = (3.0, 5.0, 30.0)
+
+        It is more appropriate to do a real control apart and have it set the speeds,
+        the speeds are in the robot's referential paralel, normal and angular
+        respectively. To have it go straight with speed 1.0:
+        >>> a = Action(speeds=(1.0, 0.0, 0.0))
+
+        One can also use the speeds property, to have it spin still for instance:
+        >>> a.speeds = (0.0, 0.0, 2.0)
+        """
         self.robot = robot
-        self.x = None
-        self.y = None
-        self.angle = None
+        self.x, self.y, self.angle = target if target is not None else (None, None, None)
         self.kick = None
         self.chipkick = None
         self.dribble = None
         self.speed = None
+        self._speeds = speeds
 
     @property
     def target(self):
@@ -42,10 +59,11 @@ class Action(object):
 
     def __nonzero__(self):
         """This is used for implicit bool conversion, which answers if the action does something."""
-        return not (self.x is None or self.y is None or self.angle is None)
+        return not (self.x is None or self.y is None or self.angle is None) or self._speeds is not None
 
     @target.setter
     def target(self, t):
+        self._speeds = None
         self.x, self.y, self.angle = t if t is not None else (None, None, None)
 
     @property
@@ -58,26 +76,36 @@ class Action(object):
 
     @property
     def speeds(self):
-        s = self.speed or 0.5
-        #TODO: implement some PID, should this be really here?
-        if not self:
-            return (0.0, 0.0, 0.0)
-        from .utils.mathutils import cos, sin
-        x, y, a = self.target
-        r = self.robot
-        #import pudb; pudb.set_trace()
-        ra = r.angle
-        va = 0.2 * (a - ra)
-        vx, vy = x - r.x, y - r.y
-        vx, vy = vx * cos(ra) + vy * sin(ra), vy * cos(ra) - vx * sin(ra)
-        return tuple(map(lambda t: s * t, (vx, vy, va)))
+        if self._speeds is not None:
+            return tuple(self._speeds)
+        else:
+            s = self.speed or 0.5
+            #TODO: implement some PID, should this be really here?
+            if not self:
+                return (0.0, 0.0, 0.0)
+            from .utils.mathutils import cos, sin
+            x, y, a = self.target
+            r = self.robot
+            #import pudb; pudb.set_trace()
+            ra = r.angle
+            va = 0.2 * (a - ra)
+            vx, vy = x - r.x, y - r.y
+            vx, vy = vx * cos(ra) + vy * sin(ra), vy * cos(ra) - vx * sin(ra)
+            return tuple(map(lambda t: s * t, (vx, vy, va)))
+
+    @speeds.setter
+    def speeds(self, speeds):
+        self._speeds = speeds
+
+    speeds
 
 
-class Robot(geom.Circle):
+class Robot(geom.Point):
 
     def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None):
         """This class represents a robot, regardless of the team."""
-        super(Robot, self).__init__(0.15, 0.0, 0.0)
+        super(Robot, self).__init__(0.0, 0.0)
+        self._radius = 180e-3 / 2
 
         # ideally robot should inherit from a class that has an angle
         # and some geometry framework can use that angle
@@ -101,6 +129,10 @@ class Robot(geom.Circle):
         self._skill = None
 
     @property
+    def body(self):
+        return geom.Circle(self, self._radius)
+
+    @property
     def action(self):
         return self._action
 
@@ -108,9 +140,9 @@ class Robot(geom.Circle):
     def height(self):
         return self.body.height if self.body else None
 
-    #@property
-    #def radius(self):
-    #    return self.body.radius if self.body else None
+    @property
+    def radius(self):
+        return self._radius
 
     @property
     def color(self):
@@ -204,14 +236,21 @@ class Team(defaultdict):
         return self.iterrobots()
 
 
-class Ball(geom.Circle):
+class Ball(geom.Point):
     """Well, a ball."""
 
     def __init__(self, world):
-        super(Ball, self).__init__(0.03, 0.0, 0.0)
-        #self.x = 0
-        #self.y = 0
+        super(Ball, self).__init__(0.0, 0.0)
+        self._radius = 43e-3 / 2
         self.world = world
+
+    @property
+    def radius(self):
+        return self._radius
+
+    @property
+    def body(self):
+        return geom.Circle(self, self._radius)
 
 
 class Goal(object):

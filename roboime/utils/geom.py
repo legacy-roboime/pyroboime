@@ -6,23 +6,27 @@ class Point(geometry.Point):
     pass
 
 
-class Circle(Point):
+class Circle(geometry.Polygon):
 
-    def __init__(self, radius=1.0, *args, **kwargs):
+    def __init__(self, center, radius):
         """
         A circle of radius 2.0, centered on (1.0, 0.0):
-        >>> c = Circle(2.0, 1.0, 0.0)
+        >>> p = Point(1.0, 0.0)
+        >>> c = Circle(p, 2.0)
 
-        The shape of the circle is the actual shapely polygon:
-        >>> len(c.shape.exterior.coords)
+        The circle is a shapely polygon
+        >>> len(c.exterior.coords)
         66
         """
-        super(Circle, self).__init__(*args, **kwargs)
+        # the following is not really optimized as it creates a polygon twice
+        # but it's ok for now, I tried doing some magic with __new__, didn't work
+        super(Circle, self).__init__(center.buffer(radius).exterior.coords)
+        self._center = center
         self._radius = radius
 
     @property
-    def shape(self):
-        return self.buffer(self._radius)
+    def center(self):
+        return self._center
 
     @property
     def radius(self):
