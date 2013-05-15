@@ -6,6 +6,7 @@ from collections import defaultdict
 from functools import partial
 
 from .utils import geom
+from .utils.mathutils import cos, sin
 
 Yellow = 'yellow'
 Blue = 'blue'
@@ -83,7 +84,6 @@ class Action(object):
             #TODO: implement some PID, should this be really here?
             if not self:
                 return (0.0, 0.0, 0.0)
-            from .utils.mathutils import cos, sin
             x, y, a = self.target
             r = self.robot
             #import pudb; pudb.set_trace()
@@ -97,7 +97,18 @@ class Action(object):
     def speeds(self, speeds):
         self._speeds = speeds
 
-    speeds
+    @property
+    def absolute_speeds(self):
+        vx, vy, va = self._speeds
+        ra = self.robot.angle
+        return (vx * cos(ra) - vy * sin(ra), vy * cos(ra) + vx * sin(ra), va)
+
+    @absolute_speeds.setter
+    def absolute_speeds(self, speeds):
+        vx, vy, va = speeds
+        ra = self.robot.angle
+        self._speeds = (vx * cos(ra) + vy * sin(ra), vy * cos(ra) - vx * sin(ra), va)
+
 
 
 class Robot(geom.Point):
