@@ -1,10 +1,10 @@
 from sys import platform
 if platform == 'win32':
-	from Queue import Queue
-	from threading import Event
-	from threading import Thread as Process
+    from Queue import Queue
+    from threading import Event
+    from threading import Thread as Process
 else:
-	from multiprocessing import Process, Queue, Event
+    from multiprocessing import Process, Queue, Event
 
 from ..communication import sslvision
 from .. import base
@@ -27,7 +27,9 @@ class BallUpdate(Update):
     def apply(self, world):
         ball = world.ball
         for prop, value in self.data.iteritems():
-            setattr(ball, prop, value)
+            if prop != 'x' and prop != 'y':
+                setattr(ball, prop, value)
+        ball._set_coords((self.data['x'], self.data['y']))
 
 
 class RobotUpdate(Update):
@@ -44,7 +46,9 @@ class RobotUpdate(Update):
             team = world.yellow_team
         robot = team[self.i]
         for prop, value in self.data.iteritems():
-            setattr(robot, prop, value)
+            if prop != 'x' and prop != 'y':
+                setattr(robot, prop, value)
+        robot._set_coords((self.data['x'], self.data['y']))
 
 
 class GeometryUpdate(Update):

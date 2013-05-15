@@ -23,11 +23,10 @@ class Component(object):
         return not self.working if self.working is not None else None
 
 
-class Action(geom.Point):
+class Action(object):
     """An instance of this class determines what will a robot do."""
 
     def __init__(self, robot):
-        geom.Point.__init__(self)
         self.robot = robot
         self.x = None
         self.y = None
@@ -78,7 +77,7 @@ class Robot(geom.Circle):
 
     def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None):
         """This class represents a robot, regardless of the team."""
-        super(Robot, self).__init__()
+        super(Robot, self).__init__(0.15, 0.0, 0.0)
 
         # ideally robot should inherit from a class that has an angle
         # and some geometry framework can use that angle
@@ -109,9 +108,9 @@ class Robot(geom.Circle):
     def height(self):
         return self.body.height if self.body else None
 
-    @property
-    def radius(self):
-        return self.body.radius if self.body else None
+    #@property
+    #def radius(self):
+    #    return self.body.radius if self.body else None
 
     @property
     def color(self):
@@ -208,10 +207,11 @@ class Team(defaultdict):
 class Ball(geom.Circle):
     """Well, a ball."""
 
-    def __init__(self):
-        super(Ball, self).__init__()
-        self.x = 0
-        self.y = 0
+    def __init__(self, world):
+        super(Ball, self).__init__(0.03, 0.0, 0.0)
+        #self.x = 0
+        #self.y = 0
+        self.world = world
 
 
 class Goal(object):
@@ -241,6 +241,21 @@ class Goal(object):
     @property
     def wall_width(self):
         return self.world.goal_wall_width
+
+
+class Referee(object):
+    class Stage:
+        FirstHalf = 'FirstHalf'
+        HalfTime = 'HalfTime'
+        SecondHalf = 'SecondHalf'
+        OvertimeFirstHalf = 'OvertimeFirstHalf'
+        OvertimeSecondHalf = 'OvertimeSecondHalf'
+        Penalty = 'Penalty'
+
+    def __init__(self, world):
+        self.world = world
+        self.stage = None
+        self.control = None
 
 
 class World(object):
@@ -276,7 +291,10 @@ class World(object):
         self.right_goal = Goal(True)
         self.left_goal = Goal(False)
         self.referee = None
-        self.ball = Ball()
+        self.ball = Ball(self)
+
+        # the referee
+        self.referee = Referee(self)
 
     def switch_sides(self):
         self.right_team, self.left_team = self.left_team, self.right_team
