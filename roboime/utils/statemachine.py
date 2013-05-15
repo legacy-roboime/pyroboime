@@ -1,5 +1,6 @@
 from random import random
 
+
 class State(object):
     def __init__(self, deterministic):
         self.deterministic = deterministic
@@ -48,5 +49,3 @@ class Machine(object):
                 if rand_prob < tmp_prob:
                     self.current_state = t.to_state
                     break
-
-
