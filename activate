@@ -1,0 +1,8 @@
+#!/bin/bash
+# source this file to enter virtualenv
+#
+#     source activate
+#
+VENV_ACT=".virtualenv/bin/activate"
+make $VENV_ACT > /dev/null
+source $VENV_ACT

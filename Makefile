@@ -1,6 +1,11 @@
 # Some useful common actions
 #
 
+# Settings
+# --------
+
+PROJECT := pyroboime
+
 # virtualenv config
 VIRTUALENV := .virtualenv
 
@@ -10,28 +15,47 @@ FLAKE8_OPTS := --exclude=$(FLAKE8_EXCLUDES) --ignore=E501 --format=pylint --show
 FLAKE8_STRICT_OPTS := --exclude=$(FLAKE8_EXCLUDES) --format=pylint
 
 
+# Targets
+# -------
+
 .PHONY: all
 all: deps
 
 
+# target to create the virtualenv, based on the presence
+# of the activation script
 .PHONY: virtualenv
 VIRTUALENV_ACTIVATE := $(VIRTUALENV)/bin/activate
 virtualenv: $(VIRTUALENV_ACTIVATE)
 $(VIRTUALENV_ACTIVATE):
 	@which virtualenv || (echo "virtualenv not found" && exit 1)
-	@virtualenv $(VENV)
+	@virtualenv --prompt=[$(PROJECT)] $(VIRTUALENV)
 
 
+# install dependencies inside the virutalenv, naturally will
+# require the virtualenv
 .PHONY: deps
 deps: virtualenv
-	@. $(VIRTUALENV_ACTIVATE) && pip install -r requirements.txt
+	@. $(VIRTUALENV_ACTIVATE) && $(MAKE) pip-deps
 
+# install dependencies specified on requirements.txt taking
+# into account vialink's pip repository
+.PHONY: pip-deps
+pip-deps:
+	@pip install -r requirements.txt
 
+# wipe out the created virtualenv
+.PHONY: clean
+clean:
+	@rm -rf $(VIRTUALENV)
+
+# check PEP8 compliancy without max column limit
 .PHONY: pep8
 pep8:
 	@flake8 $(FLAKE8_OPTS) roboime
 
 
+# check PEP8 compliancy more strictly
 .PHONY: pep8-strict
 pep8-strict:
 	@flake8 $(FLAKE8_STRICT_OPTS) roboime
