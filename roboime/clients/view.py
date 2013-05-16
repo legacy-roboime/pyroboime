@@ -5,6 +5,9 @@ from Tkinter import Canvas, Frame, Tk, CHORD, NSEW
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface
+from ..core.skills import goto
+
+import pdb
 
 FIELD_GREEN = '#3a0'
 YELLOW = '#ff0'
@@ -18,6 +21,9 @@ ORANGE = '#f80'
 class FieldCanvas(Canvas):
 
     def __init__(self, *args, **kwargs):
+        self.world = kwargs["world"]
+        del kwargs["world"]
+        
         Canvas.__init__(self, *args, **kwargs)
 
         #TODO: make the following dynamic
@@ -92,7 +98,10 @@ class FieldCanvas(Canvas):
             self._cy(robot.y + robot.radius),
         )
         self.itemconfig(r, start=(robot.angle + 180 - self.anglespan / 2))
-        self.itemconfig(r, fill=YELLOW if robot.team.is_yellow else BLUE)
+        if not self.world.is_in_defense_area(robot):
+            self.itemconfig(r, fill=YELLOW if robot.team.is_yellow else BLUE)
+        else:
+            self.itemconfig(r, fill=GREEN if robot.team.is_yellow else PINK)
 
     def draw_ball(self, ball):
         if id(ball) in self.balls:
@@ -146,9 +155,10 @@ class View(Tk):
 
         self.content = Frame(self)
         self.content.grid(row=0, column=0, sticky=NSEW)
-
-        self.canvas = FieldCanvas(self.content)
+        
+        self.canvas = FieldCanvas(self.content, world = self.world)
         self.canvas.grid(row=0, column=0, sticky=NSEW)
+        
 
     def redraw(self):
         #if len(self.world.blue_team) > 0:
@@ -163,6 +173,7 @@ class View(Tk):
         if 1 in self.world.blue_team:
             r = self.world.blue_team[1]
             r.action.speeds = (1.0, 0.0, 0.0)
+            
         #try:
         #    self.interface.step()
         #except:

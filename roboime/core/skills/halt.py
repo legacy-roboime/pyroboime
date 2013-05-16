@@ -1,4 +1,4 @@
-from . import Skill
+from .. import Skill
 
 
 class Halt(Skill):

@@ -40,7 +40,7 @@ class Interface(object):
             p.stop()
 
     def step(self):
-        # updates injection fase
+        # updates injection phase
         for up in self.updaters:
             while not up.queue.empty():
                 uu = up.queue.get()
@@ -51,7 +51,7 @@ class Interface(object):
                 for u in uu:
                     u.apply(self.world)
 
-        # actions extraction fase
+        # actions extraction phase
         # TODO filtering
         for co in self.commanders:
             actions = []

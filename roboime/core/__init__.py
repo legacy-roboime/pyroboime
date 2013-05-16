@@ -22,7 +22,7 @@ class Skill(State):
 
     @property
     def goal(self):
-        return self.robot.goal
+        return self.team.goal
 
     def step(self):
         pass

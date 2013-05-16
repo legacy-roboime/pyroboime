@@ -8,6 +8,8 @@ from functools import partial
 from .utils import geom
 from .utils.mathutils import cos, sin
 
+import pdb
+
 Yellow = 'yellow'
 Blue = 'blue'
 
@@ -80,6 +82,7 @@ class Action(object):
         if self._speeds is not None:
             return tuple(self._speeds)
         else:
+            # This is deprecated and can be removed at any time. Use goto instead.
             s = self.speed or 0.5
             #TODO: implement some PID, should this be really here?
             if not self:
@@ -162,6 +165,13 @@ class Robot(geom.Point):
         else:
             return None
 
+	@property
+	def goal(self):
+		if self.team is not None:
+			return self.team.goal
+		else:
+			return None
+			
     @property
     def world(self):
         if self.team is not None:
@@ -228,7 +238,7 @@ class Team(defaultdict):
 
     @property
     def goal(self):
-        self.world.goal(self.color)
+        return self.world.goal(self.color)
 
     @property
     def is_blue(self):
@@ -272,7 +282,7 @@ class Goal(object):
     @property
     def x(self):
         x = self.world.length / 2.0
-        if self._left:
+        if not self._left:
             x *= -1
         return x
 
@@ -313,14 +323,14 @@ class World(object):
     def __init__(self, right_team=None, left_team=None):
         # metric constants
         self.width = None
-        self.length = None
+        self.length = 0
         self.line_width = None
         self.boundary_width = None
         self.referee_width = None
         self.center_radius = None
-        self.defense_radius = None
-        self.defense_stretch = None
-        self.free_kick_distance = None
+        self.defense_radius = 0
+        self.defense_stretch = 0
+        self.free_kick_distance = 0
         self.penalty_spot_distance = None
         self.penalty_line_distance = None
         self.goal_width = None
@@ -338,8 +348,8 @@ class World(object):
         else:
             left_team.world = self
             self.left_team = left_team
-        self.right_goal = Goal(True)
-        self.left_goal = Goal(False)
+        self.right_goal = Goal(self, True)
+        self.left_goal = Goal(self, False)
         self.referee = None
         self.ball = Ball(self)
 
@@ -374,6 +384,7 @@ class World(object):
         return self.goal(Blue)
 
     def goal(self, color):
+        pdb.set_trace
         if self.right_team.color == color:
             return self.right_goal
         elif self.left_team.color == color:
@@ -381,6 +392,18 @@ class World(object):
         else:
             raise Exception
 
+    def is_in_defense_area(self, robot):
+        return self.defense_area(robot.color).contains(robot.body) or self.defense_area(robot.color).crosses(robot.body)
+            
+    def defense_area(self, color):
+        goal = self.goal(color)
+        gx, gy = goal.x, goal.y
+        goal_width = self.goal_width
+        defense_area_radius = self.defense_radius
+        defense_area_stretch = self.defense_stretch
+        line_to_buffer = geom.Line([(gx, gy + defense_area_stretch/2),(gx, gy - defense_area_stretch/2)])
+        return line_to_buffer.buffer(defense_area_radius)
+        
     @property
     def robots(self):
         return list(self.iterrobots())
