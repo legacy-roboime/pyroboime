@@ -36,9 +36,9 @@ class Goto(Skill):
         va = 0
         dx, dy = self.x - r.x, self.y - r.y
         if dx * dx + dy * dy > 0:
-            abs = sqrt(dx * dx + dy * dy)
-            vx = s * dx / abs
-            vy = s * dy / abs
+            size = sqrt(dx * dx + dy * dy)
+            vx = s * dx / size
+            vy = s * dy / size
             r.action.absolute_speeds = vx, vy, va
 
     @property
