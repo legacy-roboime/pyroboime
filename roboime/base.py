@@ -392,8 +392,11 @@ class World(object):
         else:
             raise Exception
 
-    def is_in_defense_area(self, robot):
-        return self.defense_area(robot.color).contains(robot.body) or self.defense_area(robot.color).crosses(robot.body)
+    def is_in_defense_area(self, robot = None, body = None, color = None):
+        if body and color:
+            return not self.defense_area(color).intersection(body).is_empty
+        elif robot:
+            return self.defense_area(robot.color).contains(robot) or not self.defense_area(robot.color).intersection(robot.body).is_empty
             
     def defense_area(self, color):
         goal = self.goal(color)

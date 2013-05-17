@@ -2,7 +2,7 @@ from Tkinter import Canvas, Frame, Tk, CHORD, NSEW
 #import ttk
 #from math import pi as PI
 
-from ..base import World
+from ..base import World, Blue, Yellow
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface
 from ..core.skills import goto
@@ -16,7 +16,7 @@ GREEN = '#0f0'
 PINK = '#f0f'
 BLACK = '#000'
 ORANGE = '#f80'
-
+WHITE = '#FFF'
 
 class FieldCanvas(Canvas):
 
@@ -126,6 +126,12 @@ class FieldCanvas(Canvas):
             del self.robots[rid]
 
     def draw_field(self, world):
+        for color in [Blue, Yellow]:
+            if not world.defense_area(color).is_empty:
+                converted_polygon = [(self._cx(x), self._cy(y)) for (x, y) in world.defense_area(color).exterior.coords]
+                self.create_polygon(converted_polygon, 
+                                    outline = WHITE,
+                                    fill='')
         # TODO: redraw field size if changed
         self.draw_ball(world.ball)
         # draw all robots on the field
@@ -173,6 +179,12 @@ class View(Tk):
         if 1 in self.world.blue_team:
             r = self.world.blue_team[1]
             r.action.speeds = (1.0, 0.0, 0.0)
+        if 2 in self.world.blue_team:
+            r = r = self.world.blue_team[1]
+            if not self.goto:
+                self.goto = goto.Goto(r, x = self.world.ball.x, y = self.world.ball.y, angle = 20, speed = 1, ang_speed = 0.2)
+            self.goto.x, self.goto.y = -1, 1
+            self.goto.step()
             
         #try:
         #    self.interface.step()
@@ -190,6 +202,7 @@ class View(Tk):
         self.after(10, self.redraw)
 
     def mainloop(self):
+        self.goto = None
         self.interface.start()
         self.redraw()
         Tk.mainloop(self)
