@@ -1,23 +1,25 @@
 from .. import Skill
-from ...utils.mathutils import cos, sin, sqrt
+#from ...utils.mathutils import cos, sin, sqrt
+from ...utils.mathutils import sqrt
 from ...utils.geom import Point
 import sys
-class Goto(Skill):	
-    def __init__(self, robot, x, y, angle = False, speed = 0.5, ang_speed = 0.2, goalkeeper = False):
+
+class Goto(Skill):
+    def __init__(self, robot, x, y, angle=False, speed=0.5, ang_speed=0.2, goalkeeper=False):
         super(Goto, self).__init__(robot, True)
-        if not angle: 
+        if not angle:
             self.a = robot.angle
-        else: 
+        else:
             self.a = angle
         self.speed = speed
         self.ang_speed = ang_speed
         self.x = x
         self.y = y
         self.avoid_defense_area = not goalkeeper
-    
+
     def busy(self):
-        return false
-	
+        return False
+
     def step(self):
         if self.robot.world.is_in_defense_area(body = Point(self.x, self.y).buffer(self.robot.radius), color = self.robot.color):
             point = self.point_away_from_defense_area
@@ -56,8 +58,3 @@ class Goto(Skill):
             dy = desired_distance*(intersection.y - self.y)/modulus
             return Point(self.x + dx, self.y + dy)
         else: return Point(self.x, self.y)
-        
-        
-        
-        
-        
