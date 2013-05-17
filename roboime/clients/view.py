@@ -18,6 +18,7 @@ BLACK = '#000'
 ORANGE = '#f80'
 WHITE = '#FFF'
 
+
 class FieldCanvas(Canvas):
 
     def __init__(self, *args, **kwargs):
@@ -129,8 +130,8 @@ class FieldCanvas(Canvas):
         for color in [Blue, Yellow]:
             if not world.defense_area(color).is_empty:
                 converted_polygon = [(self._cx(x), self._cy(y)) for (x, y) in world.defense_area(color).exterior.coords]
-                self.create_polygon(converted_polygon, 
-                                    outline = WHITE,
+                self.create_polygon(converted_polygon,
+                                    outline=WHITE,
                                     fill='')
         # TODO: redraw field size if changed
         self.draw_ball(world.ball)
@@ -181,10 +182,10 @@ class View(Tk):
         if 2 in self.world.blue_team:
             r = r = self.world.blue_team[1]
             if not self.goto:
-                self.goto = goto.Goto(r, x = self.world.ball.x, y = self.world.ball.y, angle = 20, speed = 1, ang_speed = 0.2)
+                self.goto = goto.Goto(r, x=self.world.ball.x, y=self.world.ball.y, angle=20, speed=1, ang_speed=0.2)
             self.goto.x, self.goto.y = -1, 1
             self.goto.step()
-            
+
         #try:
         #    self.interface.step()
         #except:
