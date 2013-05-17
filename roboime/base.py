@@ -113,7 +113,6 @@ class Action(object):
         self._speeds = (vx * cos(ra) + vy * sin(ra), vy * cos(ra) - vx * sin(ra), va)
 
 
-
 class Robot(geom.Point):
 
     def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None):
@@ -165,13 +164,13 @@ class Robot(geom.Point):
         else:
             return None
 
-	@property
-	def goal(self):
-		if self.team is not None:
-			return self.team.goal
-		else:
-			return None
-			
+    @property
+    def goal(self):
+        if self.team is not None:
+            return self.team.goal
+        else:
+            return None
+
     @property
     def world(self):
         if self.team is not None:
@@ -394,16 +393,16 @@ class World(object):
 
     def is_in_defense_area(self, robot):
         return self.defense_area(robot.color).contains(robot.body) or self.defense_area(robot.color).crosses(robot.body)
-            
+
     def defense_area(self, color):
         goal = self.goal(color)
         gx, gy = goal.x, goal.y
-        goal_width = self.goal_width
+        #goal_width = self.goal_width
         defense_area_radius = self.defense_radius
         defense_area_stretch = self.defense_stretch
-        line_to_buffer = geom.Line([(gx, gy + defense_area_stretch/2),(gx, gy - defense_area_stretch/2)])
+        line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
         return line_to_buffer.buffer(defense_area_radius)
-        
+
     @property
     def robots(self):
         return list(self.iterrobots())

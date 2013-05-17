@@ -5,9 +5,9 @@ from Tkinter import Canvas, Frame, Tk, CHORD, NSEW
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface
-from ..core.skills import goto
+#from ..core.skills import goto
 
-import pdb
+#import pdb
 
 FIELD_GREEN = '#3a0'
 YELLOW = '#ff0'
@@ -23,7 +23,7 @@ class FieldCanvas(Canvas):
     def __init__(self, *args, **kwargs):
         self.world = kwargs["world"]
         del kwargs["world"]
-        
+
         Canvas.__init__(self, *args, **kwargs)
 
         #TODO: make the following dynamic
@@ -155,10 +155,9 @@ class View(Tk):
 
         self.content = Frame(self)
         self.content.grid(row=0, column=0, sticky=NSEW)
-        
-        self.canvas = FieldCanvas(self.content, world = self.world)
+
+        self.canvas = FieldCanvas(self.content, world=self.world)
         self.canvas.grid(row=0, column=0, sticky=NSEW)
-        
 
     def redraw(self):
         #if len(self.world.blue_team) > 0:
@@ -173,7 +172,7 @@ class View(Tk):
         if 1 in self.world.blue_team:
             r = self.world.blue_team[1]
             r.action.speeds = (1.0, 0.0, 0.0)
-            
+
         #try:
         #    self.interface.step()
         #except:
