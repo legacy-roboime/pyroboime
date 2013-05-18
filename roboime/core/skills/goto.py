@@ -9,7 +9,8 @@ from ...utils.pidcontroller import PidController
 class Goto(Skill):
     def __init__(self, robot, x, y, angle=False, speed=0.5, ang_speed=0.2, goalkeeper=False):
         super(Goto, self).__init__(robot, True)
-        self.angle_controller = PidController(kp=5.8, ki=0, kd=0, integ_max=687.55, output_max=100000)
+        #TODO: find the right parameters
+        self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
         #self.angle_controller = PidController(kp=1.324, ki=0, kd=0, integ_max=6.55, output_max=1000)
         self.angle = angle if angle is not None else robot.angle
         self.speed = speed
@@ -22,7 +23,7 @@ class Goto(Skill):
         return False
 
     def step(self):
-        if self.robot.world.is_in_defense_area(body=Point(self.x, self.y).buffer(self.robot.radius), color=self.robot.color):
+        if self.avoid_defense_area and self.robot.world.is_in_defense_area(body=Point(self.x, self.y).buffer(self.robot.radius), color=self.robot.color):
             point = self.point_away_from_defense_area
             self.x = point.x
             self.y = point.y
@@ -34,10 +35,11 @@ class Goto(Skill):
         # FIXME: Velocidade angular nao pode ficar ridiculamente grande depois de alguns spins
         #va = ang_speed * (self.a - r.angle)
         self.angle_controller.input = (180 + self.angle - self.robot.angle) % 360 - 180
+        print 'input:', self.angle_controller.input
         self.angle_controller.feedback = 0.0
         self.angle_controller.step()
         va = self.angle_controller.output
-
+        print 'output:', va
         dx, dy = self.x - r.x, self.y - r.y
         if dx * dx + dy * dy > 0:
             size = sqrt(dx * dx + dy * dy)
