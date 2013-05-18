@@ -1,6 +1,7 @@
 from .. import Skill
 #from ...utils.mathutils import cos, sin, sqrt
 from ...utils.mathutils import sqrt
+from ...utils.mathutils import exp
 from ...utils.geom import Point
 from ...utils.pidcontroller import PidController
 #import sys
@@ -23,31 +24,40 @@ class Goto(Skill):
         return False
 
     def step(self):
+        r = self.robot 
+        
         if self.avoid_defense_area and self.robot.world.is_in_defense_area(body=Point(self.x, self.y).buffer(self.robot.radius), color=self.robot.color):
             point = self.point_away_from_defense_area
             self.x = point.x
             self.y = point.y
 
-        #TODO: Control!
-        s = self.speed
-
-        r = self.robot
         # FIXME: Velocidade angular nao pode ficar ridiculamente grande depois de alguns spins
         #va = ang_speed * (self.a - r.angle)
         self.angle_controller.input = (180 + self.angle - self.robot.angle) % 360 - 180
-        print 'input:', self.angle_controller.input
+        #print 'input:', self.angle_controller.input
         self.angle_controller.feedback = 0.0
         self.angle_controller.step()
         va = self.angle_controller.output
-        print 'output:', va
+        #print 'output:', va
         dx, dy = self.x - r.x, self.y - r.y
-        if dx * dx + dy * dy > 0:
-            size = sqrt(dx * dx + dy * dy)
-            vx = s * dx / size
-            vy = s * dy / size
-        else:
-            vx = vy = 0.0
-
+        #if dx * dx + dy * dy > 0:
+        #    
+        #    vx = s * dx / size
+        #    vy = s * dy / size
+        #else:
+        #    vx = vy = 0.0
+        #TODO: Control!
+        error = sqrt(dx * dx + dy * dy)
+        g = 9.80665
+        mi = 0.1
+        a_max = mi * g
+        v_max = self.speed
+        cte = (4 * a_max / (v_max * v_max))
+        speed_temp = v_max * ( 1 - exp(-cte * error) )
+        vx = speed_temp * (dx / error)
+        vy = speed_temp * (dy / error)
+        #print vx, vy
+            
         #print r.action.absolute_speeds
         r.action.absolute_speeds = vx, vy, va
 

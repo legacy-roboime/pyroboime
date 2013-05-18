@@ -182,8 +182,10 @@ class View(Tk):
         if 2 in self.world.blue_team:
             r = self.world.blue_team[2]
             if not self.goto:
-                self.goto = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
-            self.goto.x, self.goto.y = r.x, r.y
+                self.goto = goto.Goto(r, x=0, y=0, angle=90, speed=2.0, ang_speed=10)
+                #self.goto = goto.Goto(r, x=r.world.ball.x, y=r.world.ball.y, angle=90, speed=1, ang_speed=10)
+                #self.goto = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
+            #self.goto.x, self.goto.y = r.world.ball.x, r.world.ball.y
             self.goto.step()
 
         #try:
