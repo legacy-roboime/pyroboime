@@ -168,22 +168,22 @@ class View(Tk):
 
     def redraw(self):
         #if len(self.world.blue_team) > 0:
-        if 0 in self.world.blue_team:
-            r = self.world.blue_team[0]
-            #import pudb; pudb.set_trace()
-            #print 'hey'
-            a = r.action
-            a.x = 0.0
-            a.y = 0.0
-            a.angle = 0.0
-        if 1 in self.world.blue_team:
-            r = self.world.blue_team[1]
-            r.action.speeds = (1.0, 0.0, 0.0)
+        #if 0 in self.world.blue_team:
+        #    r = self.world.blue_team[0]
+        #    #import pudb; pudb.set_trace()
+        #    #print 'hey'
+        #    a = r.action
+        #    a.x = 0.0
+        #    a.y = 0.0
+        #    a.angle = 0.0
+        #if 1 in self.world.blue_team:
+        #    r = self.world.blue_team[1]
+        #    r.action.speeds = (1.0, 0.0, 0.0)
         if 2 in self.world.blue_team:
-            r = r = self.world.blue_team[1]
+            r = self.world.blue_team[2]
             if not self.goto:
-                self.goto = goto.Goto(r, x=self.world.ball.x, y=self.world.ball.y, angle=20, speed=1, ang_speed=0.2)
-            self.goto.x, self.goto.y = -1, 1
+                self.goto = goto.Goto(r, x=r.x, y=r.y, angle=180, speed=1, ang_speed=10)
+            self.goto.x, self.goto.y = r.x, r.y
             self.goto.step()
 
         #try:

@@ -2,16 +2,16 @@ from .. import Skill
 #from ...utils.mathutils import cos, sin, sqrt
 from ...utils.mathutils import sqrt
 from ...utils.geom import Point
+from ...utils.pidcontroller import PidController
 #import sys
 
 
 class Goto(Skill):
     def __init__(self, robot, x, y, angle=False, speed=0.5, ang_speed=0.2, goalkeeper=False):
         super(Goto, self).__init__(robot, True)
-        if not angle:
-            self.a = robot.angle
-        else:
-            self.a = angle
+        self.angle_controller = PidController(kp=5.8, ki=0, kd=0, integ_max=687.55, output_max=100000)
+        #self.angle_controller = PidController(kp=1.324, ki=0, kd=0, integ_max=6.55, output_max=1000)
+        self.angle = angle if angle is not None else robot.angle
         self.speed = speed
         self.ang_speed = ang_speed
         self.x = x
@@ -33,13 +33,21 @@ class Goto(Skill):
         r = self.robot
         # FIXME: Velocidade angular nao pode ficar ridiculamente grande depois de alguns spins
         #va = ang_speed * (self.a - r.angle)
-        va = 0
+        self.angle_controller.input = (180 + self.angle - self.robot.angle) % 360 - 180
+        self.angle_controller.feedback = 0.0
+        self.angle_controller.step()
+        va = self.angle_controller.output
+
         dx, dy = self.x - r.x, self.y - r.y
         if dx * dx + dy * dy > 0:
             size = sqrt(dx * dx + dy * dy)
             vx = s * dx / size
             vy = s * dy / size
-            r.action.absolute_speeds = vx, vy, va
+        else:
+            vx = vy = 0.0
+
+        #print r.action.absolute_speeds
+        r.action.absolute_speeds = vx, vy, va
 
     @property
     def point_away_from_defense_area(self):

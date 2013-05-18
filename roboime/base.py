@@ -80,7 +80,8 @@ class Action(object):
     @property
     def speeds(self):
         if self._speeds is not None:
-            return tuple(self._speeds)
+            #return tuple(self._speeds)
+            return (self._speeds[0], self._speeds[1], self._speeds[2] * 3.1415926535987810 / 180)
         else:
             # This is deprecated and can be removed at any time. Use goto instead.
             s = self.speed or 0.5

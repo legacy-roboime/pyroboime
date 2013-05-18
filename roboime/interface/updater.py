@@ -9,7 +9,6 @@ else:
 from ..communication import sslvision
 from .. import base
 
-import pdb
 
 STOP_TIMEOUT = 1
 
