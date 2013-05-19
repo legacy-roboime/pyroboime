@@ -10,7 +10,12 @@ class Point(geometry.Point):
         x0, y0 = line.coords[0]
         x1, y1 = line.coords[1]
         return norm(cross([self.x - x0, self.y - y0, 0.0], [x1 - x0, y1 - y0, 0.0]))
-
+    
+    def update(self, *args, **kwargs):
+        """ This reconstructs the current point with a new set of coordinates so that
+        we can work around the fact that shapely points cannot have their coordinate sets changed
+        """
+        super(Point, self).__init__(*args, **kwargs)
 
 class Circle(geometry.Polygon):
 

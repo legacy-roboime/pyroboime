@@ -8,4 +8,4 @@ class Halt(Skill):
     """
 
     def step(self):
-        self.robot.action.target = self.robot.x, self.robot.y, self.robot.angle
+        self.robot.action.absolute_speeds = 0, 0, 0

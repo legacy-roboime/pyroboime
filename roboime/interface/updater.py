@@ -9,6 +9,7 @@ else:
 from ..communication import sslvision
 from .. import base
 
+import pdb
 
 STOP_TIMEOUT = 1
 
@@ -29,7 +30,7 @@ class BallUpdate(Update):
         for prop, value in self.data.iteritems():
             if prop != 'x' and prop != 'y':
                 setattr(ball, prop, value)
-        ball._set_coords((self.data['x'], self.data['y']))
+        ball.update((self.data['x'], self.data['y']))
 
 
 class RobotUpdate(Update):
@@ -48,7 +49,7 @@ class RobotUpdate(Update):
         for prop, value in self.data.iteritems():
             if prop != 'x' and prop != 'y':
                 setattr(robot, prop, value)
-        robot._set_coords((self.data['x'], self.data['y']))
+        robot.update((self.data['x'], self.data['y']))
 
 
 class GeometryUpdate(Update):

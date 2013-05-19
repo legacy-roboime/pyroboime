@@ -1,4 +1,5 @@
 from Tkinter import Canvas, Frame, Tk, CHORD, NSEW
+from time import time
 #import ttk
 #from math import pi as PI
 
@@ -6,9 +7,10 @@ from ..base import World, Blue, Yellow
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface
 from ..core.skills import goto
+from ..core.skills import gotoavoid
 from ..utils.geom import Point
 
-#import pdb
+import pdb
 
 FIELD_GREEN = '#3a0'
 YELLOW = '#ff0'
@@ -43,6 +45,8 @@ class FieldCanvas(Canvas):
         self['height'] = 100 * (self.field_width + 2 * self.field_margin)
         self.robots = {}
         self.balls = {}
+        
+        self.fps = self.create_text(50, 20, fill=BLACK)
 
         # lines
         self.bounds = self.create_rectangle(
@@ -144,7 +148,9 @@ class FieldCanvas(Canvas):
         for r in self.robots.iterkeys():
             if r not in rids:
                 self.delete_robot(r)
-
+    
+    def draw_fps(self, text):
+        self.itemconfig(self.fps, text=str(text))
 
 class View(Tk):
 
@@ -166,6 +172,9 @@ class View(Tk):
 
         self.canvas = FieldCanvas(self.content, world=self.world)
         self.canvas.grid(row=0, column=0, sticky=NSEW)
+        
+        self.timestamp1 = time()
+        self.timestamp2 = time()
 
     def redraw(self):
         #if len(self.world.blue_team) > 0:
@@ -182,8 +191,9 @@ class View(Tk):
         #    r.action.speeds = (1.0, 0.0, 0.0)
         if 2 in self.world.blue_team:
             r = self.world.blue_team[2]
-            if not self.goto:
-                self.goto = goto.Goto(r, target=Point(0, 0), angle=90)
+            r.max_speed = 0.5
+            if self.goto is None:
+                self.goto = gotoavoid.GotoAvoid(r, target=Point(0, 0), avoid=self.world.ball)
                 #self.goto = goto.Goto(r, x=r.world.ball.x, y=r.world.ball.y, angle=90, speed=1, ang_speed=10)
                 #self.goto = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
             #self.goto.x, self.goto.y = r.world.ball.x, r.world.ball.y
@@ -202,7 +212,10 @@ class View(Tk):
         self.interface.step()
         self.canvas.draw_field(self.world)
         # how long should we wait?
-        self.after(10, self.redraw)
+        self.timestamp2, self.timestamp1 = self.timestamp1, time()
+        self.canvas.draw_fps("{:.02f}".format(1.0 / (self.timestamp1 - self.timestamp2)))
+        #self.after(10, self.redraw)
+        self.after(1, self.redraw)
 
     def mainloop(self):
         self.goto = None
