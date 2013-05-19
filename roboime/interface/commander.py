@@ -1,4 +1,5 @@
 from multiprocessing import Process, Queue, Event
+from math import pi
 
 from ..communication import grsim
 from time import time
@@ -53,7 +54,7 @@ class SimCommander(Commander):
                 c.kickspeedz = a.chipkick or 0.0
                 c.veltangent = vx
                 c.velnormal = vy
-                c.velangular = va
+                c.velangular = va * pi / 180
                 c.spinner = (a.dribble or 0.0) > 0
                 c.wheelsspeed = False
 
