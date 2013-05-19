@@ -44,11 +44,12 @@ Diagram
          |         ^   filter[0]    |         |
          +---------|----------------|---------+
                    |                |
-             +-----|----------------|-----+
+             +-----!----------------v-----+
              |         interface          |
              +----------[step]------------+
                           ^
                           |
+                          v
                     [Intelligence]
 
 
@@ -64,3 +65,16 @@ each filter will be called on filter_updates with the list of updates that arriv
 if it returns, the returned value is passed to the next filter. The order in which
 filters are called are reversed when commands are sent, that is to allow filters
 imidiate/final access to the external entity or the inteligence.
+
+If the filter needs to persist data across commands or updates it must store data
+itself, and avoid completely acessing the intelligence world.
+
+
+Plans for the future
+--------------------
+
+Maximizing performance is desired and to cope with that the interface as a whole
+will be decoupled from the intelligence to run on its own process/thread, and thus
+avoiding the filter processing overhead form interfearing with the core intelligence.
+
+Also, filters will have to run as soon as possible instead of only when step is called.
