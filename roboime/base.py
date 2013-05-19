@@ -115,10 +115,16 @@ class Action(object):
 
 class Robot(geom.Point):
 
-    def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None):
-        """This class represents a robot, regardless of the team."""
+    def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None, max_speed=5.0, max_ang_speed=10.0):
+        """This class represents a robot, regardless of the team.
+        
+        Remember to set max_speed and max_ang_speed to reasonable limits.
+        """
         super(Robot, self).__init__(0.0, 0.0)
         self._radius = 180e-3 / 2
+        self.max_speed = max_speed
+        self.max_ang_speed = max_ang_speed
+        self.is_goalkeeper = False
 
         # ideally robot should inherit from a class that has an angle
         # and some geometry framework can use that angle

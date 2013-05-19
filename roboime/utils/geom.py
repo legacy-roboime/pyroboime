@@ -1,9 +1,15 @@
 """Geometry classes."""
 from shapely import geometry
+from numpy import cross
+from numpy.linalg import norm
 
 
 class Point(geometry.Point):
-    pass
+    def distance_to_line(self, line):
+        """ Distance to a line, NOT a segment."""
+        x0, y0 = line.coords[0]
+        x1, y1 = line.coords[1]
+        return norm(cross([self.x - x0, self.y - y0, 0.0], [x1 - x0, y1 - y0, 0.0]))
 
 
 class Circle(geometry.Polygon):
@@ -34,4 +40,17 @@ class Circle(geometry.Polygon):
 
 
 class Line(geometry.LineString):
-    pass
+    def __init__(self, *args, **kwargs):
+        """If you're passing anything aside from the coordinates, please use kwargs."""
+        if len(args) > 1:
+            x1, y1, x2, y2 = args[0].x, args[0].y, args[1].x, args[1].y
+            super(Line, self).__init__([(x1, y1), (x2, y2)], **kwargs)
+        else:
+            super(Line, self).__init__(*args, **kwargs)
+
+    def normal_vector(self):
+        """Will return a numpy array with two coordinates that is normal to the line."""
+        x1, y1 = self.coords[0]
+        x2, y2 = self.coords[1]
+        v = cross((x1 - x2, y1 - y2, 0.0), (0.0, 0.0, 1.0))[:2]
+        return v / norm(v)
