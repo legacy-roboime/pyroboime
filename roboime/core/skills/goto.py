@@ -32,20 +32,23 @@ class Goto(Skill):
         self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
         #self.angle_controller = PidController(kp=1.324, ki=0, kd=0, integ_max=6.55, output_max=1000)
         self.angle = angle
-        self.target = target if target is not None else robot
-        self.final_target = final_target if final_target is not None else self.target
+        self.target = target
+        # self.final_target = final_target if final_target is not None else self.target
+        self.final_target = final_target
 
     def busy(self):
         return False
 
     def step(self):
         r = self.robot
+        t = self.target if self.target is not None else r
+        f_t = self.final_target if self.final_target is not None else self.target
         # TODO: Check if target is within the boundaries of the field (augmented of the robot's radius).
         
         # check wether the point we want to go to will make the robot be in the defense area
         # if so then we'll go to the nearest point that meets that constraint
-        if not r.is_goalkeeper and r.world.is_in_defense_area(body=self.target.buffer(r.radius), color=r.color):
-            self.target = self.point_away_from_defense_area
+        if not r.is_goalkeeper and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
+            t = self.point_away_from_defense_area
 
         # angle control using PID controller
         if self.angle is not None:
@@ -57,7 +60,7 @@ class Goto(Skill):
             va = 0
 
         # the error vector from the robot to the target point
-        error = array(self.target.coords[0]) - array(r.coords[0])
+        error = array(t.coords[0]) - array(r.coords[0])
         
         # some crazy equation that makes the robot converge to the target point
         g = 9.80665
@@ -65,7 +68,7 @@ class Goto(Skill):
         a_max = mi * g
         v_max = r.max_speed
         cte = (4 * a_max / (v_max * v_max))
-        out = v_max * (1 - exp(-cte * r.distance(self.final_target)))
+        out = v_max * (1 - exp(-cte * r.distance(f_t)))
         # v is the speed vector resulting from that equation
         v = out * error / norm(error)
 

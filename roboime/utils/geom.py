@@ -1,7 +1,11 @@
 """Geometry classes."""
 from shapely import geometry
+from shapely.geometry import point
 from numpy import cross
 from numpy.linalg import norm
+
+
+_c_double_Array_2 = point.c_double * (2)
 
 
 class Point(geometry.Point):
@@ -11,11 +15,17 @@ class Point(geometry.Point):
         x1, y1 = line.coords[1]
         return norm(cross([self.x - x0, self.y - y0, 0.0], [x1 - x0, y1 - y0, 0.0]))
     
-    def update(self, *args, **kwargs):
+    def update(self, *args):
         """ This reconstructs the current point with a new set of coordinates so that
         we can work around the fact that shapely points cannot have their coordinate sets changed
         """
-        super(Point, self).__init__(*args, **kwargs)
+        #super(Point, self).__init__(*args, **kwargs)
+        self._set_coords(*args)
+        if len(args) == 1:
+            ctypes_data = _c_double_Array_2(*args[0])
+        else:
+            ctypes_data = _c_double_Array_2(*args)
+        self._ctypes_data = ctypes_data
 
 class Circle(geometry.Polygon):
 
