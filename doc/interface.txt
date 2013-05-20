@@ -8,9 +8,9 @@ Abstract
 The interface is a class that should be instantiated for each type of interfacing,
 for instance when interfacing to a simulated environment, or a real environment.
 
-An instance of a interface should have means of sending and receiving information.
+An instance of an interface should have means of sending and receiving information.
 
-Sending is achieved through Commanders and receiving Updaters, in between there may
+Sending is achieved through Commanders and receiving Updaters. In between there may
 be filters to normalize the data (convert units, reduce errors or invalidate undesired
 data).
 
@@ -56,15 +56,15 @@ Diagram
 Mechanism
 ---------
 
-Each updater rolls on its own process or thread (depending on the system) and is
+Each updater rolls on its own process or thread (depending on the system) and it
 may be constantly listenting on a port for incoming packages, while commanders
-are only called when the interfece is stepped.
+are only called when the interface is stepped.
 
-The list of filters may intercept updates and commmands. Whenever an update arrives
+The list of filters may intercept updates and commmands. Whenever an update arrives,
 each filter will be called on filter_updates with the list of updates that arrived,
 if it returns, the returned value is passed to the next filter. The order in which
 filters are called are reversed when commands are sent, that is to allow filters
-imidiate/final access to the external entity or the inteligence.
+immediate/final access to the external entity or the inteligence.
 
 If the filter needs to persist data across commands or updates it must store data
 itself, and avoid completely acessing the intelligence world.
