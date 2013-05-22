@@ -20,7 +20,7 @@ class Goto(Skill):
         final_target: the ultimate position the robot should attain
         target: the intermediate position you're ACTUALLY sending the robot to
         angle: the orientation the robot should have at target
-        
+
         final_target is there so that, on a tactic, you can make the robot follow a curve to final_target
         while not stopping near each target due to its extreme proximity to it by continuously adjusting
         target to be ever closer to final_target. These intermediate steps are not handled by this class,
@@ -44,7 +44,7 @@ class Goto(Skill):
         t = self.target if self.target is not None else r
         f_t = self.final_target if self.final_target is not None else self.target
         # TODO: Check if target is within the boundaries of the field (augmented of the robot's radius).
-        
+
         # check wether the point we want to go to will make the robot be in the defense area
         # if so then we'll go to the nearest point that meets that constraint
         if not r.is_goalkeeper and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
@@ -61,7 +61,7 @@ class Goto(Skill):
 
         # the error vector from the robot to the target point
         error = array(t.coords[0]) - array(r.coords[0])
-        
+
         # some crazy equation that makes the robot converge to the target point
         g = 9.80665
         mi = 0.1
