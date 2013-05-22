@@ -12,7 +12,14 @@ from ...utils.geom import Point
 class DriveTo(Goto):
     def __init__(self, robot, b_angle=0, b_point=Point([0, 0]), t_angle=0, threshold=0.5, max_error_d=100, max_error_a=10*pi/180):
         """
-         base is the point to from where we calculate a distance in order to find our target.
+              + Target
+             /
+            /
+           /\  b_angle
+          /__|______
+         O b_point (e.g.: Ball)
+         
+         base is the point from where we calculate a distance in order to find our target.
          threshold: distance to keep away from the base point
          b_angle: base angle, direction from base to target point
          b_point: base point, the base coords
@@ -22,14 +29,14 @@ class DriveTo(Goto):
         
         super(DriveTo, self).__init__(robot, angle=t_angle)
         self.robot = robot
-        self.b_angle = b_angle
+        self.b_angle = 180 + b_angle
         self.b_point = b_point
         self.t_angle = t_angle
         self.threshold = threshold
         self.max_error_d = max_error_d
         self.max_error_a = max_error_a
         # ignoreBrake = False
-        # boolean that indicates that we're dealing whit a deterministic skill:
+        # boolean that indicates that we're dealing with a deterministic skill:
         # super(DriveTo, self). super(Goto, self).__init__(robot, deterministic=True)
     
     def step(self):
