@@ -3,6 +3,8 @@ from shapely import geometry
 from shapely.geometry import point
 from numpy import cross
 from numpy.linalg import norm
+from numpy import pi
+from numpy import arctan2
 
 
 _c_double_Array_2 = point.c_double * (2)
@@ -26,6 +28,31 @@ class Point(geometry.Point):
         else:
             ctypes_data = _c_double_Array_2(*args)
         self._ctypes_data = ctypes_data
+    
+    
+    def angle(self, P2):
+        """ Calculates the angle from self.point to P2, relative to the x axis.
+           ^   P2
+           |  /
+           | /\ angle
+           |/  |
+        P1 +---+-->
+        """
+        deltaY = P2.y - self.y
+        deltaX = P2.x - self.x
+        ang_rad = arctan2(deltaY, deltaX) * 180 / pi
+        if(ang_rad < 0):
+            return ang_rad + 360
+        return ang_rad
+    
+    @classmethod
+    def angle_orientation(cls, P1, P2):
+        deltaY = P2.y - P1.y
+        deltaX = P2.x - P1.x
+        ang_rad = arctan2(deltaY, deltaX) * 180 / pi
+        if(ang_rad < 0):
+            return ang_rad + 360
+        return ang_rad
 
 class Circle(geometry.Polygon):
 
