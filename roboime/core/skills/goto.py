@@ -78,19 +78,16 @@ class Goto(Skill):
     @property
     def point_away_from_defense_area(self):
         # FIXME: Only works if robot is inside defense area (which, honestly, is the only place you should ever be using this).
-        r = self.robot
-
-        target = Point(self.x, self.y)
-
-        defense_area = r.world.defense_area(r.color).buffer(r.radius + 0.1).boundary
-        distance = target.distance(defense_area)
-        buffered_circumference = target.buffer(distance)
+        # FIXME: I think I broke it, needs fixing, reviewing and commenting
+        defense_area = self.world.defense_area(self.robot.color).buffer(self.robot.radius + 0.1).boundary
+        distance = self.target.distance(defense_area)
+        buffered_circumference = self.target.buffer(distance)
         intersection = buffered_circumference.intersection(defense_area).centroid
         if not intersection.is_empty:
             desired_distance = distance
             modulus = sqrt((intersection.x - self.x) * (intersection.x - self.x) + (intersection.y - self.y) * (intersection.y - self.y))
             dx = desired_distance * (intersection.x - self.x) / modulus
             dy = desired_distance * (intersection.y - self.y) / modulus
-            return Point(self.x + dx, self.y + dy)
+            return Point(array(self.target) + array((dx, dy)))
         else:
-            return Point(self.x, self.y)
+            return self.target

@@ -24,6 +24,10 @@ class Skill(State):
     def goal(self):
         return self.team.goal
 
+    @property
+    def ball(self):
+        return self.world.ball
+
     def step(self):
         pass
 
@@ -52,6 +56,10 @@ class Tactic(Machine):
     @property
     def goal(self):
         return self.robot.goal
+
+    @property
+    def ball(self):
+        return self.world.ball
 
     def step(self):
         pass

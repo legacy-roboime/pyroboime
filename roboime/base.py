@@ -121,7 +121,9 @@ class Robot(geom.Point):
         Remember to set max_speed and max_ang_speed to reasonable limits.
         """
         super(Robot, self).__init__(0.0, 0.0)
+        # TODO make a robot builder/factory to abstract these sizes
         self._radius = 180e-3 / 2
+        self.front_cut = self._radius * 0.8
         self.max_speed = max_speed
         self.max_ang_speed = max_ang_speed
         self.is_goalkeeper = False
@@ -279,21 +281,21 @@ class Ball(geom.Point):
         return geom.Circle(self, self._radius)
 
 
-class Goal(object):
-    def __init__(self, world, left=False):
+class Goal(geom.Point):
+    def __init__(self, world):
+        super(Goal, self).__init__(0.0, 0.0)
         self.world = world
-        self._left = left
 
-    @property
-    def x(self):
-        x = self.world.length / 2.0
-        if not self._left:
-            x *= -1
-        return x
+    #@property
+    #def x(self):
+    #    x = self.world.length / 2.0
+    #    if not self._left:
+    #        x *= -1
+    #    return x
 
-    @property
-    def y(self):
-        return 0.0
+    #@property
+    #def y(self):
+    #    return 0.0
 
     @property
     def width(self):
@@ -332,20 +334,20 @@ class World(object):
 
     def __init__(self, right_team=None, left_team=None):
         # metric constants
-        self.width = None
-        self.length = 0
-        self.line_width = None
-        self.boundary_width = None
-        self.referee_width = None
-        self.center_radius = None
-        self.defense_radius = 0
-        self.defense_stretch = 0
-        self.free_kick_distance = 0
-        self.penalty_spot_distance = None
-        self.penalty_line_distance = None
-        self.goal_width = None
-        self.goal_depth = None
-        self.goal_wall_width = None
+        self.width = 0.0
+        self.length = 0.0
+        self.line_width = 0.0
+        self.boundary_width = 0.0
+        self.referee_width = 0.0
+        self.center_radius = 0.0
+        self.defense_radius = 0.0
+        self.defense_stretch = 0.0
+        self.free_kick_distance = 0.0
+        self.penalty_spot_distance = 0.0
+        self.penalty_line_distance = 0.0
+        self.goal_width = 0.0
+        self.goal_depth = 0.0
+        self.goal_wall_width = 0.0
 
         # objects
         if right_team is None:
@@ -358,8 +360,8 @@ class World(object):
         else:
             left_team.world = self
             self.left_team = left_team
-        self.right_goal = Goal(self, True)
-        self.left_goal = Goal(self, False)
+        self.right_goal = Goal(self)
+        self.left_goal = Goal(self)
         self.referee = None
         self.ball = Ball(self)
 
