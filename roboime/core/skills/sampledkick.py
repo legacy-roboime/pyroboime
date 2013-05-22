@@ -1,5 +1,6 @@
 from .drivetoball import DriveToBall
 
+
 class SampledKick(DriveToBall):
     """
     This class is a DriveToBall extension that will get the robot

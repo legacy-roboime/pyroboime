@@ -1,4 +1,4 @@
-from numpy import cross, dot, array
+from numpy import array
 
 from .goto import Goto
 from ...utils.geom import Line
@@ -17,8 +17,8 @@ class GotoAvoid(Goto):
         r = self.robot
         a = self.avoid
         t = self.final_target
-        print 'AVOID', array(a.coords)
-        
+        #print 'AVOID', array(a.coords)
+
         # TODO add error margin
         avoid_radius = r.radius + self.world.ball.radius + 2.
 
@@ -34,7 +34,7 @@ class GotoAvoid(Goto):
             if len(inter) == 2:
                 p1, p2 = circ_avoid.intersection(circ_robot_avoid)
                 p = p1 if p1.distance(a) < p2.distance(a) else p2
-                print "I'm outside! ", 'tangent: ', array(p), 'target:', array(t)
+                #print "I'm outside! ", 'tangent: ', array(p), 'target:', array(t)
             else:
                 # in this case the robot is inside the avoidance circle
                 # we calculate the normal segment to the line from the robot
@@ -42,7 +42,6 @@ class GotoAvoid(Goto):
                 normal = Line(r, a).normal_vector()
                 p1, p2 = array(r) + normal * avoid_radius, array(r) - normal * avoid_radius
                 p = p1 if p1.distance(t) < p2.distance(t) else p2
-                print "I'm living in the edge! ", 'tangent: ', array(p), 'target:', array(t)
+                #print "I'm living in the edge! ", 'tangent: ', array(p), 'target:', array(t)
         self.target = p
         super(GotoAvoid, self).step()
-                

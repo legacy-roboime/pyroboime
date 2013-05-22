@@ -117,7 +117,7 @@ class Robot(geom.Point):
 
     def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None, max_speed=5.0, max_ang_speed=10.0):
         """This class represents a robot, regardless of the team.
-        
+
         Remember to set max_speed and max_ang_speed to reasonable limits.
         """
         super(Robot, self).__init__(0.0, 0.0)
@@ -316,6 +316,11 @@ class Referee(object):
         OvertimeFirstHalf = 'OvertimeFirstHalf'
         OvertimeSecondHalf = 'OvertimeSecondHalf'
         Penalty = 'Penalty'
+
+    class Mode:
+        Halt = 'Halt'
+        Stop = 'Stop'
+        Start = 'Start'
 
     def __init__(self, world):
         self.world = world
