@@ -11,7 +11,7 @@ VIRTUALENV := .virtualenv
 
 # flake8 config
 FLAKE8_EXCLUDES := \*_pb2.py
-FLAKE8_OPTS := --exclude=$(FLAKE8_EXCLUDES) --ignore=E501 --format=pylint --show-pep8
+FLAKE8_OPTS := --exclude=$(FLAKE8_EXCLUDES) --ignore=E501 --format=pylint --statistics
 FLAKE8_STRICT_OPTS := --exclude=$(FLAKE8_EXCLUDES) --format=pylint
 
 
@@ -53,7 +53,6 @@ clean:
 .PHONY: pep8
 pep8:
 	@flake8 $(FLAKE8_OPTS) roboime
-
 
 # check PEP8 compliancy more strictly
 .PHONY: pep8-strict
