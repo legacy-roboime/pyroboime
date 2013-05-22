@@ -8,7 +8,8 @@ from ..base import World, Blue, Yellow
 from ..interface import SimulationInterface
 #from ..core.skills import goto
 #from ..core.skills import gotoavoid
-from ..core.skills import drivetoobject
+#from ..core.skills import drivetoobject
+from ..core.skills import drivetoball
 #from ..utils.geom import Point
 
 #import pdb
@@ -195,7 +196,7 @@ class View(Tk):
             r = self.world.blue_team[2]
             r.max_speed = 2.0
             if self.goto is None:
-                self.goto = drivetoobject.DriveToObject(r, point=self.world.ball, lookpoint=self.world.left_goal)
+                self.goto = drivetoball.DriveToBall(r, lookpoint=self.world.left_goal)
                 #self.goto = gotoavoid.GotoAvoid(r, target=Point(0, 0), avoid=self.world.ball)
                 #self.goto = goto.Goto(r, target=Point(0, 0))
                 #self.goto = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)

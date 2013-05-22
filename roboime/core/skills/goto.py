@@ -2,8 +2,6 @@ from numpy import array
 from numpy.linalg import norm
 
 from .. import Skill
-#from ...utils.mathutils import cos, sin, sqrt
-from ...utils.mathutils import sqrt
 from ...utils.mathutils import exp
 from ...utils.geom import Point
 from ...utils.pidcontroller import PidController
@@ -84,10 +82,8 @@ class Goto(Skill):
         buffered_circumference = self.target.buffer(distance)
         intersection = buffered_circumference.intersection(defense_area).centroid
         if not intersection.is_empty:
-            desired_distance = distance
-            modulus = sqrt((intersection.x - self.x) * (intersection.x - self.x) + (intersection.y - self.y) * (intersection.y - self.y))
-            dx = desired_distance * (intersection.x - self.x) / modulus
-            dy = desired_distance * (intersection.y - self.y) / modulus
-            return Point(array(self.target) + array((dx, dy)))
+            error = array(intersection) - array(self.target)
+            diff = distance * error / norm(error)
+            return Point(array(self.target) + diff)
         else:
             return self.target
