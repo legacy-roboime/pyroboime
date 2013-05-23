@@ -12,7 +12,8 @@ from ..interface import SimulationInterface
 #from ..core.skills import drivetoball
 #from ..core.skills import sampleddribble
 #from ..core.skills import sampledkick
-from ..core.skills import followandcover
+#from ..core.skills import followandcover
+from ..core.skills import sampledchipkick
 #from ..utils.geom import Point
 
 #import pdb
@@ -199,7 +200,8 @@ class View(Tk):
             r = self.world.blue_team[2]
             r.max_speed = 2.0
             if self.skill is None:
-                self.skill = followandcover.FollowAndCover(r, follow=self.world.ball, cover=self.world.blue_team[3])
+                self.skill = sampledchipkick.SampledChipKick(r, lookpoint=self.world.left_goal)
+                #self.skill = followandcover.FollowAndCover(r, follow=self.world.ball, cover=self.world.blue_team[3])
                 #self.skill = sampledkick.SampledKick(r, lookpoint=self.world.left_goal)
                 #self.skill = sampleddribble.SampledDribble(r, lookpoint=self.world.left_goal)
                 #self.skill = drivetoball.DriveToBall(r, lookpoint=self.world.left_goal)
