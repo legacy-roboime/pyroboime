@@ -10,7 +10,8 @@ from ..interface import SimulationInterface
 #from ..core.skills import gotoavoid
 #from ..core.skills import drivetoobject
 #from ..core.skills import drivetoball
-from ..core.skills import sampleddribble
+#from ..core.skills import sampleddribble
+from ..core.skills import sampledkick
 #from ..utils.geom import Point
 
 #import pdb
@@ -197,7 +198,8 @@ class View(Tk):
             r = self.world.blue_team[2]
             r.max_speed = 2.0
             if self.skill is None:
-                self.skill = sampleddribble.SampledDribble(r, lookpoint=self.world.left_goal)
+                self.skill = sampledkick.SampledKick(r, lookpoint=self.world.left_goal)
+                #self.skill = sampleddribble.SampledDribble(r, lookpoint=self.world.left_goal)
                 #self.skill = drivetoball.DriveToBall(r, lookpoint=self.world.left_goal)
                 #self.skill = gotoavoid.GotoAvoid(r, target=Point(0, 0), avoid=self.world.ball)
                 #self.skill = goto.Goto(r, target=Point(0, 0))

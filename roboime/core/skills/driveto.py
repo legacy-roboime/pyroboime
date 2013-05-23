@@ -12,7 +12,7 @@ class DriveTo(Goto):
         """
                          x <-- target (calculeted by skill)
                         /
-        thershold -->  /    b_angle
+        threshold -->  /    b_angle
                       /\  L´
                      /__|______ (x-axis)
         b_point --> O
@@ -47,6 +47,9 @@ class DriveTo(Goto):
         super(DriveTo, self).step()
 
     def busy(self):
+        if self.target is None:
+            return False
+
         error_d = norm(array(self.target) - array(self.robot))
         error_a = abs(self.robot.angle - self.angle) % 180.0
 

@@ -50,13 +50,16 @@ class SimCommander(Commander):
                 vx, vy, va = a.speeds
                 c = packet.commands.robot_commands.add()
                 c.id = a.uid
-                c.kickspeedx = a.kick or 0.0
+                c.kickspeedx = (a.kick or 0.0) * 5
                 c.kickspeedz = a.chipkick or 0.0
                 c.veltangent = vx
                 c.velnormal = vy
                 c.velangular = va * pi / 180
                 c.spinner = (a.dribble or 0.0) > 0
                 c.wheelsspeed = False
+
+                # reset action values
+                a.reset()
 
         #print packet
         self.sender.send_packet(packet)
