@@ -53,8 +53,14 @@ class Action(object):
         self.kick = None
         self.chipkick = None
         self.dribble = None
-        self.speed = None
         self._speeds = speeds
+
+    def reset(self):
+        self._speeds = None
+        self.kick = None
+        self.chipkick = None
+        self.dribble = None
+        self._speeds = None
 
     @property
     def target(self):
@@ -83,7 +89,7 @@ class Action(object):
             return tuple(self._speeds)
         else:
             # This is deprecated and can be removed at any time. Use goto instead.
-            s = self.speed or 0.5
+            s = self.robot.max_speed
             #TODO: implement some PID, should this be really here?
             if not self:
                 return (0.0, 0.0, 0.0)
