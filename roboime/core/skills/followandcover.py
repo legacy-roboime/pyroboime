@@ -1,4 +1,8 @@
+from numpy import array
+from numpy.linalg import norm
+
 from .goto import Goto
+from ...utils.geom import Point
 
 
 class FollowAndCover(Goto):
@@ -8,7 +12,7 @@ class FollowAndCover(Goto):
     followed, this is the way to go.
     """
 
-    def __init__(self, robot, follow, cover, distance):
+    def __init__(self, robot, follow, cover, distance=1.0):
         """
         The argument names are pretty self explainable,
         If not, here's a drawing:
@@ -23,5 +27,18 @@ class FollowAndCover(Goto):
         Notice that the points follow, robot, and cover are
         aligned. And that follow and robot are `distance` apart.
         """
-        pass
-    # TODO
+        super(FollowAndCover, self).__init__(robot)
+        self.follow = follow
+        self.cover = cover
+        self.distance = distance
+
+    def step(self):
+        # vector from follow to cover:
+        f2c = array(self.cover) - array(self.follow)
+        # normalized:
+        vec = f2c / norm(f2c)
+        # target is follow displaced of distance over vec
+        self.target = Point(array(self.follow) + vec * self.distance)
+
+        # let Goto do its thing
+        super(FollowAndCover, self).step()
