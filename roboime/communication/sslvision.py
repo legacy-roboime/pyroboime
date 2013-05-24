@@ -9,8 +9,8 @@ class VisionReceiver(MulticastReceiver):
     Usage is very simple but it's likely to change because
     it clogs the execution until a packet is received.
 
-    >>> receiver = VisionReceiver()
-    >>> packet = receiver.get_packet() # this will clog until a packet arrives
+    >>> receiver = VisionReceiver(('224.5.23.2', 10002))
+    >>> packet = receiver.get_packet()
     """
 
     def __init__(self, address):
