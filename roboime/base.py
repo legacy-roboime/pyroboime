@@ -4,6 +4,9 @@ This module holds the base classes.
 from itertools import imap
 from collections import defaultdict
 from functools import partial
+from numpy import array
+from numpy import sign
+from shapely import geometry
 
 from .utils import geom
 from .utils.mathutils import cos, sin
@@ -149,15 +152,27 @@ class Robot(geom.Point):
         self.wheels = wheels
         self.battery = battery
 
+        # initial body
+        self._body = geom.Circle(self, self._radius)
+
         # action to be dispatched by a commander
         self._action = Action(self)
 
         # skill that will be executed
         self._skill = None
 
+        # some properties
+        self.can_kick = True
+
+    def update(self, *args, **kwargs):
+        """This is just a hook over the original function to cache some data."""
+        super(Robot, self).update(*args, **kwargs)
+        # TODO generate the actual body shape instead of a circle
+        self._body = geom.Circle(self, self._radius)
+
     @property
     def body(self):
-        return geom.Circle(self, self._radius)
+        return self._body
 
     @property
     def action(self):
@@ -278,30 +293,97 @@ class Ball(geom.Point):
         self._radius = 43e-3 / 2
         self.world = world
 
+        # initial body
+        self._body = geom.Circle(self, self._radius)
+
+    def update(self, *args, **kwargs):
+        """This is just a hook over the original function to cache some data."""
+        super(Ball, self).update(*args, **kwargs)
+        self._body = geom.Circle(self, self._radius)
+
+    @property
+    def body(self):
+        return self._body
+
     @property
     def radius(self):
         return self._radius
 
-    @property
-    def body(self):
-        return geom.Circle(self, self._radius)
-
 
 class Goal(geom.Point):
-    def __init__(self, world):
+    """
+    The goal is a point, hurray!
+    But it also got two posts, and a body. Like this:
+
+             +-o <-- p1
+             |
+    body --> | x <-- self (as a point)
+             |
+             +-o <-- p2
+
+    The body is a shapely.geometry.LineString that begins
+    on p1 ending on p2, it forms a squared C shape.
+
+    As a LineString it contains only points over its line,
+    but if one wants to check if an object is inside the goal
+    its convex hull should be used.
+
+    Example usage:
+
+    >>> w = World()
+    >>> w.goal_depth = 1.0
+    >>> w.goal_width = 3.0
+    >>> g = Goal(w, 0.0, 0.0)
+    >>> array(g)
+    array([ 0.,  0.])
+    >>> array(g.p1)
+    array([ 0.,  1.5])
+    >>> array(g.body)
+    array([[ 0. ,  1.5],
+           [ 1. ,  1.5],
+           [ 1. , -1.5],
+           [ 0. , -1.5]])
+    >>> p = geom.Point(0.5, 0.0)
+    >>> g.body.convex_hull.contains(p)
+    True
+    >>> p = geom.Point(-0.5, 0.0)
+    >>> g.body.convex_hull.contains(p)
+    False
+    """
+    def __init__(self, world, *args):
         super(Goal, self).__init__(0.0, 0.0)
         self.world = world
+        if len(args) > 0:
+            self.update(*args)
 
-    #@property
-    #def x(self):
-    #    x = self.world.length / 2.0
-    #    if not self._left:
-    #        x *= -1
-    #    return x
+    def update(self, *args, **kwargs):
+        """This is just a hook over the original function to cache some data."""
+        super(Goal, self).update(*args, **kwargs)
+        self._p1 = geom.Point(array(self) + array((0.0, self.width / 2)))
+        self._p2 = geom.Point(array(self) - array((0.0, self.width / 2)))
+        self._line = geom.Line(self._p1, self._p2)
+        self._body = geometry.LineString([
+            array(self) + array((0.0, self.width / 2)),
+            array(self) + array((self.depth * (sign(self.x) or 1), self.width / 2)),
+            array(self) + array((self.depth * (sign(self.x) or 1), -self.width / 2)),
+            array(self) + array((0.0, -self.width / 2)),
+        ])
 
-    #@property
-    #def y(self):
-    #    return 0.0
+    @property
+    def line(self):
+        return self._line
+
+    @property
+    def body(self):
+        return self._body
+
+    @property
+    def p1(self):
+        return self._p1
+
+    @property
+    def p2(self):
+        return self._p2
 
     @property
     def width(self):
@@ -425,15 +507,30 @@ class World(object):
         line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
         return line_to_buffer.buffer(defense_area_radius)
 
+    def closest_robot_to_ball(self, can_kick=True):
+        """
+        Name says almost it all.
+        By default only robots that can_kick are considered.
+        If can_kick is set to False, only robots that cannot kick are considered.
+        If you want to consider both set can_kick to None.
+        """
+        b = self.ball
+        d, r = min((r.distance(b), r) for r in self.iterrobots(can_kick=can_kick))
+        return r
+
     @property
     def robots(self):
         return list(self.iterrobots())
 
-    def iterrobots(self):
+    def iterrobots(self, can_kick=None):
         """W.iterrobots() -> an iterator over the robots of the world W."""
         for t in (self.right_team, self.left_team):
             for r in t.iterrobots():
-                yield r
+                if can_kick is None:
+                    yield r
+                else:
+                    if r.can_kick is can_kick:
+                        yield r
 
     def iterobjects(self):
         """W.iterobjects() -> an iterator over the objects of the world W."""
