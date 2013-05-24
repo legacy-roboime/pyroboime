@@ -57,6 +57,8 @@ class GeometryUpdate(Update):
     def apply(self, world):
         for prop, value in self.data.iteritems():
             setattr(world, prop, value)
+        world.right_goal.update((world.length / 2, 0.0))
+        world.left_goal.update((-world.length / 2, 0.0))
 
 
 class Updater(Process):
