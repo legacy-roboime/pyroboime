@@ -1,7 +1,5 @@
 from Tkinter import Canvas, Frame, Tk, CHORD, NSEW
 from time import time
-#import ttk
-#from math import pi as PI
 
 from ..base import World, Blue, Yellow
 #from ..interface.updater import SimVisionUpdater
@@ -16,7 +14,6 @@ from ..interface import SimulationInterface
 from ..core.skills import sampledchipkick
 #from ..utils.geom import Point
 
-#import pdb
 
 FIELD_GREEN = '#3a0'
 YELLOW = '#ff0'
@@ -110,6 +107,10 @@ class FieldCanvas(Canvas):
             self._cy(robot.y + robot.radius),
         )
         self.itemconfig(r, start=(robot.angle + 180 - self.anglespan / 2))
+        if robot is self.world.closest_robot_to_ball():
+            self.itemconfig(r, outline=BLACK)
+        else:
+            self.itemconfig(r, outline=FIELD_GREEN)
         if not self.world.is_in_defense_area(robot):
             self.itemconfig(r, fill=YELLOW if robot.team.is_yellow else BLUE)
         else:
@@ -138,13 +139,18 @@ class FieldCanvas(Canvas):
             del self.robots[rid]
 
     def draw_field(self, world):
-        for color in [Blue, Yellow]:
-            if not world.defense_area(color).is_empty:
-                converted_polygon = [(self._cx(x), self._cy(y)) for (x, y) in world.defense_area(color).exterior.coords]
-                self.create_polygon(converted_polygon,
-                                    outline=WHITE,
-                                    fill='')
         # TODO: redraw field size if changed
+        if not hasattr(self, 'blabla'):
+            blabla = False
+            for color in [Blue, Yellow]:
+                if not world.defense_area(color).is_empty:
+                    self.draw_defense_area(world.defense_area(color))
+                    blabla = True
+            if blabla:
+                for goal in [world.left_goal, world.right_goal]:
+                    self.draw_goal(goal)
+                self.blabla = blabla
+
         self.draw_ball(world.ball)
         # draw all robots on the field
         for r in world.iterrobots():
@@ -154,6 +160,18 @@ class FieldCanvas(Canvas):
         for r in self.robots.iterkeys():
             if r not in rids:
                 self.delete_robot(r)
+
+    def draw_defense_area(self, defense_area):
+        converted_polygon = [(self._cx(x), self._cy(y)) for (x, y) in defense_area.exterior.coords]
+        self.create_polygon(converted_polygon,
+                            outline=WHITE,
+                            fill='')
+
+    def draw_goal(self, goal):
+        converted_polygon = [(self._cx(x), self._cy(y)) for (x, y) in goal.body.coords]
+        self.create_polygon(converted_polygon,
+                            outline=WHITE,
+                            fill='')
 
     def draw_fps(self, text):
         self.itemconfig(self.fps, text=str(text))
