@@ -40,20 +40,25 @@ class Interface(object):
             p.stop()
 
     def step(self):
+        #print "I'm stepping the interface."
         # updates injection phase
         for up in self.updaters:
-            while not up.queue.empty():
-                uu = up.queue.get()
-                for fi in reversed(self.filters):
-                    _uu = fi.filter_updates(uu)
-                    if _uu is not None:
-                        uu = _uu
-                for u in uu:
-                    u.apply(self.world)
+            with up.queue.lock:
+                while not up.queue.empty():
+                    uu = up.queue.get()
+                    for fi in reversed(self.filters):
+                        _uu = fi.filter_updates(uu)
+                        if _uu is not None:
+                            uu = _uu
+                    for u in uu:
+                        u.apply(self.world)
+
+
 
         # actions extraction phase
         # TODO filtering
         for co in self.commanders:
+
             actions = []
             for r in co.team:
                 if r.action is not None:
@@ -62,7 +67,7 @@ class Interface(object):
                 _actions = fi.filter_commands(actions)
                 if _actions is not None:
                     actions = _actions
-            #co.queue.put(actions)
+            co.queue.put(actions)
             co.send(actions)
 
     @property

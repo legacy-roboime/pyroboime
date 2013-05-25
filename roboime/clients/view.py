@@ -14,6 +14,7 @@ from ..interface import SimulationInterface
 from ..core.skills import sampledchipkick
 #from ..utils.geom import Point
 
+import pdb
 
 FIELD_GREEN = '#3a0'
 YELLOW = '#ff0'
@@ -202,6 +203,7 @@ class View(Tk):
         self.timestamp2 = time()
 
     def redraw(self):
+	print "I'm in!"
         #if len(self.world.blue_team) > 0:
         #if 0 in self.world.blue_team:
         #    r = self.world.blue_team[0]
@@ -214,6 +216,7 @@ class View(Tk):
         #if 1 in self.world.blue_team:
         #    r = self.world.blue_team[1]
         #    r.action.speeds = (1.0, 0.0, 0.0)
+        #pdb.set_trace()
         if 2 in self.world.blue_team:
             r = self.world.blue_team[2]
             r.max_speed = 2.0
@@ -238,12 +241,15 @@ class View(Tk):
         #    self.canvas.draw_field(self.world)
         #    # how long should we wait?
         #    self.after(10, self.redraw)
-        self.interface.step()
+        #pdb.set_trace()
+	self.interface.step()
+        #pdb.set_trace()
         self.canvas.draw_field(self.world)
         # how long should we wait?
         self.timestamp2, self.timestamp1 = self.timestamp1, time()
         self.canvas.draw_fps("{:.02f}".format(1.0 / (self.timestamp1 - self.timestamp2)))
         #self.after(10, self.redraw)
+        print "Redrawing in a few"
         self.after(1, self.redraw)
 
     def mainloop(self):

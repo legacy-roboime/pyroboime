@@ -3,8 +3,9 @@ if platform == 'win32':
     from Queue import Queue
     from threading import Event
     from threading import Thread as Process
+    from threading import Lock
 else:
-    from multiprocessing import Process, Queue, Event
+    from multiprocessing import Process, Queue, Event, Lock
 
 from ..communication import sslvision
 from .. import base
@@ -63,15 +64,19 @@ class GeometryUpdate(Update):
 
 class Updater(Process):
 
-    def __init__(self):
+    def __init__(self, maxsize=15):
         Process.__init__(self)
-        self.queue = Queue()
+        self.queue = Queue(maxsize)
+        self.queue.lock = Lock()
         self._exit = Event()
 
     def run(self):
         while not self._exit.is_set():
             try:
-                self.queue.put(self.receive())
+                with self.queue.lock:
+                    if self.queue.full():
+                        self.queue.get()
+                    self.queue.put(self.receive())
             except KeyboardInterrupt:
                 break
 

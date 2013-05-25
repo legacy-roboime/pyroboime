@@ -1,4 +1,4 @@
-#!/usr/bin/env python -O
+#!/usr/bin/env python
 from roboime.clients import view
 
 if __name__ == '__main__':

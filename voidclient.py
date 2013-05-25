@@ -1,4 +1,4 @@
-#!/usr/bin/env python -O
+#!/usr/bin/env python
 from sys import argv
 from roboime.clients import simple
 
