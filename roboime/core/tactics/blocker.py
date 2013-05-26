@@ -1,6 +1,8 @@
+from numpy import array
+
 from .. import Tactic
 from ...utils.geom import Point
-from ..skills.goto import Goto
+from ..skills.gotolooking import GotoLooking
 
 from ...utils.mathutils import sin
 from ...utils.mathutils import cos
@@ -11,20 +13,20 @@ class Blocker(Tactic):
     covering another point. Pretty much like a follow and cover.
     """
     # TODO
-    def __init__(self, robots, arc, dist=0.5):
-        super(Blocker, self).__init__(robots, deterministic=True)
+    def __init__(self, robot, arc, dist=0.5, blockpoint=None):
+        """
+        arc: angle deviation in relation to line from robot to goal
+        dist: constant distance to keep from blockpoint
+        blockpoint: point to block, if none falls back to ball
+        """
+        super(Blocker, self).__init__([robot], deterministic=True)
+        self.blockpoint = self.ball if blockpoint is None else blockpoint
+        self.goto = GotoLooking(self.robot, lookpoint=self.blockpoint)
         # self.robot = robot
         self.arc = arc
         self.dist = dist
 
     def step(self):
-        ball = self.ball
-        my_goal = self.goal
-        dist = self.dist
-        arc = self.arc
-        base_angle = Point.angle_orientation(ball, my_goal)
-        target = Point(dist * cos(base_angle + arc), dist * sin(base_angle + arc))
-        # the final robot orientation:
-        angle = (base_angle + 180.0) % 360.0
-        goto = Goto(self.robot, target, angle)
-        goto.step()
+        base_angle = self.ball.angle_to_point(self.goal)
+        self.goto.target = Point(array((self.dist * cos(base_angle + self.arc), self.dist * sin(base_angle + self.arc))) + array(self.blockpoint))
+        self.goto.step()

@@ -12,6 +12,7 @@ from ..core.skills import sampledkick
 #from ..core.skills import followandcover
 #from ..core.skills import sampledchipkick
 from ..core.tactics import goalkeeper
+from ..core.tactics import blocker
 #from ..utils.geom import Point
 
 class Simple(object):
@@ -48,6 +49,11 @@ class Simple(object):
             r.max_speed = 3.0
             if 'gk' not in self.tactics:
                 self.tactics['gk'] = goalkeeper.Goalkeeper(r, angle=30, aggressive=True)
+        if 1 in self.world.blue_team:
+            r = self.world.blue_team[1]
+            r.max_speed = 2.0
+            if 'bk' not in self.tactics:
+                self.tactics['bk'] = blocker.Blocker(r, arc=0)
                 #self.skill = sampledchipkick.SampledChipKick(r, lookpoint=self.world.left_goal)
                 #self.skill = followandcover.FollowAndCover(r, follow=self.world.ball, cover=self.world.blue_team[3])
                 #self.skill = sampledkick.SampledKick(r, lookpoint=self.world.left_goal)
