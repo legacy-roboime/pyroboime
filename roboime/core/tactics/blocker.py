@@ -13,18 +13,19 @@ class Blocker(Tactic):
     covering another point. Pretty much like a follow and cover.
     """
     # TODO
-    def __init__(self, robot, arc, dist=0.5, blockpoint=None):
+    def __init__(self, robot, arc, distance=0.5, blockpoint=None):
         """
         arc: angle deviation in relation to line from robot to goal
-        dist: constant distance to keep from blockpoint
+        distance: constant distance to keep from blockpoint
         blockpoint: point to block, if none falls back to ball
         """
         super(Blocker, self).__init__([robot], deterministic=True)
+        # TODO: implement with follow and cover somehow, needs angle deviantion
         self.blockpoint = self.ball if blockpoint is None else blockpoint
         self.goto = GotoLooking(self.robot, lookpoint=self.blockpoint)
         # self.robot = robot
         self.arc = arc
-        self.dist = dist
+        self.dist = distance
 
     def step(self):
         base_angle = self.ball.angle_to_point(self.goal)
