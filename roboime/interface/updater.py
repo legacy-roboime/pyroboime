@@ -13,7 +13,7 @@ from .. import base
 import pdb
 
 STOP_TIMEOUT = 1
-
+t0 = None
 
 class Update(object):
 
@@ -48,6 +48,10 @@ class RobotUpdate(Update):
         return (0x100 if self.team_color is base.Blue else 0x200) + self.i
 
     def apply(self, world):
+        global t0
+        if t0 is None:
+            t0 = self.data['timestamp']
+        print self.data['timestamp'] - t0
         if self.team_color == base.Blue:
             team = world.blue_team
         elif self.team_color == base.Yellow:
@@ -80,14 +84,13 @@ class Updater(Process):
         self._exit = Event()
 
     def run(self):
-        while not self._exit.is_set():
-            try:
+        try:
+            while not self._exit.is_set():
                 with self.queue_lock:
-                    if self.queue.full():
-                        self.queue.get()
-                    self.queue.put(self.receive())
-            except KeyboardInterrupt:
-                break
+                    if not self.queue.full():
+                        self.queue.put(self.receive())
+        except KeyboardInterrupt:
+            pass
 
     def stop(self):
         self._exit.set()

@@ -68,10 +68,12 @@ class Simple(object):
 
         if self.show_fps:
             self.timestamp2, self.timestamp1 = self.timestamp1, time()
-            print "{:.02f}".format(1.0 / (self.timestamp1 - self.timestamp2))
+            #print "{:.02f}".format(1.0 / (self.timestamp1 - self.timestamp2))
+            print 'step', time() - self.t0
 
     def mainloop(self):
         self.interface.start()
+        self.t0 = time()
         try:
             while True:
                 self.loop()
