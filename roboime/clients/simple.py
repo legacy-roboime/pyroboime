@@ -40,6 +40,7 @@ class Simple(object):
         #if 1 in self.world.blue_team:
         #    r = self.world.blue_team[1]
         #    r.action.speeds = (1.0, 0.0, 0.0)
+        t0 = time()
         if 2 in self.world.blue_team:
             r = self.world.blue_team[2]
             r.max_speed = 2.0
@@ -53,6 +54,8 @@ class Simple(object):
                 #self.skill = goto.Goto(r, target=Point(0, 0))
                 #self.skill = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
             self.skill.step()
+        t1 = time()
+        print 'skill time:', t1 - t0
 
         #try:
         #    self.interface.step()
@@ -64,12 +67,15 @@ class Simple(object):
         #    self.canvas.draw_field(self.world)
         #    # how long should we wait?
         #    self.after(10, self.redraw)
+        t0 = time()
         self.interface.step()
+        t1 = time()
+        print 'inter time:', t1 - t0
 
         if self.show_fps:
             self.timestamp2, self.timestamp1 = self.timestamp1, time()
             #print "{:.02f}".format(1.0 / (self.timestamp1 - self.timestamp2))
-            print 'step', time() - self.t0
+            #print 'step', time() - self.t0
 
     def mainloop(self):
         self.interface.start()

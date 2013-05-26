@@ -51,7 +51,7 @@ class RobotUpdate(Update):
         global t0
         if t0 is None:
             t0 = self.data['timestamp']
-        print self.data['timestamp'] - t0
+        #print self.data['timestamp'] - t0
         if self.team_color == base.Blue:
             team = world.blue_team
         elif self.team_color == base.Yellow:
