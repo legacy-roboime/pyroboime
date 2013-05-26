@@ -3,15 +3,16 @@ from time import time
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface
-from ..core.skills import goto
+#from ..core.skills import goto
 #from ..core.skills import gotoavoid
 #from ..core.skills import drivetoobject
 #from ..core.skills import drivetoball
 #from ..core.skills import sampleddribble
-#from ..core.skills import sampledkick
+from ..core.skills import sampledkick
 #from ..core.skills import followandcover
-from ..core.skills import sampledchipkick
-from ..utils.geom import Point
+#from ..core.skills import sampledchipkick
+from ..core.tactics import goalkeeper
+#from ..utils.geom import Point
 
 class Simple(object):
     """
@@ -25,7 +26,8 @@ class Simple(object):
         self.show_fps = show_fps
         self.timestamp1 = time()
         self.timestamp2 = time()
-        self.skill = None
+        self.skills = {}
+        self.tactics = {}
 
     def loop(self):
         #if len(self.world.blue_team) > 0:
@@ -40,12 +42,13 @@ class Simple(object):
         #if 1 in self.world.blue_team:
         #    r = self.world.blue_team[1]
         #    r.action.speeds = (1.0, 0.0, 0.0)
-        t0 = time()
+        #t0 = time()
         if 2 in self.world.blue_team:
             r = self.world.blue_team[2]
-            r.max_speed = 2.0
-            if self.skill is None:
-                self.skill = sampledchipkick.SampledChipKick(r, lookpoint=self.world.left_goal)
+            r.max_speed = 3.0
+            if 'gk' not in self.tactics:
+                self.tactics['gk'] = goalkeeper.Goalkeeper(r, angle=30, aggressive=True)
+                #self.skill = sampledchipkick.SampledChipKick(r, lookpoint=self.world.left_goal)
                 #self.skill = followandcover.FollowAndCover(r, follow=self.world.ball, cover=self.world.blue_team[3])
                 #self.skill = sampledkick.SampledKick(r, lookpoint=self.world.left_goal)
                 #self.skill = sampleddribble.SampledDribble(r, lookpoint=self.world.left_goal)
@@ -53,8 +56,16 @@ class Simple(object):
                 #self.skill = gotoavoid.GotoAvoid(r, target=Point(0, 0), avoid=self.world.ball)
                 #self.skill = goto.Goto(r, target=Point(0, 0))
                 #self.skill = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
-            self.skill.step()
-        t1 = time()
+        if 2 in self.world.yellow_team:
+            r = self.world.yellow_team[2]
+            if 'sk' not in self.skills:
+                self.skills['sk'] = sampledkick.SampledKick(r, lookpoint=self.world.left_goal)
+            r.max_speed = 2.0
+        for t in self.tactics.itervalues():
+            t.step()
+        for s in self.skills.itervalues():
+            s.step()
+        #t1 = time()
         #print 'skill time:', t1 - t0
 
         #try:
@@ -67,9 +78,9 @@ class Simple(object):
         #    self.canvas.draw_field(self.world)
         #    # how long should we wait?
         #    self.after(10, self.redraw)
-        t0 = time()
+        #t0 = time()
         self.interface.step()
-        t1 = time()
+        #t1 = time()
         #print 'inter time:', t1 - t0
 
         if self.show_fps:

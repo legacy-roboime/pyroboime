@@ -33,7 +33,8 @@ class BallUpdate(Update):
         #    if prop != 'x' and prop != 'y':
         #        setattr(ball, prop, value)
         ball.update((self.data['x'], self.data['y']))
-        ball.speed = array(self.data.get('speed'))
+        if 'speed' in self.data:
+            ball.speed = array(self.data['speed'])
 
     def uid(self):
         return 0xba11

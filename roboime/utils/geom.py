@@ -29,7 +29,7 @@ class Point(geometry.Point):
             ctypes_data = _c_double_Array_2(*args)
         self._ctypes_data = ctypes_data
 
-    def angle(self, P2):
+    def angle_to_point(self, P2):
         """ Calculates the angle from self.point to P2, relative to the x axis.
            ^   P2
            |  /

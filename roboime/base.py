@@ -135,7 +135,6 @@ class Robot(geom.Point):
         self.front_cut = self._radius * 0.8
         self.max_speed = max_speed
         self.max_ang_speed = max_ang_speed
-        self.is_goalkeeper = False
 
         # ideally robot should inherit from a class that has an angle
         # and some geometry framework can use that angle
@@ -170,6 +169,14 @@ class Robot(geom.Point):
         super(Robot, self).update(*args, **kwargs)
         # TODO generate the actual body shape instead of a circle
         self._body = geom.Circle(self, self._radius)
+
+    @property
+    def enemy_team(self):
+        return self.team.enemy_team if self.team is not None else None
+
+    @property
+    def enemy_goal(self):
+        return self.team.enemy_goal if self.team is not None else None
 
     @property
     def body(self):
@@ -216,6 +223,10 @@ class Robot(geom.Point):
     def skill(self, nskill):
         nskill._robot = self
         self._skill = nskill
+
+    def is_enemy(self, robot):
+        """Name says it all."""
+        return self.team.color != robot.team.color
 
     def step(self):
         if self._skill is not None:
@@ -270,6 +281,14 @@ class Team(defaultdict):
         return self.world.goal(self.color)
 
     @property
+    def enemy_goal(self):
+        return self.world.enemy_goal(self.color)
+
+    @property
+    def enemy_team(self):
+        return self.world.enemy_team(self.color)
+
+    @property
     def is_blue(self):
         return self.color == Blue
 
@@ -293,7 +312,7 @@ class Ball(geom.Point):
         super(Ball, self).__init__(0.0, 0.0)
         self._radius = 43e-3 / 2
         self.world = world
-        self.speed = None
+        self.speed = array((0.0, 0.0))
 
         # initial body
         self._body = geom.Circle(self, self._radius)
@@ -355,6 +374,11 @@ class Goal(geom.Point):
     def __init__(self, world, *args):
         super(Goal, self).__init__(0.0, 0.0)
         self.world = world
+        self.update(0.0, 0.0)
+        #self._p1 = geom.Point(0, 0)
+        #self._p2 = geom.Point(0, 0)
+        #self._line = geom.Line(self._p1, self._p2)
+        #self._body = geometry.LineString
         if len(args) > 0:
             self.update(*args)
 
@@ -478,6 +502,14 @@ class World(object):
         else:
             raise Exception
 
+    def enemy_team(self, color):
+        if self.right_team.color == color:
+            return self.left_team
+        elif self.left_team.color == color:
+            return self.right_team
+        else:
+            raise Exception
+
     @property
     def yellow_goal(self):
         return self.goal(Yellow)
@@ -492,6 +524,15 @@ class World(object):
             return self.right_goal
         elif self.left_team.color == color:
             return self.left_goal
+        else:
+            raise Exception
+
+    def enemy_goal(self, color):
+        pdb.set_trace
+        if self.right_team.color == color:
+            return self.left_goal
+        elif self.left_team.color == color:
+            return self.right_goal
         else:
             raise Exception
 

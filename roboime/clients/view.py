@@ -9,7 +9,7 @@ from ..interface import SimulationInterface
 #from ..core.skills import drivetoobject
 #from ..core.skills import drivetoball
 #from ..core.skills import sampleddribble
-#from ..core.skills import sampledkick
+from ..core.skills import sampledkick
 #from ..core.skills import followandcover
 from ..core.skills import sampledchipkick
 #from ..utils.geom import Point

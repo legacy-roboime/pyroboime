@@ -13,7 +13,7 @@ class Goto(Skill):
     Sends the robot to a specified point with a specified orientation with no
     regard to the position of any other objects on the field.
     """
-    def __init__(self, robot, target=None, angle=None, final_target=None):
+    def __init__(self, robot, target=None, angle=None, final_target=None, is_goalkeeper=False):
         """
         final_target: the ultimate position the robot should attain
         target: the intermediate position you're ACTUALLY sending the robot to
@@ -26,6 +26,7 @@ class Goto(Skill):
         be switching in) should be specified in your own class.
         """
         super(Goto, self).__init__(robot, deterministic=True)
+        self.is_goalkeeper = is_goalkeeper
         #TODO: find the right parameters
         self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
         #self.angle_controller = PidController(kp=1.324, ki=0, kd=0, integ_max=6.55, output_max=1000)
@@ -45,7 +46,7 @@ class Goto(Skill):
 
         # check wether the point we want to go to will make the robot be in the defense area
         # if so then we'll go to the nearest point that meets that constraint
-        if not r.is_goalkeeper and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
+        if not self.is_goalkeeper and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
             t = self.point_away_from_defense_area
 
         # angle control using PID controller

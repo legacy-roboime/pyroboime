@@ -21,7 +21,7 @@ class DriveToObject(DriveTo):
     def step(self):
         # the angle from the object to the lookpoint, thanks to shapely is this
         # that's the angle we want to be at
-        self.angle = self.b_point.angle(self.lookpoint)
+        self.angle = self.b_point.angle_to_point(self.lookpoint)
 
         # nondeterministically we should add a random spice to our
         # target angle, of course, within the limits of max_ang_var
