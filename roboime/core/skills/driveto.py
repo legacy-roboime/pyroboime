@@ -8,7 +8,7 @@ from ...utils.geom import Point
 
 
 class DriveTo(Goto):
-    def __init__(self, robot, b_angle=0, b_point=Point([0, 0]), angle=0, threshold=0.005, max_error_d=0.1, max_error_a=10.0):
+    def __init__(self, robot, b_angle=0, b_point=Point([0, 0]), angle=0, threshold=0.005, max_error_d=0.2, max_error_a=10.0, **kwargs):
         """
                          x <-- target (calculeted by skill)
                         /
@@ -29,7 +29,7 @@ class DriveTo(Goto):
         max_error_a: limit angle distance to consider the robot has reached its target
         """
 
-        super(DriveTo, self).__init__(robot, angle=angle)
+        super(DriveTo, self).__init__(robot, angle=angle, **kwargs)
         self.robot = robot
         self.b_angle = b_angle
         self.b_point = b_point
@@ -46,12 +46,11 @@ class DriveTo(Goto):
         self.target = Point(p1 + p2)
         super(DriveTo, self).step()
 
-    def busy(self):
+    def close_enough(self):
         if self.target is None:
-            return False
+            return None
 
         error_d = norm(array(self.target) - array(self.robot))
         error_a = abs(self.robot.angle - self.angle) % 180.0
-
-        # where busy while where not inside the safe zone
-        return not (error_d < self.max_error_d and error_a < self.max_error_a)
+        # We're close enough if both errors are sufficiently small.
+        return error_d < self.max_error_d and error_a < self.max_error_a

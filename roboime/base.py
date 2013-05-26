@@ -486,6 +486,13 @@ class World(object):
     def switch_sides(self):
         self.right_team, self.left_team = self.left_team, self.right_team
 
+    def has_clear_shot(self, point_to_kick):
+        shot_line = geom.Line(self.ball, point_to_kick)
+        for robot in self.iterrobots():
+            if shot_line.crosses(robot.body):
+                return False
+        return True
+
     @property
     def yellow_team(self):
         return self.team(Yellow)

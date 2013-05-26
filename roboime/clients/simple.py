@@ -8,12 +8,12 @@ from ..interface import SimulationInterface
 #from ..core.skills import drivetoobject
 #from ..core.skills import drivetoball
 #from ..core.skills import sampleddribble
-from ..core.skills import sampledkick
 #from ..core.skills import followandcover
 #from ..core.skills import sampledchipkick
 from ..core.tactics import goalkeeper
 from ..core.tactics import blocker
 from ..core.tactics import defender
+from ..core.tactics import zickler43 as zickler
 #from ..utils.geom import Point
 
 class Simple(object):
@@ -65,9 +65,9 @@ class Simple(object):
                 #self.skill = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
         if 2 in self.world.yellow_team:
             r = self.world.yellow_team[2]
-            if 'sk' not in self.skills:
-                self.skills['sk'] = sampledkick.SampledKick(r, lookpoint=self.world.left_goal)
-            r.max_speed = 2.0
+            if 'atk' not in self.tactics:
+                self.tactics['atk'] = zickler.Zickler43(r)
+                r.max_speed = 2.0
         if 3 in self.world.blue_team:
             r = self.world.blue_team[3]
             if 'def' not in self.skills:

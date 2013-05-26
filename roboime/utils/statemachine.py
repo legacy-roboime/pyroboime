@@ -43,7 +43,7 @@ class Machine(object):
         return self.current_state.busy()
 
     def execute(self):
-        possible_transitions = [t for t in self.transitions if t.condition()]
+        possible_transitions = [t for t in self.transitions if t.condition() and t.from_state is self.current_state]
         if self.deterministic:
             if possible_transitions:
                 self.current_state = possible_transitions[0].to_state

@@ -13,7 +13,7 @@ class Goto(Skill):
     Sends the robot to a specified point with a specified orientation with no
     regard to the position of any other objects on the field.
     """
-    def __init__(self, robot, target=None, angle=None, final_target=None, is_goalkeeper=False, referential=None):
+    def __init__(self, robot, target=None, angle=None, final_target=None, is_goalkeeper=False, referential=None, deterministic=True, **kwargs):
         """
         final_target: the ultimate position the robot should attain
         target: the intermediate position you're ACTUALLY sending the robot to
@@ -25,7 +25,7 @@ class Goto(Skill):
         and the exact curve you want the robot to follow (and hence all the intermediate targets that you'll
         be switching in) should be specified in your own class.
         """
-        super(Goto, self).__init__(robot, deterministic=True)
+        super(Goto, self).__init__(robot, deterministic=deterministic, **kwargs)
         self.is_goalkeeper = is_goalkeeper
         #TODO: find the right parameters
         self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
