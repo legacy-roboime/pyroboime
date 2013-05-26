@@ -6,9 +6,6 @@ class State(object):
         self.deterministic = deterministic
         self.transitions = []
 
-    def busy(self):
-        pass
-
 
 class Transition(object):
     def __init__(self, from_state, to_state, probability=1.0, condition=None):
@@ -38,9 +35,6 @@ class Machine(object):
 
     def reset(self):
         self.current_state = self.initial_state
-
-    def busy(self):
-        return self.current_state.busy()
 
     def execute(self):
         possible_transitions = [t for t in self.transitions if t.condition() and t.from_state is self.current_state]

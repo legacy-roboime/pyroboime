@@ -31,9 +31,6 @@ class Skill(State):
     def step(self):
         pass
 
-    def busy(self):
-        return False
-
 
 class Tactic(Machine):
 

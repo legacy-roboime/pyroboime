@@ -39,9 +39,6 @@ class Goalkeeper(Tactic):
         self.domination_radius = 0.135
         self.safety_ratio = 0.9
 
-    def busy(self):
-        return True
-
     def step(self):
         #TODO: if ball is inside area and is slow, kick/pass it far far away
 
@@ -61,28 +58,15 @@ class Goalkeeper(Tactic):
         # Compute home line ends
         p1 = Point(array(self.goal.p1) + radius * array((cos(self.angle) * -sign(self.goal.x), -sin(self.angle))))
         p2 = Point(array(self.goal.p2) + radius * array((cos(self.angle) * -sign(self.goal.x), sin(self.angle))))
-        #Line l1 = Line::fromPolar(robot.body().radius()*homelineRatio, goal.x() > 0 ? 180 - angle : angle);
-        #Line l2 = Line::fromPolar(robot.body().radius()*homelineRatio, goal.x() > 0 ? 180 + angle : -angle);
 
         # Aaaand the home line
         home_line = Line(p1, p2)
-        #Line homeline(l1.translated(goal.p1()).p2(), l2.translated(goal.p2()).p2());
 
-        # Find out where in the homeline should we stay
-
-        # watch the enemy
-        # TODO: get the chain of badguys, (badguy and who can it pass to)
+        ### Find out where in the homeline should we stay ###
 
         if self.aggressive:
             if self.robot is self.world.closest_robot_to_ball():
                 return self.chip.step()
-        #if(isAggressive_)
-        #{
-        #  # if we are the closest to the ball then kick it
-        #  if (this->robot() == robot.stage()->getClosestPlayerToBallThatCanKick()) {
-        #    return kick->step();
-        #  }
-        #}
 
         # if the ball is moving fast* torwards the goal, defend it: THE CATCH
         #*: define fast
@@ -97,19 +81,12 @@ class Goalkeeper(Tactic):
             else:
                 self.goto.target = p1 if p1.distance_to_line(ball_line) < p2.distance_to_line(ball_line) else p2
             return self.goto.step()
-        #Line ballPath(Line(Point(0, 0), ball.speed().toPointF()).translated(ball));
-        #ballPath.setLength(ball.speed().length() * MAXLOOKAHEADTIME);
 
-        #Point importantPoint;
-        #if(ball.speed().length() >= MINBALLSPEED && ballPath.intersect(homeline, &importantPoint) == Line::BoundedIntersection) {
-        #  goto_->setPoint(importantPoint);
-        #  goto_->step();
-        #  return;
-        #}
+        # watch the enemy
+        # TODO: get the chain of badguys, (badguy and who can it pass to)
 
         # if the badguy has closest reach to the ball then watch it's orientation
         danger_bot = self.world.closest_robot_to_ball()
-        #Robot* dangerBot = robot.stage()->getClosestPlayerToBallThatCanKick();
 
         # If dangerBot is an enemy, we shall watch his orientation. If he's a friend, we move on to a more
         # appropriate strategy
@@ -128,43 +105,6 @@ class Goalkeeper(Tactic):
                 return self.goto.step()
             else:
                 self.goto.target = p1 if future_point.y > 0 else p2
-
-        #if(robot.color() != dangerBot->color() &&
-        #    Line(dangerBot->x(),dangerBot->y(),ball.x(), ball.y()).length() < DOMINATIONRADIUS)
-        #{
-        #  qreal dangerAngle = dangerBot->orientation();
-        #  Line dangerLine = Line::fromPolar(Line(dangerBot->x(),dangerBot->y(),
-        #        goal.x(),goal.y()).length() * 2, dangerAngle > 0 ? dangerAngle : 180 - dangerAngle)
-        #    .translated(dangerBot->x(), dangerBot->y());
-        #  # Intersection of the line with the goal base line
-        #  Point blDangerPoint, hlDangerPoint;
-
-        #  # If the intersection lies within the goal, we try intercepting!
-        #  if(dangerLine.intersect(Line(goal.x(), goal.y() - goal.length()/2, goal.x(), goal.y() + goal.length()/2),
-        #        &blDangerPoint)
-        #      == Line::BoundedIntersection)
-        #  {
-        #    # Translating the danger point to the goalie's position on the home line
-        #    if(dangerLine.intersect(homeline, &hlDangerPoint) == Line::BoundedIntersection)
-        #    {
-        #      goto_->setPoint(hlDangerPoint);
-        #    }
-        #    else
-        #    {
-        #      # If the translation is outside the home line, we put him in the closest endpoint of the line.
-        #      if(Line(homeline.p1(), hlDangerPoint).length()< Line(homeline.p2(), hlDangerPoint).length())
-        #      {
-        #        goto_->setPoint(homeline.p1());
-        #      }
-        #      else
-        #      {
-        #        goto_->setPoint(homeline.p2());
-        #      }
-        #    }
-        #    goto_->step();
-        #    return;
-        #  }
-        #}
 
         # Otherwise, try to close the largest gap
         #Point blBestPoint = pointToKeep(), hlBestPoint;

@@ -36,9 +36,6 @@ class Goto(Skill):
         self.final_target = final_target
         self.referential = referential
 
-    def busy(self):
-        return False
-
     def step(self):
         r = self.robot
         t = self.target if self.target is not None else r

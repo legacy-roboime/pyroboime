@@ -41,7 +41,7 @@ class SampledChipKick(DriveToBall):
         self.maxpower = maxpower
 
     def step(self):
-        if not self.busy():
+        if self.close_enough():
             # put some kicking in action
             if self.receiver is not None:
                 power = kick_power(self.ball.distance(self.receiver))
