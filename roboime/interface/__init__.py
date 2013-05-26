@@ -43,7 +43,7 @@ class Interface(object):
         #print "I'm stepping the interface."
         # updates injection phase
         for up in self.updaters:
-            with up.queue.lock:
+            with up.queue_lock:
                 while not up.queue.empty():
                     uu = up.queue.get()
                     for fi in reversed(self.filters):
@@ -90,7 +90,7 @@ class SimulationInterface(Interface):
     def __init__(self, world, filters=[]):
         updaters = [updater.SimVisionUpdater()]
         commanders = [commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)]
-        filters = filters + [filter.Scale()]
+        filters = filters + [filter.Speed(), filter.Scale()]
         Interface.__init__(self, world, updaters, commanders, filters)
 
     #def start()

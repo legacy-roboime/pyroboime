@@ -1,3 +1,4 @@
+from numpy import array
 from math import degrees
 
 
@@ -26,6 +27,11 @@ class Filter(object):
 
 
 class Scale(Filter):
+    """
+    This is a filter to correct scaling of values coming from
+    and going to grSim. Ideally it should do arbitrary unit conversion
+    but for now it doesn't.
+    """
 
     def filter_updates(self, updates):
         for update in updates:
@@ -38,3 +44,34 @@ class Scale(Filter):
                 else:
                     filtered_data[key] = value / 1000.0
             update.data = filtered_data
+
+
+class Speed(Filter):
+    """
+    This filter infers speed based on memorization of packages
+    with smaller timestamps.
+
+    The process per se is really stupid, speed = delta_space / delta_time,
+    but in the lack of an smarter filter this should do fine.
+
+    It seems a good idea to filter the data coming from this filter
+    with something smarter.
+    """
+
+    def __init__(self):
+        super(Speed, self).__init__()
+        self.previous = {}
+
+    def remember_updates(self, updates):
+        for u in updates:
+            if u.uid() < 0x400:
+                self.previous[u.uid()] = u
+
+    def filter_updates(self, updates):
+        for u in updates:
+            if u.uid() in self.previous:
+                pu = self.previous[u.uid()]
+                px, py, pt, = pu.data['x'], pu.data['y'], pu.data['timestamp']
+                x, y, t = u.data['x'], u.data['y'], u.data['timestamp']
+                u.data['speed'] = array((x - px, y - py)) / (t - pt)
+        self.remember_updates(updates)

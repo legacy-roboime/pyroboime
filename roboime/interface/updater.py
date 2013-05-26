@@ -33,6 +33,9 @@ class BallUpdate(Update):
                 setattr(ball, prop, value)
         ball.update((self.data['x'], self.data['y']))
 
+    def uid(self):
+        return 0xba11
+
 
 class RobotUpdate(Update):
 
@@ -40,6 +43,9 @@ class RobotUpdate(Update):
         Update.__init__(self, data)
         self.team_color = team_color
         self.i = i
+
+    def uid(self):
+        return (0x100 if self.team_color is base.Blue else 0x200) + self.i
 
     def apply(self, world):
         if self.team_color == base.Blue:
@@ -61,19 +67,22 @@ class GeometryUpdate(Update):
         world.right_goal.update((world.length / 2, 0.0))
         world.left_goal.update((-world.length / 2, 0.0))
 
+    def uid(self):
+        return 0x666
+
 
 class Updater(Process):
 
     def __init__(self, maxsize=15):
         Process.__init__(self)
         self.queue = Queue(maxsize)
-        self.queue.lock = Lock()
+        self.queue_lock = Lock()
         self._exit = Event()
 
     def run(self):
         while not self._exit.is_set():
             try:
-                with self.queue.lock:
+                with self.queue_lock:
                     if self.queue.full():
                         self.queue.get()
                     self.queue.put(self.receive())
