@@ -436,6 +436,7 @@ class World(object):
         self.goal_width = 0.0
         self.goal_depth = 0.0
         self.goal_wall_width = 0.0
+        self.inited = False
 
         # objects
         if right_team is None:

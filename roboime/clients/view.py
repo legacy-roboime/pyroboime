@@ -14,8 +14,6 @@ from ..interface import SimulationInterface
 from ..core.skills import sampledchipkick
 #from ..utils.geom import Point
 
-import pdb
-
 FIELD_GREEN = '#3a0'
 YELLOW = '#ff0'
 BLUE = '#00f'
@@ -43,6 +41,7 @@ class FieldCanvas(Canvas):
         self.goal_depth = 0.2
         self.goal_width = 0.7
         self.thickness = 1
+        self.has_field = False
 
         self['bg'] = FIELD_GREEN
         self['width'] = 100 * (self.field_length + 2 * self.field_margin)
@@ -52,31 +51,6 @@ class FieldCanvas(Canvas):
 
         self.fps = self.create_text(50, 20, fill=BLACK)
 
-        # lines
-        self.bounds = self.create_rectangle(
-            self._cx(-self.field_length / 2),
-            self._cy(-self.field_width / 2),
-            self._cx(self.field_length / 2),
-            self._cy(self.field_width / 2),
-            outline='white',
-            width=self.thickness,
-        )
-        self.midline = self.create_line(
-            self._cx(0),
-            self._cy(-self.field_width / 2),
-            self._cx(0),
-            self._cy(self.field_width / 2),
-            fill='white',
-            width=self.thickness,
-        )
-        self.center = self.create_oval(
-            self._cx(-self.field_radius),
-            self._cy(-self.field_radius),
-            self._cx(self.field_radius),
-            self._cy(self.field_radius),
-            outline='white',
-            width=self.thickness,
-        )
 
     def _cx(self, x):
         'Convert internal x coord to canvas x coord'
@@ -139,28 +113,57 @@ class FieldCanvas(Canvas):
             self.delete(self.robots[rid])
             del self.robots[rid]
 
+    def create_field(self, world):
+        # lines
+        self.bounds = self.create_rectangle(
+            self._cx(-world.length / 2),
+            self._cy(-world.width / 2),
+            self._cx(world.length / 2),
+            self._cy(world.width / 2),
+            outline='white',
+            width=self.thickness,
+        )
+        self.midline = self.create_line(
+            self._cx(0),
+            self._cy(-world.width / 2),
+            self._cx(0),
+            self._cy(world.width / 2),
+            fill='white',
+            width=self.thickness,
+        )
+        self.center = self.create_oval(
+            self._cx(-world.center_radius),
+            self._cy(-world.center_radius),
+            self._cx(world.center_radius),
+            self._cy(world.center_radius),
+            outline='white',
+            width=self.thickness,
+        )
+
+        for color in [Blue, Yellow]:
+            self.draw_defense_area(world.defense_area(color))
+
+        for goal in [world.left_goal, world.right_goal]:
+            self.draw_goal(goal)
+
+        self.has_field = True
+
     def draw_field(self, world):
         # TODO: redraw field size if changed
-        if not hasattr(self, 'blabla'):
-            blabla = False
-            for color in [Blue, Yellow]:
-                if not world.defense_area(color).is_empty:
-                    self.draw_defense_area(world.defense_area(color))
-                    blabla = True
-            if blabla:
-                for goal in [world.left_goal, world.right_goal]:
-                    self.draw_goal(goal)
-                self.blabla = blabla
+        if not self.has_field:
+            if world.inited:
+                self.create_field(world)
 
-        self.draw_ball(world.ball)
-        # draw all robots on the field
-        for r in world.iterrobots():
-            self.draw_robot(r)
-        # remove missing robots
-        rids = map(lambda r: id(r), world.iterrobots())
-        for r in self.robots.iterkeys():
-            if r not in rids:
-                self.delete_robot(r)
+        if self.has_field:
+            self.draw_ball(world.ball)
+            # draw all robots on the field
+            for r in world.iterrobots():
+                self.draw_robot(r)
+            # remove missing robots
+            rids = map(lambda r: id(r), world.iterrobots())
+            for r in self.robots.iterkeys():
+                if r not in rids:
+                    self.delete_robot(r)
 
     def draw_defense_area(self, defense_area):
         converted_polygon = [(self._cx(x), self._cy(y)) for (x, y) in defense_area.exterior.coords]
@@ -203,7 +206,7 @@ class View(Tk):
         self.timestamp2 = time()
 
     def redraw(self):
-	print "I'm in!"
+        #print "I'm in!"
         #if len(self.world.blue_team) > 0:
         #if 0 in self.world.blue_team:
         #    r = self.world.blue_team[0]
@@ -242,14 +245,14 @@ class View(Tk):
         #    # how long should we wait?
         #    self.after(10, self.redraw)
         #pdb.set_trace()
-	self.interface.step()
+        self.interface.step()
         #pdb.set_trace()
         self.canvas.draw_field(self.world)
         # how long should we wait?
         self.timestamp2, self.timestamp1 = self.timestamp1, time()
         self.canvas.draw_fps("{:.02f}".format(1.0 / (self.timestamp1 - self.timestamp2)))
         #self.after(10, self.redraw)
-        print "Redrawing in a few"
+        #print "Redrawing in a few"
         self.after(1, self.redraw)
 
     def mainloop(self):

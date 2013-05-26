@@ -66,6 +66,7 @@ class GeometryUpdate(Update):
             setattr(world, prop, value)
         world.right_goal.update((world.length / 2, 0.0))
         world.left_goal.update((-world.length / 2, 0.0))
+        world.inited = True
 
     def uid(self):
         return 0x6e0
