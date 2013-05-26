@@ -13,31 +13,51 @@ class Defender(Tactic):
     Remember that you may not only defend the goal, you're allowed
     to defend any point on the field.
     """
-    def __init__(self, robot, enemy, cover=None, dist=0.5, fac_dist=0.3, min_dist=3, flap_dist=0.1):
-        self.min_dist = min_dist
+    def __init__(self, robot, enemy, cover=None, distance=0.5, follow_distance=0.3, proximity=3.0, flapping_margin=0.1):
+        """
+        cover: point or object to cover
+        distance: distance to keep from the cover point
+        follow_distance: distance to keep from the enemy when following it
+        proximity: distance to switch from covering mode to following mode
+        flapping_margin: distance margin to avoid flapping between covering and following
+        """
+        self.proximity = proximity
         self.cover = robot.goal if cover is None else cover
+        self.robots = [robot]
+        self.distance = distance
+        self.follow_distance = follow_distance
+        self.proximity = proximity
+        self.flapping_margin = flapping_margin
+        self._enemy = enemy
         self.follow_and_cover = FollowAndCover(
-            robot,
-            follow=enemy,
+            self.robot,
+            follow=self.enemy,
             cover=self.cover,
-            distance=fac_dist,
-            referential=enemy,
+            distance=self.follow_distance,
+            referential=self.enemy,
         )
         self.drive_to_object = DriveToObject(
-            robot,
+            self.robot,
             point=self.cover,
-            lookpoint=enemy,
-            threshold=-(dist + robot.front_cut),
-            max_error_d=0.1, # TODO parametrize
-            max_error_a=10, # TODO parametrize
+            lookpoint=self.enemy,
+            threshold=-(self.distance + self.robot.radius),
         )
         super(Defender, self).__init__(
             [robot],
-            deterministic=True, 
-            states=[self.follow_and_cover, self.drive_to_object],
+            deterministic=True,
             initial_state=self.drive_to_object,
-        )
-        self.transitions = [
-            Transition(self.drive_to_object, self.follow_and_cover, condition=lambda: enemy.distance(robot.goal) < self.min_dist - flap_dist),
-            Transition(self.follow_and_cover, self.drive_to_object, condition=lambda: enemy.distance(robot.goal) > self.min_dist + flap_dist),
-        ]
+            transitions=[
+                Transition(self.drive_to_object, self.follow_and_cover, condition=lambda: self.enemy.distance(self.robot.goal) < self.proximity - self.flapping_margin),
+                Transition(self.follow_and_cover, self.drive_to_object, condition=lambda: self.enemy.distance(self.robot.goal) > self.proximity + self.flapping_margin),
+        ])
+
+    @property
+    def enemy(self):
+        return self._enemy
+
+    @enemy.setter
+    def enemy(self, new_enemy):
+        self._enemy = new_enemy
+        self.follow_and_cover.follow = new_enemy
+        self.follow_and_cover.referential = new_enemy
+        self.drive_to_object.lookpoint = new_enemy

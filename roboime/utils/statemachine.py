@@ -25,16 +25,13 @@ class Transition(object):
 
 
 class Machine(object):
-    def __init__(self, deterministic, states=[], initial_state=None, final_state=None):
+    #def __init__(self, deterministic, initial_state=None, final_state=None, transitions=[]):
+    def __init__(self, deterministic, initial_state=None, transitions=[]):
         self.deterministic = deterministic
-        self.states = states
-        self.initial_state = initial_state
-        self.final_state = final_state
-        # set current state
-        self.reset()
-
-    def reset(self):
-        self.current_state = self.initial_state
+        #self.initial_state = initial_state
+        #self.final_state = final_state
+        self.current_state = initial_state
+        self.transitions = transitions
 
     def execute(self):
         possible_transitions = [t for t in self.transitions if t.condition() and t.from_state is self.current_state]

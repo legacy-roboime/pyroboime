@@ -25,24 +25,14 @@ class Zickler43(Tactic):
         self.drive = DriveToBall(robot, lookpoint=self.lookpoint, deterministic=True)
         self.dribble = SampledDribble(robot, deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.0, maxpower=1.0)
         self.goal_kick = SampledKick(robot, deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.9, maxpower=1.0)
-        #self.mini_kick = SampledKick(robot, deterministic=deterministic, lookpoint=None, minpower=0.0, maxpower=0.3)
         self.wait = Halt(robot)
 
-        states = [
-            self.drive,
-            self.dribble,
-            self.goal_kick,
-            self.wait,
-        ]
-
-        super(Zickler43, self).__init__([robot], deterministic=deterministic, states=states, initial_state=self.drive)
-
-        self.transitions = [
+        super(Zickler43, self).__init__([robot], deterministic=deterministic, initial_state=self.drive, transitions=[
             Transition(self.drive, self.dribble, condition=lambda: self.drive.close_enough()),
             Transition(self.dribble, self.drive, condition=lambda: not self.dribble.close_enough()),
             Transition(self.dribble, self.goal_kick, condition=lambda: self.dribble.close_enough()),
             Transition(self.goal_kick, self.drive, condition=lambda: not self.goal_kick.close_enough()),
-        ]
+        ])
 
         self.max_hole_size = -1
 
@@ -53,9 +43,8 @@ class Zickler43(Tactic):
     @lookpoint.setter
     def lookpoint(self, point):
         self._lookpoint = point
-        for state in self.states:
-            if hasattr(state, 'lookpoint'):
-                state.lookpoint = point
+        for state in [self.drive, self.dribble, self.goal_kick]:
+            state.lookpoint = point
 
     def step(self):
         lookpoint = self.point_to_kick()

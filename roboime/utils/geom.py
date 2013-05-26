@@ -53,6 +53,11 @@ class Point(geometry.Point):
             return ang_rad + 360
         return ang_rad
 
+    def closest_to(self, iterable):
+        """Will return the closest object to self from iterable."""
+        d, i = min((self.distance(i), i) for i in iterable)
+        return i
+
 
 class Circle(geometry.Polygon):
 

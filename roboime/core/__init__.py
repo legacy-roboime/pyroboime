@@ -21,6 +21,10 @@ class Skill(State):
         return self.robot.team
 
     @property
+    def enemy_team(self):
+        return self.team.enemy_team
+
+    @property
     def goal(self):
         return self.team.goal
 
@@ -51,6 +55,10 @@ class Tactic(Machine):
         return self.robot.team
 
     @property
+    def enemy_team(self):
+        return self.team.enemy_team
+
+    @property
     def goal(self):
         return self.robot.goal
 
@@ -70,9 +78,17 @@ class Play(object):
         self.team = team
 
     @property
+    def enemy_team(self):
+        return self.team.enemy_team
+
+    @property
     def world(self):
         return self.team.world
 
     @property
     def goal(self):
         return self.team.goal
+
+    @property
+    def ball(self):
+        return self.world.ball

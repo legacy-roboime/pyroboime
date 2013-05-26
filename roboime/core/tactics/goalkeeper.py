@@ -53,7 +53,7 @@ class Goalkeeper(Tactic):
         #
 
         # Sets the ratio between the perpendicular distance of the homeline to the goal and the GK's radius
-        radius = (self.robot.radius + self.ball.radius) * self.safety_ratio
+        radius = (self.robot.radius + 2 * self.ball.radius) * self.safety_ratio
 
         # Compute home line ends
         p1 = Point(array(self.goal.p1) + radius * array((cos(self.angle) * -sign(self.goal.x), -sin(self.angle))))

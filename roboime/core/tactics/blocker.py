@@ -23,7 +23,6 @@ class Blocker(Tactic):
         # TODO: implement with follow and cover somehow, needs angle deviantion
         self.blockpoint = self.ball if blockpoint is None else blockpoint
         self.goto = GotoLooking(self.robot, lookpoint=self.blockpoint)
-        # self.robot = robot
         self.arc = arc
         self.dist = distance
 

@@ -140,6 +140,7 @@ class Robot(geom.Point):
         # and some geometry framework can use that angle
         self.angle = None
         self.speed = None
+        self.active = True
 
         # basic
         self.uid = uid
@@ -296,13 +297,22 @@ class Team(defaultdict):
     def is_yellow(self):
         return self.color == Yellow
 
-    def iterrobots(self):
+    def iterrobots(self, active=True):
         for r in self.itervalues():
-            #TODO put active condition
-            yield r
+            if active is not None:
+                if r.active == active:
+                    yield r
+            else:
+                yield r
+
+    def closest_robots_to_ball(self, **kwargs):
+        return self.world.closest_robots_to_ball(color=self.color, **kwargs)
+
+    def closest_robots_to_point(self, point, **kwargs):
+        return self.world.closest_robots_to_point(point, color=self.color, **kwargs)
 
     def __iter__(self):
-        return self.iterrobots()
+        return self.iterrobots(active=True)
 
 
 class Ball(geom.Point):
@@ -558,29 +568,46 @@ class World(object):
         line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
         return line_to_buffer.buffer(defense_area_radius)
 
-    def closest_robot_to_ball(self, can_kick=True):
+    def closest_robot_to_ball(self, **kwargs):
+        return self.closest_robot_to_point(self.ball, **kwargs)
+
+    def closest_robot_to_point(self, point, can_kick=True, color=None):
+        """
+        Name says almost it all.
+        can_kick: By default only robots that can_kick are considered.
+          If can_kick is set to False, only robots that cannot kick are considered.
+          If you want to consider both set can_kick to None.
+        color: If specified will only consider robots from matching color.
+        """
+        d, r = min((r.distance(point), r) for r in self.iterrobots(can_kick=can_kick, color=color))
+        return r
+
+    def closest_robots_to_ball(self, **kwargs):
+        return self.closest_robots_to_point(self.ball, **kwargs)
+
+    def closest_robots_to_point(self, point, can_kick=True, color=None):
         """
         Name says almost it all.
         By default only robots that can_kick are considered.
         If can_kick is set to False, only robots that cannot kick are considered.
         If you want to consider both set can_kick to None.
+        It will return a list sorted by distance
         """
-        b = self.ball
-        d, r = min((r.distance(b), r) for r in self.iterrobots(can_kick=can_kick))
-        return r
+        return [r for d, r in sorted((r.distance(point), r) for r in self.iterrobots(can_kick=can_kick, color=color))]
 
     @property
     def robots(self):
         return list(self.iterrobots())
 
-    def iterrobots(self, can_kick=None):
+    def iterrobots(self, can_kick=None, active=True, color=None):
         """W.iterrobots() -> an iterator over the robots of the world W."""
-        for t in (self.right_team, self.left_team):
-            for r in t.iterrobots():
+        teams = (self.right_team, self.left_team) if color is None else (self.team(color),)
+        for t in teams:
+            for r in t.iterrobots(active=active):
                 if can_kick is None:
                     yield r
                 else:
-                    if r.can_kick is can_kick:
+                    if r.can_kick == can_kick:
                         yield r
 
     def iterobjects(self):
