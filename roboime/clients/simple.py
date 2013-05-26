@@ -14,7 +14,8 @@ from ..core.tactics import goalkeeper
 from ..core.tactics import blocker
 #from ..core.tactics import defender
 #from ..core.tactics import zickler43 as zickler
-from ..core.plays import autoretaliate
+#from ..core.plays import autoretaliate
+from ..core.plays import halt
 #from ..utils.geom import Point
 
 class Simple(object):
@@ -78,8 +79,12 @@ class Simple(object):
         #    if 'def' not in self.skills:
         #        self.skills['def'] = defender.Defender(r, enemy=self.world.yellow_team[2])
         #    r.max_speed = 2.0
-        if 'retaliate' not in self.plays:
-            self.plays['retaliate'] = autoretaliate.AutoRetaliate(self.world.yellow_team, 0)
+
+        #if 'retaliate' not in self.plays:
+        #    self.plays['retaliate'] = autoretaliate.AutoRetaliate(self.world.yellow_team, 0)
+        if 'halt' not in self.plays:
+            self.plays['halt'] = halt.Halt(self.world.yellow_team)
+
         for p in self.plays.itervalues():
             p.step()
         for t in self.tactics.itervalues():
