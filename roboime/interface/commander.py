@@ -36,6 +36,7 @@ class SimCommander(Commander):
     def __init__(self, team):
         Commander.__init__(self)
         self.team = team
+        #self.sender = grsim.grSimSender(('200.20.120.133', 20011))
         self.sender = grsim.grSimSender()
 
     def send(self, actions):
@@ -50,8 +51,14 @@ class SimCommander(Commander):
                 vx, vy, va = a.speeds
                 c = packet.commands.robot_commands.add()
                 c.id = a.uid
-                c.kickspeedx = (a.kick or 0.0) * 5
-                c.kickspeedz = a.chipkick or 0.0
+                c.kickspeedz = (a.chipkick or 0.0) * 3
+                if c.kickspeedz > 0:
+                    # XXX FIXME this should be tested,
+                    # we don't know at what angle we
+                    # will be able to chipkick
+                    c.kickspeedx = 1.5 * c.kickspeedz
+                else:
+                    c.kickspeedx = (a.kick or 0.0) * 5
                 c.veltangent = vx
                 c.velnormal = vy
                 c.velangular = va * pi / 180
