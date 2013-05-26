@@ -12,7 +12,7 @@ class FollowAndCover(Goto):
     followed, this is the way to go.
     """
 
-    def __init__(self, robot, follow, cover, distance=1.0):
+    def __init__(self, robot, follow, cover, distance=1.0, **kwargs):
         """
         The argument names are pretty self explainable,
         If not, here's a drawing:
@@ -27,7 +27,7 @@ class FollowAndCover(Goto):
         Notice that the points follow, robot, and cover are
         aligned. And that follow and robot are `distance` apart.
         """
-        super(FollowAndCover, self).__init__(robot)
+        super(FollowAndCover, self).__init__(robot, **kwargs)
         self.follow = follow
         self.cover = cover
         self.distance = distance

@@ -13,6 +13,7 @@ from ..core.skills import sampledkick
 #from ..core.skills import sampledchipkick
 from ..core.tactics import goalkeeper
 from ..core.tactics import blocker
+from ..core.tactics import defender
 #from ..utils.geom import Point
 
 class Simple(object):
@@ -66,6 +67,11 @@ class Simple(object):
             r = self.world.yellow_team[2]
             if 'sk' not in self.skills:
                 self.skills['sk'] = sampledkick.SampledKick(r, lookpoint=self.world.left_goal)
+            r.max_speed = 2.0
+        if 3 in self.world.blue_team:
+            r = self.world.blue_team[3]
+            if 'def' not in self.skills:
+                self.skills['def'] = defender.Defender(r, enemy=self.world.yellow_team[2])
             r.max_speed = 2.0
         for t in self.tactics.itervalues():
             t.step()

@@ -62,7 +62,9 @@ class Tactic(Machine):
         return self.world.ball
 
     def step(self):
-        pass
+        if self.current_state is not None:
+            self.current_state.step()
+        self.execute()
 
 
 class Play(object):

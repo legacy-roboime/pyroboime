@@ -13,7 +13,7 @@ class Goto(Skill):
     Sends the robot to a specified point with a specified orientation with no
     regard to the position of any other objects on the field.
     """
-    def __init__(self, robot, target=None, angle=None, final_target=None, is_goalkeeper=False):
+    def __init__(self, robot, target=None, angle=None, final_target=None, is_goalkeeper=False, referential=None):
         """
         final_target: the ultimate position the robot should attain
         target: the intermediate position you're ACTUALLY sending the robot to
@@ -34,6 +34,7 @@ class Goto(Skill):
         self.target = target
         # self.final_target = final_target if final_target is not None else self.target
         self.final_target = final_target
+        self.referential = referential
 
     def busy(self):
         return False
@@ -42,6 +43,7 @@ class Goto(Skill):
         r = self.robot
         t = self.target if self.target is not None else r
         f_t = self.final_target if self.final_target is not None else self.target
+        #ref = self.referential if self.referential is not None else f_t
         # TODO: Check if target is within the boundaries of the field (augmented of the robot's radius).
 
         # check wether the point we want to go to will make the robot be in the defense area
@@ -70,6 +72,11 @@ class Goto(Skill):
         out = v_max * (1 - exp(-cte * r.distance(f_t)))
         # v is the speed vector resulting from that equation
         v = out * error / norm(error)
+
+        # increase by referential speed
+        # not working, must think about it
+        #if ref is not None:
+        #    v += ref.speed
 
         # at last set the action accordingly
         r.action.absolute_speeds = v[0], v[1], va

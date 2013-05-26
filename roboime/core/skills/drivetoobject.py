@@ -15,7 +15,9 @@ class DriveToObject(DriveTo):
         In adition to those, checkout DriveTo parameters as they are also
         valid for this skill, EXCEPT for b_point, which is mapped to point.
         """
-        super(DriveToObject, self).__init__(robot, threshold=robot.front_cut, b_point=point, **kwargs)
+        if not 'threshold' in kwargs:
+            kwargs['threshold'] = robot.front_cut
+        super(DriveToObject, self).__init__(robot, b_point=point, **kwargs)
         self.lookpoint = lookpoint
 
     def step(self):
