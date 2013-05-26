@@ -5,8 +5,8 @@ from ..skills.halt import Halt as HaltSkill
 class Halt(Play):
     """Alright, stop! And don't move."""
 
-    def __init__(self, team):
-        super(Halt, self).__init__(team)
+    def __init__(self, team, **kwargs):
+        super(Halt, self).__init__(team, **kwargs)
         self.players = {}
 
     def step(self):

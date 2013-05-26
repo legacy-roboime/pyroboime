@@ -15,7 +15,8 @@ from ..core.tactics import blocker
 #from ..core.tactics import defender
 #from ..core.tactics import zickler43 as zickler
 #from ..core.plays import autoretaliate
-from ..core.plays import halt
+#from ..core.plays import halt
+from ..core.plays import stop
 #from ..utils.geom import Point
 
 class Simple(object):
@@ -82,8 +83,10 @@ class Simple(object):
 
         #if 'retaliate' not in self.plays:
         #    self.plays['retaliate'] = autoretaliate.AutoRetaliate(self.world.yellow_team, 0)
-        if 'halt' not in self.plays:
-            self.plays['halt'] = halt.Halt(self.world.yellow_team)
+        #if 'halt' not in self.plays:
+        #    self.plays['halt'] = halt.Halt(self.world.yellow_team)
+        if 'stop' not in self.plays:
+            self.plays['stop'] = stop.Stop(self.world.yellow_team, 0)
 
         for p in self.plays.itervalues():
             p.step()
