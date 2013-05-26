@@ -72,7 +72,7 @@ class GeometryUpdate(Update):
         world.left_goal.update((-world.length / 2, 0.0))
 
     def uid(self):
-        return 0x666
+        return 0x6e0
 
 
 class Updater(Process):
