@@ -140,6 +140,7 @@ class Robot(geom.Point):
         # ideally robot should inherit from a class that has an angle
         # and some geometry framework can use that angle
         self.angle = None
+        self.speed = None
 
         # basic
         self.uid = uid
@@ -292,6 +293,7 @@ class Ball(geom.Point):
         super(Ball, self).__init__(0.0, 0.0)
         self._radius = 43e-3 / 2
         self.world = world
+        self.speed = None
 
         # initial body
         self._body = geom.Circle(self, self._radius)

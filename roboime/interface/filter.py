@@ -64,7 +64,7 @@ class Speed(Filter):
 
     def remember_updates(self, updates):
         for u in updates:
-            if u.uid() < 0x400:
+            if u.uid() < 0x400 or u.uid() == 0xba11:
                 self.previous[u.uid()] = u
 
     def filter_updates(self, updates):

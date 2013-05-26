@@ -6,6 +6,7 @@ if platform == 'win32':
     from threading import Lock
 else:
     from multiprocessing import Process, Queue, Event, Lock
+from numpy import array
 
 from ..communication import sslvision
 from .. import base
@@ -28,10 +29,11 @@ class BallUpdate(Update):
 
     def apply(self, world):
         ball = world.ball
-        for prop, value in self.data.iteritems():
-            if prop != 'x' and prop != 'y':
-                setattr(ball, prop, value)
+        #for prop, value in self.data.iteritems():
+        #    if prop != 'x' and prop != 'y':
+        #        setattr(ball, prop, value)
         ball.update((self.data['x'], self.data['y']))
+        ball.speed = array(self.data.get('speed'))
 
     def uid(self):
         return 0xba11
