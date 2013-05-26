@@ -43,15 +43,18 @@ class Interface(object):
         #print "I'm stepping the interface."
         # updates injection phase
         for up in self.updaters:
-            with up.queue_lock:
-                while not up.queue.empty():
-                    uu = up.queue.get()
-                    for fi in reversed(self.filters):
-                        _uu = fi.filter_updates(uu)
-                        if _uu is not None:
-                            uu = _uu
-                    for u in uu:
-                        u.apply(self.world)
+            count = 0
+            #with up.queue_lock:
+            #    print 'Queue size: ', up.queue.qsize()
+            while not up.queue.empty() and count < 7:
+                uu = up.queue.get()
+                for fi in reversed(self.filters):
+                    _uu = fi.filter_updates(uu)
+                    if _uu is not None:
+                        uu = _uu
+                for u in uu:
+                    u.apply(self.world)
+                count = count + 1
 
 
 

@@ -55,7 +55,7 @@ class Simple(object):
                 #self.skill = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
             self.skill.step()
         t1 = time()
-        print 'skill time:', t1 - t0
+        #print 'skill time:', t1 - t0
 
         #try:
         #    self.interface.step()
@@ -70,7 +70,7 @@ class Simple(object):
         t0 = time()
         self.interface.step()
         t1 = time()
-        print 'inter time:', t1 - t0
+        #print 'inter time:', t1 - t0
 
         if self.show_fps:
             self.timestamp2, self.timestamp1 = self.timestamp1, time()
