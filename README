@@ -1,7 +1,7 @@
 This is an attempt to develop the intelligence project on python...
 Python 2 is required due to google.protobuf, aside from that, the code is designed to be Python 3 compatible.
 
-If running Python 64bits, the following versions are needed:
+If running 64-bit Python, the following , 64-bit packages for numpy and scipy are also needed. these cna be found in:
     http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy
     http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy
 	
@@ -20,3 +20,5 @@ Great Python debugger for Windows users (even though it is ment to be a platform
 	3.4) select "localhost" and the correspondent PID
 	3.5) type 123 (or the password that matches with -3.1-)
 	3.6) voilà
+
+The Qt client requires PyQt4 to work. 64-bit windows users are advised to install the binaries provided by Riverbank.

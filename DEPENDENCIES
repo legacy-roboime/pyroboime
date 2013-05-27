@@ -17,7 +17,12 @@ Shapely
 libgeos
     # not sure of the command bellow
     apt-get install libgeos-c
+    # under fedora, the packages are labled as following: the -devel package is needed by shapely
+    rpm install geos geos-devel 
 
+PyQt4 (optional)
+    # windows users are advised to get the binaries from Riverbank, as pip install of pyqt is bugged as of now.
+    pip install PyQt
 
 #TODO:
     create smart dependencies file so one can
