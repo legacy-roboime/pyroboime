@@ -42,6 +42,7 @@ class Interface(QObject):
     world_updated = pyqtSignal()
 
     def __init__(self, world, updaters, commanders, filters):
+        super(Interface, self).__init__()
         self.world = world
         self.updaters = updaters
         self.commanders = commanders
@@ -70,6 +71,7 @@ class Interface(QObject):
                         uu = _uu
                 for u in uu:
                     u.apply(self.world)
+                    print 'emitting signal'
                     self.world_updated.emit()
                 count = count + 1
 

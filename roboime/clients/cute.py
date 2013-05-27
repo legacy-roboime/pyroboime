@@ -29,14 +29,27 @@ class Cute(QtGui.QMainWindow):
         self.ui.show()
 
         self.world = World()
-        self.interface = SimulationInterface(self.world)
+        self.ui.stageView.world = self.world        
+
         self.timestamp1 = time()
         self.timestamp2 = time()
+
+        self.intelligence = Intelligence(self.world)
+
+        # Connects stageview update event to world updates on interface
+        self.intelligence.interface.world_updated.connect(self.ui.stageView.redraw)        
+        self.intelligence.start()
+
+
+class Intelligence(QtCore.QThread):
+    def __init__(self, world):
+        super(Intelligence, self).__init__()
+        self.world = world
         self.skill = None
+        self.interface = SimulationInterface(self.world)
 
-        self.interface.start()
 
-    def loop(self):
+    def _loop(self):
         if 2 in self.world.blue_team:
             r = self.world.blue_team[2]
             r.max_speed = 2.0
@@ -50,6 +63,14 @@ class Cute(QtGui.QMainWindow):
                 #self.skill = goto.Goto(r, target=Point(0, 0))
                 #self.skill = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
             self.skill.step()
-
         self.interface.step()
+    
+    def run(self):
+        self.interface.start()
+        try:
+            while True:
+                self._loop()
+        except:
+            print 'Bad things happened'
+            raise
 

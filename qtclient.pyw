@@ -1,7 +1,8 @@
 #!/usr/bin/env python -O
 from sys import argv, exit
+from PyQt4 import QtGui, QtCore
+
 from roboime.clients import cute
-from PyQt4 import QtGui
 
 if __name__ == '__main__':
     app = QtGui.QApplication(argv) 
