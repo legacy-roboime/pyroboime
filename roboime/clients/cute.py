@@ -1,7 +1,8 @@
 from time import time
-import sys
-from PyQt4 import QtGui
+import sys, os
+from PyQt4 import QtGui, QtCore, uic
 
+from . import stageview
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface
@@ -15,18 +16,25 @@ from ..interface import SimulationInterface
 from ..core.skills import sampledchipkick
 
 
-class Cute(object):
+class Cute(QtGui.QMainWindow):
     """
-    This is a simple example with no graphical interface.
+    This is a QT graphical interface.
     """
 
-    def __init__(self, show_fps=False):
+    def __init__(self):
+        super(Cute, self).__init__()
+        
+        self.ui = uic.loadUi(os.path.join(os.path.dirname(__file__), './GraphicalIntelligence.ui'))        
+
+        self.ui.show()
+
         self.world = World()
         self.interface = SimulationInterface(self.world)
-        self.show_fps = show_fps
         self.timestamp1 = time()
         self.timestamp2 = time()
         self.skill = None
+
+        self.interface.start()
 
     def loop(self):
         if 2 in self.world.blue_team:
@@ -45,20 +53,3 @@ class Cute(object):
 
         self.interface.step()
 
-
-    def mainloop(self):
-        app = QtGui.QApplication(sys.argv)    
-
-        self.window = QtGui.QWidget()
-        self.window.resize(250, 150)
-        self.window.move(300,300)
-        self.window.setWindowTitle("RoboIME Graphical Client")
-        self.interface.start()
-        self.window.show()
-        
-        sys.exit(app.exec_())
-        try:
-            while True:
-                self.loop()
-        except KeyboardInterrupt:
-            self.interface.stop()
