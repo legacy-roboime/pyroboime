@@ -1,3 +1,17 @@
+# These imports are here so that one doesn't need PyQt to run the CLI client.
+try:
+    from PyQt4.QtCore import QObject, pyqtSignal
+except: 
+    class QObject(object):
+        pass
+
+    class pyqtSignal(object):
+       def __init__(self, *args, **kwargs):
+            pass
+    
+       def emit(*args, **kwargs):
+            pass
+
 from . import updater
 from . import commander
 from . import filter
@@ -17,13 +31,15 @@ def _command_loop(queue, commander):
             commander.send(latest_actions)
 
 
-class Interface(object):
+class Interface(QObject):
     """ This class is used to manage a single interface channel
 
     More specifically, this class will instantiate a set of updaters,
     commanders and filters, and orchestrate them to interact with an
     instace of a World.
     """
+
+    world_updated = pyqtSignal()
 
     def __init__(self, world, updaters, commanders, filters):
         self.world = world
@@ -54,6 +70,7 @@ class Interface(object):
                         uu = _uu
                 for u in uu:
                     u.apply(self.world)
+                    self.world_updated.emit()
                 count = count + 1
 
 
