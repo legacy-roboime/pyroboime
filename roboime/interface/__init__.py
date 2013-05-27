@@ -71,7 +71,6 @@ class Interface(QObject):
                         uu = _uu
                 for u in uu:
                     u.apply(self.world)
-                    print 'emitting signal'
                     self.world_updated.emit()
                 count = count + 1
 
