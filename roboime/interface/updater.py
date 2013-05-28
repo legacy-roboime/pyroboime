@@ -9,9 +9,10 @@ else:
 from numpy import array
 
 from ..communication import sslvision
+from ..communication import refbox
 from .. import base
 
-import pdb
+#import pdb
 
 STOP_TIMEOUT = 1
 t0 = None
@@ -79,11 +80,19 @@ class GeometryUpdate(Update):
         return 0x6e0
 
 
+class RefereeUpdate(Update):
+
+    def apply(self, world):
+        # XXX: TEST
+        world.referee_data = self.data
+
+
 class Updater(Process):
 
     def __init__(self, maxsize=15):
         Process.__init__(self)
-        self.queue = Queue(maxsize)
+        #self.queue = Queue(maxsize)
+        self.queue = Queue()
         self.queue_lock = Lock()
         self._exit = Event()
 
@@ -179,3 +188,64 @@ class SimVisionUpdater(VisionUpdater):
 
     def __init__(self):
         VisionUpdater.__init__(self, ('224.5.23.2', 11002))
+
+
+class RefereeUpdater(Updater):
+
+    def __init__(self, address=('224.5.23.1', 10001)):
+        super(RefereeUpdater, self).__init__()
+        self.receiver = refbox.RefboxOldReceiver(address)
+        self.counter = 0
+
+    def _command(self, char):
+        """
+        Command type     Command Description     Command
+        =================================================================================
+        Control commands
+                         Halt                    H
+                         Stop                    S
+                         Ready                   ' ' (space character)
+                         Start                   s
+        Game Notifications
+                         Begin first half        1
+                         Begin half time         h
+                         Begin second half       2
+                         Begin overtime half 1   o
+                         Begin overtime half 2   O
+                         Begin penalty shootout  a
+
+        Command type     Command Description     Yellow Team Command    Blue Team Command
+        =================================================================================
+        Game restarts
+                         Kick off                k                      K
+                         Penalty                 p                      P
+                         Direct Free kick        f                      F
+                         Indirect Free kick      i                      I
+        Extras
+                         Timeout                 t                      T
+                         Timeout end             z                      z
+                         Goal scored             g                      G
+                         decrease Goal score     d                      D
+                         Yellow Card             y                      Y
+                         Red Card                r                      R
+                         Cancel                  c
+        """
+        pass
+
+    def receive(self):
+        updates = []
+        packet = self.receiver.get_packet()
+        # receive until a command is issued
+        try:
+            while packet.counter < self.counter:
+                packet = self.get_packet()
+            self.counter = packet.counter
+            updates.append(RefereeUpdate({
+                'command': self._command(packet.command),
+                'goals_blue': packet.goals_blue,
+                'goals_yellow': packet.goals_yellow,
+                'time_remaining': packet.time_remaining,
+            }))
+            return updates
+        except:
+            pass
