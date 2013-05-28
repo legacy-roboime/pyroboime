@@ -9,7 +9,7 @@ except:
        def __init__(self, *args, **kwargs):
             pass
     
-       def emit(*args, **kwargs):
+       def emit(self, *args, **kwargs):
             pass
 
 from . import updater

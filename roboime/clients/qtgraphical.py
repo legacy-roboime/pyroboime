@@ -24,19 +24,19 @@ class QtGraphicalClient(QtGui.QMainWindow):
     def __init__(self):
         super(QtGraphicalClient, self).__init__()
         
-        self.ui = uic.loadUi(os.path.join(os.path.dirname(__file__), './GraphicalIntelligence.ui'))        
-        self.ui.show()
-
         self.world = World()
-        self.ui.stageView.world = self.world        
-
+        
         self.intelligence = Intelligence(self.world)
-
-        # Redraw stageview when the interface applies an update
+        
+        self.ui = uic.loadUi(os.path.join(os.path.dirname(__file__), './GraphicalIntelligence.ui'))        
+        self.ui.stageView.world = self.world        
+        
         self.intelligence.interface.world_updated.connect(self.ui.stageView.redraw)        
         
+        # Redraw stageview when the interface applies an update
+        self.ui.show()
+        
         # Start children threads
-
         self.intelligence.start()
 
 
@@ -46,7 +46,6 @@ class Intelligence(QtCore.QThread):
         self.world = world
         self.skill = None
         self.interface = SimulationInterface(self.world)
-
 
     def _loop(self):
         if 2 in self.world.blue_team:

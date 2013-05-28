@@ -60,10 +60,11 @@ class RobotUpdate(Update):
         elif self.team_color == base.Yellow:
             team = world.yellow_team
         robot = team[self.i]
-        for prop, value in self.data.iteritems():
-            if prop != 'x' and prop != 'y':
-                setattr(robot, prop, value)
-        robot.update((self.data['x'], self.data['y']))
+        with team.iter_lock:
+            for prop, value in self.data.iteritems():
+                if prop != 'x' and prop != 'y':
+                    setattr(robot, prop, value)
+            robot.update((self.data['x'], self.data['y']))
 
 
 class GeometryUpdate(Update):

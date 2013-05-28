@@ -1,6 +1,7 @@
 """
 This module holds the base classes.
 """
+from multiprocessing import Lock
 from itertools import imap
 from collections import defaultdict
 from functools import partial
@@ -243,6 +244,8 @@ class Team(defaultdict):
 
         self.color = color
         self.world = world
+        
+        self.iter_lock = Lock()
 
         # update robots' team
         for r in self.itervalues():
@@ -298,12 +301,13 @@ class Team(defaultdict):
         return self.color == Yellow
 
     def iterrobots(self, active=True):
-        for r in self.itervalues():
-            if active is not None:
-                if r.active == active:
+        with self.iter_lock: 
+            for r in self.itervalues():
+                if active is not None:
+                    if r.active == active:
+                        yield r
+                else:
                     yield r
-            else:
-                yield r
 
     def closest_robots_to_ball(self, **kwargs):
         return self.world.closest_robots_to_ball(color=self.color, **kwargs)
