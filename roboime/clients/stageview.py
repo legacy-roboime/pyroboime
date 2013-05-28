@@ -42,21 +42,21 @@ class BallItem(QGraphicsItem):
 class StageView(QGraphicsView):
     def __init__(self, parent=None):
         super(StageView, self).__init__(parent)
-    	#self.setBackgroundBrush(QBrush(Qt.darkGreen))
-        #self.setCacheMode(QGraphicsView.CacheNone)
-    	#self.setRenderHints(QPainter.Antialiasing)
-        #self.setRenderHints(QPainter.SmoothPixmapTransform)
-        
+        self.setBackgroundBrush(QBrush(Qt.darkGreen))
+        self.setCacheMode(QGraphicsView.CacheNone)
+        self.setRenderHints(QPainter.Antialiasing)
+        self.setRenderHints(QPainter.SmoothPixmapTransform)
+
     def redraw(self):
         w = self.world
-        #self.setScene(QGraphicsScene(-w.width/2, -w.length/2, w.width, w.length))
-        #self.scene().clear()
-        for r in w.robots:         
+        self.setScene(QGraphicsScene(-w.width/2, -w.length/2, w.width, w.length))
+        self.scene().clear()
+        for r in w.iterrobots():
             #from PyQt4.QtCore import pyqtRemoveInputHook
             #from pdb import set_trace
             #pyqtRemoveInputHook()
             #set_trace()
-            print r.radius, r.angle, r.color, r.x, r.y
-            #ri = RobotItem(r.radius, r.angle, r.color)
-            #self.scene().addItem(ri)
-            #ri.setPos(r.x, r.y)
+            #print r.radius, r.angle, r.color, r.x, r.y
+            ri = RobotItem(r.radius, r.angle, r.color)
+            self.scene().addItem(ri)
+            ri.setPos(r.x, r.y)
