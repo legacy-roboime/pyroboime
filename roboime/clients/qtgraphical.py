@@ -26,18 +26,17 @@ class QtGraphicalClient(QtGui.QMainWindow):
         
         self.world = World()
         
+        self.intelligence = Intelligence(self.world)
         
         self.ui = uic.loadUi(os.path.join(os.path.dirname(__file__), './GraphicalIntelligence.ui'))        
         self.ui.stageView.world = self.world        
         
         # FIXME: This should work.
         # Redraw stageview when the interface applies an update
-        #self.intelligence.interface.world_updated.connect(self.ui.stageView.redraw)        
-        
-        self.intelligence = Intelligence(self.world, self.ui.stageView.redraw)
-        
+        self.intelligence.interface.world_updated.connect(self.ui.stageView.redraw)        
+
         self.ui.show()
-        
+
         # Start children threads
         self.intelligence.start()
 
@@ -65,8 +64,7 @@ class Intelligence(QtCore.QThread):
                 #self.skill = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
             self.skill.step()
         self.interface.step()
-        self.redraw_callback()
-    
+ 
     def run(self):
         self.interface.start()
         try:

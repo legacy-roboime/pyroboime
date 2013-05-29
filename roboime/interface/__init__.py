@@ -71,7 +71,7 @@ class Interface(QObject):
                         uu = _uu
                 for u in uu:
                     u.apply(self.world)
-                    self.world_updated.emit()
+                self.world_updated.emit()
                 count = count + 1
 
 
