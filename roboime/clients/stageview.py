@@ -1,25 +1,35 @@
 from PyQt4.QtGui import QGraphicsItem, QGraphicsView, QColor, QBrush, QPainter, QGraphicsScene
 from PyQt4.QtCore import QRectF, Qt
-from ..base import Blue, Yellow
 from ..utils.mathutils import sin, cos
 
-import pdb
+
+BALL = 0xba11
+FIELD = 0xf1e1d
+
 
 class RobotItem(QGraphicsItem):
-    def __init__(self, radius, angle, teamColor, parent=None, scene=None):
+    def __init__(self, robot):
         super(RobotItem, self).__init__()
-        self.angle = angle
-        self.radius = 10*radius
-        self._color = teamColor
+        self.robot = robot
+
+    @property
+    def uuid(self):
+        return self.robot.uuid
 
     @property
     def color(self):
-        #if self.isSelected(): 
-        #    return Qt.green
-        if self._color == Blue:
+        if self.isSelected():
+            return Qt.green
+        elif self.robot.is_blue:
             return Qt.blue
-        else:
+        elif self.robot.is_blue:
             return Qt.yellow
+        else:
+            return Qt.black
+
+    @property
+    def radius(self):
+        return self.robot.radius
 
     def boundingRect(self):
         return QRectF(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
@@ -34,11 +44,34 @@ class RobotItem(QGraphicsItem):
 
 
 class FieldItem(QGraphicsItem):
-    pass
+
+    @property
+    def uuid(self):
+        return FIELD
 
 
 class BallItem(QGraphicsItem):
-    pass
+
+    def __init__(self, ball):
+        super(BallItem, self).__init__()
+        self.ball = ball
+
+    @property
+    def radius(self):
+        return self.ball.radius
+
+    @property
+    def uuid(self):
+        return BALL
+
+    def boundingRect(self):
+        return QRectF(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
+
+    def paint(self, painter, option, widget=None):
+        painter.setBrush(Qt.yellow)
+        painter.drawEllipse(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
+        #painter.drawLine(0, 0, self.radius * cos(self.angle), self.radius * sin(self.angle))
+        #painter.drawText(0, 0, "Teste")
 
 
 class StageView(QGraphicsView):
@@ -51,19 +84,24 @@ class StageView(QGraphicsView):
         self.setScene(QGraphicsScene(0, 0, 0, 0))
 
     def redraw(self):
-        w = self.world
-        self.scene().clear()
-        self.setScene(QGraphicsScene(-w.width/2, -w.length/2, w.width, w.length))
-        for r in w.iterrobots():
-            #from PyQt4.QtCore import pyqtRemoveInputHook
-            #from pdb import set_trace
-            #pyqtRemoveInputHook()
-            #set_trace()
-            #print r.radius, r.angle, r.color, r.x, r.y
-            ri = RobotItem(r.radius, r.angle, r.color)
-            #print ri.radius, ri.angle, ri.color
-            self.scene().addItem(ri)
-            print r.x, r.y, w.width, w.length
-            ri.setPos(r.x, r.y)
-        BORDER = 0.5
-        self.fitInView(-w.length / 2 - 5 * BORDER, -w.width / 2 - 5 * BORDER, w.length + 10 * BORDER, w.width+ 10 * BORDER, Qt.KeepAspectRatio)
+        with self.world as w:
+            pass
+            #self.setScene(QGraphicsScene(-w.width / 2, -w.length / 2, w.width, w.length))
+            #scene = self.scene()
+
+            #uuids = []
+            #for item in scene.items():
+            #    uuids.append(item.uuid)
+
+            #if BALL not in uuids:
+            #    scene.addItem(BallItem(w.ball))
+
+            #for r in w.iterrobots():
+            #    #from PyQt4.QtCore import pyqtRemoveInputHook
+            #    #from pdb import set_trace
+            #    #pyqtRemoveInputHook()
+            #    #set_trace()
+            #    #print r.radius, r.angle, r.color, r.x, r.y
+            #    ri = RobotItem(r.radius, r.angle, r.is_blue)
+            #    self.scene().addItem(ri)
+            #    ri.setPos(r.x, r.y)

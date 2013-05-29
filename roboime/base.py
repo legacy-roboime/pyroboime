@@ -6,7 +6,6 @@ Things worth knowing:
 uid in this context means unique id, it is unique within a team only
 uuid in this context is universal unique id, it is unique whithin a world
 """
-from multiprocessing import Lock
 from itertools import imap
 from collections import defaultdict
 from functools import partial
@@ -188,6 +187,14 @@ class Robot(geom.Point):
         return self.team.enemy_goal if self.team is not None else None
 
     @property
+    def is_blue(self):
+        return self.color == Blue
+
+    @property
+    def is_yellow(self):
+        return self.color == Yellow
+
+    @property
     def body(self):
         return self._body
 
@@ -257,8 +264,6 @@ class Team(defaultdict):
 
         self.color = color
         self.world = world
-        
-        self.iter_lock = Lock()
 
         # update robots' team
         for r in self.itervalues():
@@ -300,13 +305,12 @@ class Team(defaultdict):
         return self.color == Yellow
 
     def iterrobots(self, active=True):
-        with self.iter_lock: 
-            for r in self.itervalues():
-                if active is not None:
-                    if r.active == active:
-                        yield r
-                else:
+        for r in self.itervalues():
+            if active is not None:
+                if r.active == active:
                     yield r
+            else:
+                yield r
 
     def closest_robots_to_ball(self, **kwargs):
         return self.world.closest_robots_to_ball(color=self.color, **kwargs)

@@ -1,40 +1,41 @@
-from multiprocessing import Process, Queue, Event
 from math import pi
 
 from ..communication import grsim
 from time import time
 
 
-class Commander(Process):
-#class Commander(object):
+class Commander(object):
+#class Commander(Process):
 
     def __init__(self):
-        #Process.__init__(self)
-        self.queue = Queue()
-        self._exit = Event()
+        #super(Commander, self).__init__()
+        #self._recvr, self._sendr = Pipe()
+        #self.conn = None
+        #self._exit = Event()
+        pass
 
-    def run(self):
-        while self._exit.is_set():
-            try:
-                self.send(self.queue.get())
-            except KeyboardInterrupt:
-                break
+    #def start(self):
+    #    super(Commander, self).start()
+    #    self.conn = self._sendr
 
-    def stop(self):
-        self._exit.set()
+    #def run(self):
+    #    self.conn = self._recvr
+    #    while self._exit.is_set():
+    #        self.send(self.conn.recv())
+    #    self.conn.close()
 
-    def sendall(self, actions):
-        while not actions.empty():
-            self.send(actions.get())
+    #def stop(self):
+    #    self.conn.close()
+    #    self._exit.set()
 
     def send(self, actions):
-        pass
+        raise NotImplemented
 
 
 class SimCommander(Commander):
 
-    def __init__(self, team):
-        Commander.__init__(self)
+    def __init__(self, team, **kwargs):
+        super(SimCommander, self).__init__(**kwargs)
         self.team = team
         #self.sender = grsim.grSimSender(('200.20.120.133', 20011))
         self.sender = grsim.grSimSender()

@@ -1,8 +1,10 @@
-from time import time
-import sys, os
+#from time import time
+from time import sleep
+#import sys, os
+from os import path
 from PyQt4 import QtGui, QtCore, uic
 
-from . import stageview
+#from . import stageview
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface
@@ -16,6 +18,20 @@ from ..interface import SimulationInterface
 from ..core.skills import sampledchipkick
 
 
+class GraphicalWorld(World, QtCore.QMutex):
+
+    def __init__(self, *args, **kwargs):
+        World.__init__(self, *args, **kwargs)
+        QtCore.QMutex.__init__(self)
+
+    def __enter__(self):
+        self.lock()
+        return self
+
+    def __exit__(self, t, v, tb):
+        self.unlock()
+
+
 class QtGraphicalClient(QtGui.QMainWindow):
     """
     This is a QT graphical interface.
@@ -23,31 +39,56 @@ class QtGraphicalClient(QtGui.QMainWindow):
 
     def __init__(self):
         super(QtGraphicalClient, self).__init__()
-        
-        self.world = World()
-        
+
+
+        self.world = GraphicalWorld()
+
         self.intelligence = Intelligence(self.world)
-        
-        self.ui = uic.loadUi(os.path.join(os.path.dirname(__file__), './GraphicalIntelligence.ui'))        
-        self.ui.stageView.world = self.world        
-        
+        #self.intelligence = Intelligence(self.world, self.ui.stageView.redraw)
+
+        self.ui = uic.loadUi(path.join(path.dirname(__file__), './GraphicalIntelligence.ui'))
+        self.ui.stageView.world = self.world
+
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.ui.stageView.redraw)
+
         # FIXME: This should work.
         # Redraw stageview when the interface applies an update
-        self.intelligence.interface.world_updated.connect(self.ui.stageView.redraw)        
+        #self.intelligence.interface.world_updated.connect(self.ui.stageView.redraw)
 
         self.ui.show()
 
         # Start children threads
         self.intelligence.start()
 
+        # Start redraw timer (once every 25ms)
+        self.timer.start(25)
+
+    def teardown(self):
+        """Tear down actions."""
+        print 'Tearing down...'
+
+        self.intelligence.stop = True
+
+        # wait for it to stop, Qt doesn't have a join method appearently.
+        while self.intelligence.isRunning():
+            pass
+
+    def closeEvent(self, event):
+        print 'closeEvent'
+        self.teardown()
+        event.accept()
+
+
 
 class Intelligence(QtCore.QThread):
-    def __init__(self, world, redraw_callback=lambda:None):
+
+    def __init__(self, world):
         super(Intelligence, self).__init__()
+        self.stop = False
         self.world = world
         self.skill = None
         self.interface = SimulationInterface(self.world)
-        self.redraw_callback = redraw_callback
 
     def _loop(self):
         if 2 in self.world.blue_team:
@@ -63,14 +104,26 @@ class Intelligence(QtCore.QThread):
                 #self.skill = goto.Goto(r, target=Point(0, 0))
                 #self.skill = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
             self.skill.step()
-        self.interface.step()
- 
+
+        with self.world:
+            self.interface.step()
+
     def run(self):
         self.interface.start()
         try:
-            while True:
+            while not self.stop:
                 self._loop()
+                sleep(10e-3)
         except:
             print 'Bad things happened'
             raise
+        finally:
+            self.interface.stop()
 
+
+class App(QtGui.QApplication):
+
+    def __init__(self, argv):
+        super(App, self).__init__(argv)
+        self.window = QtGraphicalClient()
+        self.aboutToQuit.connect(self.window.teardown)
