@@ -188,6 +188,14 @@ class Robot(geom.Point):
         return self.team.enemy_goal if self.team is not None else None
 
     @property
+    def is_blue(self):
+        return self.color == Blue
+
+    @property
+    def is_yellow(self):
+        return self.color == Yellow
+
+    @property
     def body(self):
         return self._body
 

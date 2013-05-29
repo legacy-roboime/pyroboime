@@ -1,8 +1,9 @@
-from time import time
-import sys, os
+#from time import time
+#import sys, os
+from os import path
 from PyQt4 import QtGui, QtCore, uic
 
-from . import stageview
+#from . import stageview
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface
@@ -14,6 +15,18 @@ from ..interface import SimulationInterface
 #from ..core.skills import sampledkick
 #from ..core.skills import followandcover
 from ..core.skills import sampledchipkick
+from .qtutils import Lock
+
+
+class GraphicalWorld(World, Lock):
+
+    def __init__(self, *args, **kwargs):
+        World.__init__(self, *args, **kwargs)
+        Lock.__init__(self)
+
+    def __enter__(self):
+        Lock.__enter__(self)
+        return self
 
 
 class QtGraphicalClient(QtGui.QMainWindow):
@@ -23,27 +36,26 @@ class QtGraphicalClient(QtGui.QMainWindow):
 
     def __init__(self):
         super(QtGraphicalClient, self).__init__()
-        
-        self.world = World()
-        
-        
-        self.ui = uic.loadUi(os.path.join(os.path.dirname(__file__), './GraphicalIntelligence.ui'))        
-        self.ui.stageView.world = self.world        
-        
+
+        self.world = GraphicalWorld()
+
+        self.ui = uic.loadUi(path.join(path.dirname(__file__), './GraphicalIntelligence.ui'))
+        self.ui.stageView.world = self.world
+
         # FIXME: This should work.
         # Redraw stageview when the interface applies an update
-        #self.intelligence.interface.world_updated.connect(self.ui.stageView.redraw)        
-        
+        #self.intelligence.interface.world_updated.connect(self.ui.stageView.redraw)
+
         self.intelligence = Intelligence(self.world, self.ui.stageView.redraw)
-        
+
         self.ui.show()
-        
+
         # Start children threads
         self.intelligence.start()
 
 
 class Intelligence(QtCore.QThread):
-    def __init__(self, world, redraw_callback=lambda:None):
+    def __init__(self, world, redraw_callback=lambda: None):
         super(Intelligence, self).__init__()
         self.world = world
         self.skill = None
@@ -64,9 +76,10 @@ class Intelligence(QtCore.QThread):
                 #self.skill = goto.Goto(r, target=Point(0, 0))
                 #self.skill = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
             self.skill.step()
-        self.interface.step()
+        with self.world:
+            self.interface.step()
         self.redraw_callback()
-    
+
     def run(self):
         self.interface.start()
         try:
@@ -75,4 +88,5 @@ class Intelligence(QtCore.QThread):
         except:
             print 'Bad things happened'
             raise
-
+        finally:
+            self.interface.stop()
