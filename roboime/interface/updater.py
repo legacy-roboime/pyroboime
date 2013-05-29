@@ -1,8 +1,9 @@
 from sys import platform
-if platform == 'win32':
-    from multiprocessing.dummy import Process, Queue, Event, Lock
-else:
-    from multiprocessing import Process, Queue, Event, Lock
+#if platform == 'win32':
+#    from multiprocessing.dummy import Process, Queue, Event, Lock
+#else:
+#    from multiprocessing import Process, Queue, Event, Lock
+from multiprocessing import Process, Queue, Event, Lock
 from numpy import array
 
 from ..communication import sslvision
