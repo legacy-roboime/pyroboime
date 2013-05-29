@@ -1,5 +1,10 @@
 """
 This module holds the base classes.
+
+Things worth knowing:
+
+uid in this context means unique id, it is unique within a team only
+uuid in this context is universal unique id, it is unique whithin a world
 """
 from itertools import imap
 from collections import defaultdict
@@ -11,10 +16,12 @@ from shapely import geometry
 from .utils import geom
 from .utils.mathutils import cos, sin
 
-import pdb
 
-Yellow = 'yellow'
-Blue = 'blue'
+# this codes are used to compute the uid
+# of a robot to make it unique even comparing
+# robots of different teams
+Yellow = 0x1e11000
+Blue = 0xb100e00
 
 
 class Component(object):
@@ -200,7 +207,14 @@ class Robot(geom.Point):
         if self.team is not None:
             return self.team.color
         else:
-            return None
+            # this means that this robot
+            # is not within a team, but it's
+            # color can be used to operate
+            return 0
+
+    @property
+    def uuid(self):
+        return self.uid + self.color
 
     @property
     def goal(self):
@@ -239,7 +253,6 @@ class Team(defaultdict):
 
     def __init__(self, color, robots=[], world=None):
         super(Team, self).__init__(partial(Robot, team=self), imap(lambda r: (r.pattern, r), robots))
-        #super(Team, self).__init__(imap(lambda r: (r.uid, r), robots))
 
         self.color = color
         self.world = world
@@ -254,20 +267,6 @@ class Team(defaultdict):
         else:
             val = self[key] = self.default_factory(key)
             return val
-
-    #def __getitem__(self, uid):
-    #    for r in self:
-    #        if r.uid == uid:
-    #            return r
-    #    else:
-    #        r = Robot(uid)
-    #        r.team = self
-    #        self.append(r)
-    #        return r
-
-    #def __setitem__(self, *args):
-    #    #TODO: raise proper exception?
-    #    raise IndexError('__setitem__ not allowed')
 
     @classmethod
     def blue(cls, *args, **kwargs):
@@ -536,7 +535,6 @@ class World(object):
         return self.goal(Blue)
 
     def goal(self, color):
-        pdb.set_trace
         if self.right_team.color == color:
             return self.right_goal
         elif self.left_team.color == color:
@@ -545,7 +543,6 @@ class World(object):
             raise Exception
 
     def enemy_goal(self, color):
-        pdb.set_trace
         if self.right_team.color == color:
             return self.left_goal
         elif self.left_team.color == color:
