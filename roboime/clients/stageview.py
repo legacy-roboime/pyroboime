@@ -1,10 +1,21 @@
 from PyQt4.QtGui import QGraphicsItem, QGraphicsView, QColor, QBrush, QPainter, QGraphicsScene
 from PyQt4.QtCore import QRectF, Qt
-from ..utils.mathutils import sin, cos
+#from ..utils.mathutils import sin, cos
 
-
+# some known uuids
 BALL = 0xba11
 FIELD = 0xf1e1d
+
+# colors
+GREEN = Qt.green
+BLUE = Qt.blue
+YELLOW = Qt.yellow
+BLACK = Qt.black
+WHITE = Qt.white
+ORANGE = QColor(0xff, 0xbb, 0x00)
+
+# some settings
+BORDER = 10
 
 
 class RobotItem(QGraphicsItem):
@@ -19,13 +30,13 @@ class RobotItem(QGraphicsItem):
     @property
     def color(self):
         if self.isSelected():
-            return Qt.green
+            return GREEN
         elif self.robot.is_blue:
-            return Qt.blue
+            return BLUE
         elif self.robot.is_blue:
-            return Qt.yellow
+            return YELLOW
         else:
-            return Qt.black
+            return BLACK
 
     @property
     def radius(self):
@@ -45,9 +56,22 @@ class RobotItem(QGraphicsItem):
 
 class FieldItem(QGraphicsItem):
 
+    def __init__(self, world):
+        super(FieldItem, self).__init__()
+        self.world = world
+
     @property
     def uuid(self):
         return FIELD
+
+    def boundingRect(self):
+        w = self.world
+        return QRectF(-w.length / 2, -w.width / 2, w.length, w.width)
+
+    def paint(self, painter, option, widget):
+        painter.setPen(WHITE)
+
+        painter.drawRect(self.boundingRect())
 
 
 class BallItem(QGraphicsItem):
@@ -68,7 +92,7 @@ class BallItem(QGraphicsItem):
         return QRectF(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
 
     def paint(self, painter, option, widget=None):
-        painter.setBrush(Qt.yellow)
+        painter.setBrush(ORANGE)
         painter.drawEllipse(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
         #painter.drawLine(0, 0, self.radius * cos(self.angle), self.radius * sin(self.angle))
         #painter.drawText(0, 0, "Teste")
@@ -84,8 +108,13 @@ class StageView(QGraphicsView):
         self.setScene(QGraphicsScene(0, 0, 0, 0))
 
     def redraw(self):
+        scene = self.scene()
+        scene.clear()
         with self.world as w:
-            pass
+            field = FieldItem(w)
+            scene.addItem(field)
+            field.setPos(-w.length / 2, -w.width / 2)
+
             #self.setScene(QGraphicsScene(-w.width / 2, -w.length / 2, w.width, w.length))
             #scene = self.scene()
 
@@ -94,6 +123,7 @@ class StageView(QGraphicsView):
             #    uuids.append(item.uuid)
 
             #if BALL not in uuids:
+            #    print 'Adding ball to scene:', uuids
             #    scene.addItem(BallItem(w.ball))
 
             #for r in w.iterrobots():
@@ -105,3 +135,5 @@ class StageView(QGraphicsView):
             #    ri = RobotItem(r.radius, r.angle, r.is_blue)
             #    self.scene().addItem(ri)
             #    ri.setPos(r.x, r.y)
+
+            self.fitInView(-w.length / 2 - BORDER, -w.width / 2 - BORDER, w.width + 2 * BORDER, w.length + 2 * BORDER, Qt.KeepAspectRatio)
