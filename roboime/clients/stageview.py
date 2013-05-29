@@ -1,5 +1,7 @@
+from numpy import array
 from PyQt4.QtGui import QGraphicsItem, QGraphicsView, QColor, QBrush, QPainter, QGraphicsScene, QPainterPath
 from PyQt4.QtCore import QRectF, Qt
+
 from ..utils.mathutils import sin, cos
 
 # some known uuids
@@ -7,6 +9,7 @@ BALL = 0xba11
 FIELD = 0xf1e1d
 
 # colors
+FIELD_GREEN = Qt.darkGreen
 GREEN = Qt.green
 BLUE = Qt.blue
 YELLOW = Qt.yellow
@@ -18,9 +21,10 @@ ORANGE = QColor(0xff, 0xbb, 0x00)
 BORDER = 200.0
 
 
-def scale(meters):
+def scale(*meters):
     """to milimiters"""
-    return meters * 1e3
+    #return (meters * 1e3) if len(meters) == 1 else tuple(m * 1e3 for m in meters)
+    return array(meters) * 1e3
 s = scale
 
 
@@ -109,7 +113,9 @@ class FieldItem(QGraphicsItem):
 
         # Central lines
         radius = s(self.world.center_radius)
-        painter.fillRect((width - line) / 2, 0, line, height, WHITE)
+        #painter.fillRect((width - line) / 2, 0, line, height, WHITE)
+        # XXX: why did I need to double the line width?
+        painter.fillRect(width / 2 - line, 0, 2 * line, height, WHITE)
         draw_arc(width / 2, height / 2, radius - line, radius, 0, 360, painter)
 
         # Defense lines
@@ -125,9 +131,9 @@ class FieldItem(QGraphicsItem):
         draw_arc(width, (height + dstretch) / 2, dradius - line, dradius, 180, 270, painter)
 
         # Penalty
-        penalty_line = s(self.world.penalty_line_distance)
-        draw_arc(penalty_line, height / 2, 0, line, 0, 360, painter)
-        draw_arc(width - penalty_line, height / 2, 0, line, 0, 360, painter)
+        penalty_spot = s(self.world.penalty_spot_distance)
+        draw_arc(penalty_spot, height / 2, 0, line, 0, 360, painter)
+        draw_arc(width - penalty_spot, height / 2, 0, line, 0, 360, painter)
 
         # Goals
         gwidth = s(self.world.goal_width)
@@ -153,30 +159,52 @@ class BallItem(QGraphicsItem):
         self.ball = ball
 
     @property
-    def radius(self):
-        return self.ball.radius
-
-    @property
     def uuid(self):
         return BALL
 
     def boundingRect(self):
-        return QRectF(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
+        radius = s(self.ball.radius)
+        return QRectF(-2 * radius, -2 * radius, 4 * radius, 4 * radius)
+
+    def position(self):
+        x, y, width, height = s(self.ball.x, self.ball.y, self.ball.world.length, self.ball.world.width)
+        #self.setPos(x - width / 2, -y - height / 2)
+        self.setPos(x, -y)
 
     def paint(self, painter, option, widget=None):
+        #setPos( robot->x() - robot->stage()->fieldLength()/2 , -robot->y() - robot->stage()->fieldWidth()/2 );
+
+        # Save transformation:
+        old_transformation = painter.worldTransform()
+
         painter.setBrush(ORANGE)
-        painter.drawEllipse(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
+        painter.setPen(ORANGE)
+        radius = s(self.ball.radius)
+        painter.drawEllipse(-radius, -radius, 2 * radius, 2 * radius)
+
+        #QGraphicsEllipseItem* bola = new QGraphicsEllipseItem(
+        #        field->pos().x() + (stage->ball()->x() - BALL_RADIUS/2),
+        #        field->pos().y() + (stage->ball()->y() - BALL_RADIUS),
+        #        BALL_RADIUS,BALL_RADIUS,NULL);
+
+        #bola->setBrush(QBrush(orange));
+        #bola->setPen(QPen(orange));
+
         #painter.drawLine(0, 0, self.radius * cos(self.angle), self.radius * sin(self.angle))
         #painter.drawText(0, 0, "Teste")
+
+        # Reset transformation
+        painter.setTransform(old_transformation)
 
 
 class StageView(QGraphicsView):
     def __init__(self, parent=None):
         super(StageView, self).__init__(parent)
-        self.setBackgroundBrush(QBrush(Qt.darkGreen))
+
+        #self.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
+        self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
+        self.setBackgroundBrush(QBrush(FIELD_GREEN))
         self.setCacheMode(QGraphicsView.CacheNone)
-        self.setRenderHints(QPainter.Antialiasing)
-        self.setRenderHints(QPainter.SmoothPixmapTransform)
         self.setScene(QGraphicsScene(0, 0, 0, 0))
         self._world = None
 
@@ -207,6 +235,10 @@ class StageView(QGraphicsView):
             #field.setPos(-width / 2, -height / 2)
             #field.setPos(BORDER / 2, BORDER / 2)
             field.setPos(0, 0)
+
+            ball = BallItem(w.ball)
+            scene.addItem(ball)
+            ball.position()
 
             #self.setScene(QGraphicsScene(-w.width / 2, -w.length / 2, w.width, w.length))
             #scene = self.scene()
