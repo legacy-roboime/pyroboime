@@ -15,10 +15,8 @@ BLUE = Qt.blue
 YELLOW = Qt.yellow
 BLACK = Qt.black
 WHITE = Qt.white
+LIGHT_GREY = QColor(0xcc, 0xcc, 0xcc)
 ORANGE = QColor(0xff, 0xbb, 0x00)
-
-# some settings
-BORDER = 200.0
 
 
 def scale(*meters):
@@ -130,6 +128,15 @@ class FieldItem(QGraphicsItem):
 
         # Change position
         painter.translate(-width / 2, -height / 2)
+
+        # Boundaries
+        painter.setBrush(LIGHT_GREY)
+        painter.setPen(LIGHT_GREY)
+        boundary = s(self.world.boundary_width + self.world.referee_width)
+        painter.drawRect(-boundary, -boundary, 2 * line, height + 2 * boundary)
+        painter.drawRect(width + boundary - 2 * line, -boundary, 2 * line, height + 2 * boundary)
+        painter.drawRect(-boundary, -boundary, width + 2 * boundary, 2 * line)
+        painter.drawRect(-boundary, boundary + height - 2 * line, width + 2 * boundary, 2 * line)
 
         painter.setBrush(WHITE)
         painter.setPen(WHITE)
@@ -252,6 +259,7 @@ class StageView(QGraphicsView):
             field.position()
 
             width, height = s(self.world.length), s(self.world.width)
+            border = s(self.world.boundary_width + self.world.referee_width)
 
             ball = BallItem(w.ball)
             scene.addItem(ball)
@@ -262,4 +270,4 @@ class StageView(QGraphicsView):
                 scene.addItem(robot)
                 robot.position()
 
-            self.fitInView(-width / 2 - BORDER, -height / 2 - BORDER, width + 2 * BORDER, height + 2 * BORDER, Qt.KeepAspectRatio)
+            self.fitInView(-width / 2 - border, -height / 2 - border, width + 2 * border, height + 2 * border, Qt.KeepAspectRatio)
