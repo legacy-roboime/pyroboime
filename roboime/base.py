@@ -139,7 +139,7 @@ class Robot(geom.Point):
         super(Robot, self).__init__(0.0, 0.0)
         # TODO make a robot builder/factory to abstract these sizes
         self._radius = 180e-3 / 2
-        self.front_cut = self._radius * 0.8
+        self.front_cut = self._radius * 0.7
         self.max_speed = max_speed
         self.max_ang_speed = max_ang_speed
 

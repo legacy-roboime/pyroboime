@@ -1,8 +1,8 @@
 from numpy import array
-from PyQt4.QtGui import QGraphicsItem, QGraphicsView, QColor, QBrush, QPainter, QGraphicsScene, QPainterPath
-from PyQt4.QtCore import QRectF, Qt
+from PyQt4.QtGui import QGraphicsItem, QGraphicsView, QColor, QBrush, QPainter, QGraphicsScene, QPainterPath, QFont
+from PyQt4.QtCore import QRectF, Qt, QString
 
-from ..utils.mathutils import sin, cos
+from ..utils.mathutils import sin, cos, acos
 
 # some known uuids
 BALL = 0xba11
@@ -32,6 +32,7 @@ class RobotItem(QGraphicsItem):
     def __init__(self, robot):
         super(RobotItem, self).__init__()
         self.robot = robot
+        self.outline = QPainterPath()
 
     @property
     def uuid(self):
@@ -43,25 +44,53 @@ class RobotItem(QGraphicsItem):
             return GREEN
         elif self.robot.is_blue:
             return BLUE
-        elif self.robot.is_blue:
+        elif self.robot.is_yellow:
             return YELLOW
         else:
             return BLACK
 
-    @property
-    def radius(self):
-        return self.robot.radius
+    def position(self):
+        x, y, width, height = s(self.robot.x, self.robot.y, self.robot.world.length, self.robot.world.width)
+        radius = s(self.robot.radius)
+
+        self.cut_angle = acos(self.robot.front_cut / self.robot.radius)
+
+        self.outline.moveTo(radius, 0)
+        self.outline.arcTo(-radius, -radius, 2 * radius, 2 * radius, 0, 360 - 2 * self.cut_angle)
+        self.outline.closeSubpath()
+
+        self.setPos(x, -y)
 
     def boundingRect(self):
-        return QRectF(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
+        radius = s(self.robot.radius)
+        return QRectF(-radius, -radius, 2 * radius, 2 * radius)
 
     def paint(self, painter, option, widget=None):
-        #print 'oaaonadoasndoaskdiaasnjido'
-        #print painter
-        painter.setBrush(self.color)
-        painter.drawEllipse(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
-        #painter.drawLine(0, 0, self.radius * cos(self.angle), self.radius * sin(self.angle))
-        #painter.drawText(0, 0, "Teste")
+        # Save transformation:
+        old_transformation = painter.worldTransform()
+
+        color = self.color
+
+        # Change position
+        painter.setBrush(color)
+        painter.setPen(color)
+        robot_rotation = self.robot.angle
+
+        # Draw robot shape
+        painter.rotate(-self.cut_angle - robot_rotation)
+        painter.drawPath(self.outline)
+        painter.rotate(self.cut_angle + robot_rotation)
+
+        # Draw id
+        robot_id = QString('?')
+        robot_id.setNum(self.robot.uid)
+        painter.setBrush(BLACK)
+        painter.setPen(BLACK)
+        painter.setFont(QFont('Courier', 132, 2, False))
+        painter.drawText(-90, -210, 1000, 1000, 0, robot_id)
+
+        # Reset transformation
+        painter.setTransform(old_transformation)
 
 
 def draw_arc(x, y, radius_in, radius_out, angle_init, angle_end, painter):
@@ -88,6 +117,9 @@ class FieldItem(QGraphicsItem):
     def boundingRect(self):
         width, height = s(self.world.length), s(self.world.width)
         return QRectF(-1.5 * width, -1.5 * height, 3 * width, 3 * height);
+
+    def position(self):
+        self.setPos(0, 0)
 
     def paint(self, painter, option, widget):
         width, height = s(self.world.length), s(self.world.width)
@@ -168,11 +200,9 @@ class BallItem(QGraphicsItem):
 
     def position(self):
         x, y, width, height = s(self.ball.x, self.ball.y, self.ball.world.length, self.ball.world.width)
-        #self.setPos(x - width / 2, -y - height / 2)
         self.setPos(x, -y)
 
     def paint(self, painter, option, widget=None):
-        #setPos( robot->x() - robot->stage()->fieldLength()/2 , -robot->y() - robot->stage()->fieldWidth()/2 );
 
         # Save transformation:
         old_transformation = painter.worldTransform()
@@ -182,17 +212,6 @@ class BallItem(QGraphicsItem):
         radius = s(self.ball.radius)
         painter.drawEllipse(-radius, -radius, 2 * radius, 2 * radius)
 
-        #QGraphicsEllipseItem* bola = new QGraphicsEllipseItem(
-        #        field->pos().x() + (stage->ball()->x() - BALL_RADIUS/2),
-        #        field->pos().y() + (stage->ball()->y() - BALL_RADIUS),
-        #        BALL_RADIUS,BALL_RADIUS,NULL);
-
-        #bola->setBrush(QBrush(orange));
-        #bola->setPen(QPen(orange));
-
-        #painter.drawLine(0, 0, self.radius * cos(self.angle), self.radius * sin(self.angle))
-        #painter.drawText(0, 0, "Teste")
-
         # Reset transformation
         painter.setTransform(old_transformation)
 
@@ -201,7 +220,6 @@ class StageView(QGraphicsView):
     def __init__(self, parent=None):
         super(StageView, self).__init__(parent)
 
-        #self.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
         self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         self.setBackgroundBrush(QBrush(FIELD_GREEN))
         self.setCacheMode(QGraphicsView.CacheNone)
@@ -217,48 +235,31 @@ class StageView(QGraphicsView):
         self._world = w
         width, height = s(w.length), s(w.width)
         self.setScene(QGraphicsScene(-width / 2, -height / 2, width, height))
-        #self.setScene(QGraphicsScene(-w.width / 2, -w.length / 2, w.width, w.length))
-        #self.scale(1, -1)
 
     def redraw(self):
         # TODO: only do this when geometry changes
+        # clear the old scene
         self.scene().clear()
         self.world = self.world
 
         # TODO this seems bad, something more performatic is desired
         scene = self.scene()
         scene.clear()
+
         with self.world as w:
             field = FieldItem(w)
             scene.addItem(field)
+            field.position()
+
             width, height = s(self.world.length), s(self.world.width)
-            #field.setPos(-width / 2, -height / 2)
-            #field.setPos(BORDER / 2, BORDER / 2)
-            field.setPos(0, 0)
 
             ball = BallItem(w.ball)
             scene.addItem(ball)
             ball.position()
 
-            #self.setScene(QGraphicsScene(-w.width / 2, -w.length / 2, w.width, w.length))
-            #scene = self.scene()
-
-            #uuids = []
-            #for item in scene.items():
-            #    uuids.append(item.uuid)
-
-            #if BALL not in uuids:
-            #    print 'Adding ball to scene:', uuids
-            #    scene.addItem(BallItem(w.ball))
-
-            #for r in w.iterrobots():
-            #    #from PyQt4.QtCore import pyqtRemoveInputHook
-            #    #from pdb import set_trace
-            #    #pyqtRemoveInputHook()
-            #    #set_trace()
-            #    #print r.radius, r.angle, r.color, r.x, r.y
-            #    ri = RobotItem(r.radius, r.angle, r.is_blue)
-            #    self.scene().addItem(ri)
-            #    ri.setPos(r.x, r.y)
+            for r in w.iterrobots():
+                robot = RobotItem(r)
+                scene.addItem(robot)
+                robot.position()
 
             self.fitInView(-width / 2 - BORDER, -height / 2 - BORDER, width + 2 * BORDER, height + 2 * BORDER, Qt.KeepAspectRatio)

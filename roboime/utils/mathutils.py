@@ -1,16 +1,15 @@
-#import math
-import numpy
+from numpy import math
 
 _trigonom_ = ['sin', 'cos', 'tan']
 _invtrigonom_ = ['a' + f for f in _trigonom_] + ['atan2']
 _restricted_ = ['trunc']
 
-for fun in dir(numpy):
+for fun in dir(math):
     if fun in _restricted_:
         pass
     elif fun in _trigonom_:
-        exec '{0} = lambda x: numpy.{0}(numpy.radians(x))'.format(fun) in globals()
+        exec '{0} = lambda x: math.{0}(math.radians(x))'.format(fun) in globals()
     elif fun in _invtrigonom_:
-        exec '{0} = lambda x: numpy.degrees(numpy.{0}(x))'.format(fun) in globals()
+        exec '{0} = lambda x: math.degrees(math.{0}(x))'.format(fun) in globals()
     else:
-        exec '{0} = numpy.{0}'.format(fun)
+        exec '{0} = math.{0}'.format(fun)
