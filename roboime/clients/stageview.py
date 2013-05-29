@@ -9,14 +9,14 @@ class RobotItem(QGraphicsItem):
     def __init__(self, radius, angle, teamColor, parent=None, scene=None):
         super(RobotItem, self).__init__()
         self.angle = angle
-        self.radius = radius
+        self.radius = 10*radius
         self._color = teamColor
 
     @property
     def color(self):
-        if self.isSelected(): 
-            return Qt.green
-        elif self._color == Blue:
+        #if self.isSelected(): 
+        #    return Qt.green
+        if self._color == Blue:
             return Qt.blue
         else:
             return Qt.yellow
@@ -25,9 +25,11 @@ class RobotItem(QGraphicsItem):
         return QRectF(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
 
     def paint(self, painter, option, widget=None):
+        #print 'oaaonadoasndoaskdiaasnjido'
+        #print painter
         painter.setBrush(self.color)
         painter.drawEllipse(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
-        painter.drawLine(0, 0, self.radius * cos(self.angle), self.radius * sin(self.angle))
+        #painter.drawLine(0, 0, self.radius * cos(self.angle), self.radius * sin(self.angle))
         #painter.drawText(0, 0, "Teste")
 
 
@@ -46,11 +48,12 @@ class StageView(QGraphicsView):
         self.setCacheMode(QGraphicsView.CacheNone)
         self.setRenderHints(QPainter.Antialiasing)
         self.setRenderHints(QPainter.SmoothPixmapTransform)
+        self.setScene(QGraphicsScene(0, 0, 0, 0))
 
     def redraw(self):
         w = self.world
-        self.setScene(QGraphicsScene(-w.width/2, -w.length/2, w.width, w.length))
         self.scene().clear()
+        self.setScene(QGraphicsScene(-w.width/2, -w.length/2, w.width, w.length))
         for r in w.iterrobots():
             #from PyQt4.QtCore import pyqtRemoveInputHook
             #from pdb import set_trace
@@ -58,5 +61,9 @@ class StageView(QGraphicsView):
             #set_trace()
             #print r.radius, r.angle, r.color, r.x, r.y
             ri = RobotItem(r.radius, r.angle, r.color)
+            #print ri.radius, ri.angle, ri.color
             self.scene().addItem(ri)
+            print r.x, r.y, w.width, w.length
             ri.setPos(r.x, r.y)
+        BORDER = 0.5
+        self.fitInView(-w.length / 2 - 5 * BORDER, -w.width / 2 - 5 * BORDER, w.length + 10 * BORDER, w.width+ 10 * BORDER, Qt.KeepAspectRatio)
