@@ -66,7 +66,6 @@ class QtGraphicalClient(QtGui.QMainWindow):
 
     def teardown(self):
         """Tear down actions."""
-        print 'Tearing down...'
 
         self.intelligence.stop = True
 
