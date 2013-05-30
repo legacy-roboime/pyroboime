@@ -12,3 +12,4 @@ class Halt(Skill):
 
     def step(self):
         self.robot.action.absolute_speeds = (0, 0, 0)
+        self.robot.skill = self

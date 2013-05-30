@@ -1,8 +1,9 @@
-from numpy import array
 from PyQt4.QtGui import QGraphicsItem, QGraphicsView, QColor, QBrush, QPainter, QGraphicsScene, QPainterPath, QFont
 from PyQt4.QtCore import QRectF, Qt, QString
 
+from .qtutils import scale as s
 from ..utils.mathutils import sin, cos, acos
+from . import skillviews
 
 # some known uuids
 BALL = 0xba11
@@ -17,13 +18,6 @@ BLACK = Qt.black
 WHITE = Qt.white
 LIGHT_GREY = QColor(0xcc, 0xcc, 0xcc)
 ORANGE = QColor(0xff, 0xbb, 0x00)
-
-
-def scale(*meters):
-    """to milimiters"""
-    #return (meters * 1e3) if len(meters) == 1 else tuple(m * 1e3 for m in meters)
-    return array(meters) * 1e3
-s = scale
 
 
 class RobotItem(QGraphicsItem):
@@ -255,19 +249,27 @@ class StageView(QGraphicsView):
 
         with self.world as w:
             field = FieldItem(w)
-            scene.addItem(field)
             field.position()
+            scene.addItem(field)
 
             width, height = s(self.world.length), s(self.world.width)
             border = s(self.world.boundary_width + self.world.referee_width)
 
             ball = BallItem(w.ball)
-            scene.addItem(ball)
             ball.position()
+            scene.addItem(ball)
 
             for r in w.iterrobots():
+                # draw the robot
                 robot = RobotItem(r)
-                scene.addItem(robot)
                 robot.position()
+                scene.addItem(robot)
+
+            for r in w.iterrobots():
+                # draw the skill
+                skill = skillviews.view_selector(r.skill)
+                if skill is not None:
+                    skill.position()
+                    scene.addItem(skill)
 
             self.fitInView(-width / 2 - border, -height / 2 - border, width + 2 * border, height + 2 * border, Qt.KeepAspectRatio)

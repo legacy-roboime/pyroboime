@@ -36,10 +36,26 @@ class Goto(Skill):
         self.final_target = final_target
         self.referential = referential
 
+    @property
+    def target(self):
+        return self._target if self._target is not None else self.robot
+
+    @target.setter
+    def target(self, target):
+        self._target = target
+
+    @property
+    def final_target(self):
+        return self._final_target if self._final_target is not None else self.target
+
+    @final_target.setter
+    def final_target(self, target):
+        self._final_target = target
+
     def step(self):
         r = self.robot
-        t = self.target if self.target is not None else r
-        f_t = self.final_target if self.final_target is not None else self.target
+        t = self.target
+        f_t = self.final_target
         #ref = self.referential if self.referential is not None else f_t
         # TODO: Check if target is within the boundaries of the field (augmented of the robot's radius).
 
@@ -77,6 +93,9 @@ class Goto(Skill):
 
         # at last set the action accordingly
         r.action.absolute_speeds = v[0], v[1], va
+
+        # register skill on the robot
+        r.skill = self
 
     @property
     def point_away_from_defense_area(self):

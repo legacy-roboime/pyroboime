@@ -166,8 +166,8 @@ class Robot(geom.Point):
         # action to be dispatched by a commander
         self._action = Action(self)
 
-        # skill that will be executed
-        self._skill = None
+        # last skill that was executed
+        self.skill = None
 
         # some properties
         self.can_kick = True
@@ -237,15 +237,6 @@ class Robot(geom.Point):
             return self.team.world
         else:
             return None
-
-    @property
-    def skill(self):
-        return self._skill
-
-    @skill.setter
-    def skill(self, nskill):
-        nskill._robot = self
-        self._skill = nskill
 
     def is_enemy(self, robot):
         """Name says it all."""
