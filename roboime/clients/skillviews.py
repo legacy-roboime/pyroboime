@@ -6,13 +6,15 @@ from ..core.skills import goto
 
 
 BLACK = Qt.black
+GREEN = Qt.green
+RED = Qt.red
 
 
 class SkillView(QGraphicsItem):
     def __init__(self, skill):
         super(SkillView, self).__init__()
         self.skill = skill
-        self.margin = 5
+        self.margin = 20
 
     def position(self):
         x, y = s(self.skill.robot)
@@ -37,11 +39,19 @@ class GotoView(SkillView):
         # Save transformation:
         old_transformation = painter.worldTransform()
 
+        x, y = self.relative_point()
+        m = self.margin
+
+        # draw a line from robot to its target
         painter.setBrush(BLACK)
         painter.setPen(BLACK)
-
-        x, y = self.relative_point()
         painter.drawLine(0, 0, x, y)
+
+        # draw an X on the target
+        painter.setBrush(RED)
+        painter.setPen(RED)
+        painter.drawLine(x - m, y - m, x + m, y + m)
+        painter.drawLine(x - m, y + m, x + m, y - m)
 
         # Reset transformation
         painter.setTransform(old_transformation)
