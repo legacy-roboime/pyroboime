@@ -404,6 +404,19 @@ class Goal(geom.Point):
         ])
 
     @property
+    def penalty_line(self):
+        """A line the robots must not advance on penalty on this goal."""
+        return geom.Line(
+            geom.Point(self.x - (sign(self.x) or 1) * (self.world.penalty_spot_distance + self.world.penalty_line_distance), -self.world.width / 2),
+            geom.Point(self.x - (sign(self.x) or 1) * (self.world.penalty_spot_distance + self.world.penalty_line_distance), self.world.width / 2),
+        )
+
+    @property
+    def penalty_stop(self):
+        """A point where the ball should be on a penalty on this goal."""
+        return geom.Point(array(self) - array(((sign(self.x) or 1) * (self.world.penalty_spot_distance), 0)))
+
+    @property
     def line(self):
         return self._line
 
