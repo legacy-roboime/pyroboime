@@ -108,7 +108,8 @@ class FieldItem(QGraphicsItem):
 
     def boundingRect(self):
         width, height = s(self.world.length), s(self.world.width)
-        return QRectF(-width / 2, -height / 2, width, height);
+        boundary = s(self.world.boundary_width + self.world.referee_width)
+        return QRectF(-width / 2.0 + boundary, -height / 2.0 + boundary, width + 2 * boundary, height + 2 * boundary);
 
     def position(self):
         self.setPos(0, 0)
@@ -147,8 +148,6 @@ class FieldItem(QGraphicsItem):
         # Central lines
         radius = s(self.world.center_radius)
         painter.fillRect((width - line) / 2, 0, line, height, WHITE)
-        # XXX: why did I need to double the line width?
-        #painter.fillRect(width / 2 - line, 0, 2 * line, height, WHITE)
         draw_arc(width / 2, height / 2, radius - line, radius, 0, 360, painter)
 
         # Defense lines
@@ -224,12 +223,14 @@ class StageView(QGraphicsView):
         self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         self.setBackgroundBrush(QBrush(FIELD_GREEN))
         self.setCacheMode(QGraphicsView.CacheNone)
+        self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
         self.setScene(QGraphicsScene(0, 0, 0, 0))
         self._world = None
 
         self.scale(1.0 / 15, 1.0 / 15)
 
         self.setDragMode(QGraphicsView.ScrollHandDrag)
+        self.setFocusPolicy(Qt.WheelFocus)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
@@ -240,17 +241,24 @@ class StageView(QGraphicsView):
     @world.setter
     def world(self, w):
         self._world = w
-        width, height = s(w.length), s(w.width)
-        self.setScene(QGraphicsScene(-1.5 * width, -1.5 * height, 3 * width, 3 * height))
+        self._width, self._height = s(w.length), s(w.width)
+        self.setScene(QGraphicsScene(-1.5 * self._width, -1.5 * self._height, 3 * self._width, 3 * self._height))
 
+    # Mouse wheel to zoom
     def wheelEvent(self, event):
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
 
         scaleFactor = 1.15
-        if(event.delta() > 0):
+        if event.delta() > 0:
             self.scale(scaleFactor, scaleFactor)
         else:
             self.scale(1.0 / scaleFactor, 1.0 / scaleFactor)
+
+    # Handle key events
+    def keyPressEvent(self, event):
+        # Space key resets the view
+        if event.key() == Qt.Key_Space:
+            self.fitInView(-self._width / 2, -self._height / 2, self._width, self._height, Qt.KeepAspectRatio)
 
     def redraw(self):
         # TODO: only do this when geometry changes
