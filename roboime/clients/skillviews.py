@@ -37,7 +37,8 @@ class GotoView(SkillView):
 
     def paint(self, painter, option, widget=None):
         # Save transformation:
-        old_transformation = painter.worldTransform()
+        #old_transformation = painter.worldTransform()
+        painter.save();
 
         x, y = self.relative_point()
         m = self.margin
@@ -54,7 +55,8 @@ class GotoView(SkillView):
         painter.drawLine(x - m, y + m, x + m, y - m)
 
         # Reset transformation
-        painter.setTransform(old_transformation)
+        #painter.setTransform(old_transformation)
+        painter.restore();
 
 
 def view_selector(skill):
