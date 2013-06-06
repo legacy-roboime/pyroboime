@@ -25,6 +25,7 @@ class RobotItem(QGraphicsItem):
         super(RobotItem, self).__init__()
         self.robot = robot
         self.outline = QPainterPath()
+        self.setFlags(QGraphicsItem.ItemIsSelectable|QGraphicsItem.ItemIsFocusable)
 
     @property
     def uuid(self):
@@ -55,7 +56,7 @@ class RobotItem(QGraphicsItem):
 
     def boundingRect(self):
         radius = s(self.robot.radius)
-        return QRectF(-2 * radius, -2 * radius, 4 * radius, 4 * radius)
+        return QRectF(-radius, -radius, 2 * radius, 2 * radius)
 
     def paint(self, painter, option, widget=None):
         # Save transformation:
@@ -109,7 +110,7 @@ class FieldItem(QGraphicsItem):
     def boundingRect(self):
         width, height = s(self.world.length), s(self.world.width)
         boundary = s(self.world.boundary_width + self.world.referee_width)
-        return QRectF(-width / 2.0 + boundary, -height / 2.0 + boundary, width + 2 * boundary, height + 2 * boundary);
+        return QRectF(-width / 2.0 - boundary, -height / 2.0 - boundary, width + 2 * boundary, height + 2 * boundary);
 
     def position(self):
         self.setPos(0, 0)
@@ -227,12 +228,15 @@ class StageView(QGraphicsView):
         self.setScene(QGraphicsScene(0, 0, 0, 0))
         self._world = None
 
+        # Set the zoom so the view doesn't starts all zoomed
         self.scale(1.0 / 15, 1.0 / 15)
 
-        self.setDragMode(QGraphicsView.ScrollHandDrag)
-        self.setFocusPolicy(Qt.WheelFocus)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setDragMode(QGraphicsView.ScrollHandDrag)              # Set mouse drag to click and drag
+        self.setFocusPolicy(Qt.WheelFocus)                          # Set focus on view when tabbing, clicking and scrolling the wheel
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)    # Disable horizontal and vertical scrollbars
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.setInteractive(True)   # Set interactive so user can click to focus a robot
 
     @property
     def world(self):
@@ -248,7 +252,7 @@ class StageView(QGraphicsView):
     def wheelEvent(self, event):
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
 
-        scaleFactor = 1.15
+        scaleFactor = 1.10
         if event.delta() > 0:
             self.scale(scaleFactor, scaleFactor)
         else:
