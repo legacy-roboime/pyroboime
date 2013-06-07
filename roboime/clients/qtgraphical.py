@@ -112,34 +112,34 @@ class QtGraphicalClient(QtGui.QMainWindow):
 
     # GUI Functions
     def setPenaltyKicker(self):
-        pass
+        raise NotImplemented
 
     def setGoalkeeper(self):
-        pass
+        raise NotImplemented
 
     def changeIntelligenceOutput(self):
-        pass
+        raise NotImplemented
 
     def changePlayUs(self):
-        pass
+        raise NotImplemented
 
     def changeTacticUs(self):
-        pass
+        raise NotImplemented
 
     def changePlayThem(self):
-        pass
+        raise NotImplemented
 
     def changeTacticThem(self):
-        pass
+        raise NotImplemented
 
     def changeMode(self):
-        pass
+        raise NotImplemented
 
     def setTeamColor(self):
-        pass
+        raise NotImplemented
 
     def changeSides(self):
-        pass
+        raise NotImplemented
 
     def teardown(self):
         """Tear down actions."""
