@@ -233,8 +233,8 @@ class StageView(QGraphicsView):
 
         self.setDragMode(QGraphicsView.ScrollHandDrag)              # Set mouse drag to click and drag
         self.setFocusPolicy(Qt.WheelFocus)                          # Set focus on view when tabbing, clicking and scrolling the wheel
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)    # Disable horizontal and vertical scrollbars
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)    # Disable horizontal and vertical scrollbars
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         self.setInteractive(True)   # Set interactive so user can click to focus a robot
 
