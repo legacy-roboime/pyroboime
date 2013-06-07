@@ -49,6 +49,8 @@ class QtGraphicalClient(QtGui.QMainWindow):
         #self.intelligence = Intelligence(self.world, self.ui.stageView.redraw)
 
         self.ui = uic.loadUi(path.join(path.dirname(__file__), './GraphicalIntelligence.ui'))
+        self.setupUI()
+
         self.ui.stageView.world = self.world
 
         self.timer = QtCore.QTimer()
@@ -65,6 +67,79 @@ class QtGraphicalClient(QtGui.QMainWindow):
 
         # Start redraw timer (once every 25ms)
         self.timer.start(25)
+
+    def setupUI(self):
+        # Setup GUI buttons and combo boxes
+
+        # Tactics ComboBoxes
+        self.ui.cmbSelectTacticOurs.addItem('Zickler43', 'zickler43')
+        self.ui.cmbSelectTacticOurs.addItem('Goleiro', 'gkpr')
+        self.ui.cmbSelectTacticOurs.addItem('Defesa 1', 'defU32')
+
+        self.ui.cmbSelectTacticTheirs.addItem('Zickler43', 'zickler43T')
+        self.ui.cmbSelectTacticTheirs.addItem('Goleiro', 'gkprT')
+        self.ui.cmbSelectTacticTheirs.addItem('Defesa 1', 'defT32')
+
+        # Plays ComboBoxes
+        self.ui.cmbSelectPlayOurs.addItem('Halt', 'haltU')
+        self.ui.cmbSelectPlayOurs.addItem('CBR2011', 'cbr')
+        #FIXME: Needs to format string 'Retaliacao' to accept tilde and cedilla
+        self.ui.cmbSelectPlayOurs.addItem('Retaliacao', 'retaliateU')
+        self.ui.cmbSelectPlayOurs.addItem('Minmax', 'minimax2')
+        self.ui.cmbSelectPlayOurs.addItem('Obedecer Juiz', 'refereeU')
+
+        self.ui.cmbSelectPlayTheirs.addItem('Halt', 'haltT')
+        self.ui.cmbSelectPlayTheirs.addItem('CBR2011', 'cbr2')
+        self.ui.cmbSelectPlayTheirs.addItem('Retaliacao', 'retaliateT')
+        self.ui.cmbSelectPlayTheirs.addItem('Obedecer Juiz', 'refereeT')
+
+        # Mode ComboBox
+        self.ui.cmbSelectMode.addItem('Play', 'PLAY')
+        self.ui.cmbSelectMode.addItem('Tatica', 'TACTIC')
+        self.ui.cmbSelectMode.addItem('Skill', 'SKILL')
+
+        # Connect signals to slots
+        self.ui.cmbPenalty.currentIndexChanged.connect(self.setPenaltyKicker)
+        self.ui.cmbGoalkeeper.currentIndexChanged.connect(self.setGoalkeeper)
+        self.ui.cmbSelectOutput.currentIndexChanged.connect(self.changeIntelligenceOutput)
+        self.ui.cmbSelectPlayOurs.currentIndexChanged.connect(self.changePlayUs)
+        self.ui.cmbSelectTacticOurs.currentIndexChanged.connect(self.changeTacticUs)
+        self.ui.cmbSelectPlayTheirs.currentIndexChanged.connect(self.changePlayThem)
+        self.ui.cmbSelectTacticTheirs.currentIndexChanged.connect(self.changeTacticThem)
+        self.ui.cmbSelectMode.currentIndexChanged.connect(self.changeMode)
+        self.ui.cmbOurTeam.currentIndexChanged.connect(self.setTeamColor)
+        self.ui.btnChangeSides.clicked.connect(self.changeSides)
+
+    # GUI Functions
+    def setPenaltyKicker(self):
+        pass
+
+    def setGoalkeeper(self):
+        pass
+
+    def changeIntelligenceOutput(self):
+        pass
+
+    def changePlayUs(self):
+        pass
+
+    def changeTacticUs(self):
+        pass
+
+    def changePlayThem(self):
+        pass
+
+    def changeTacticThem(self):
+        pass
+
+    def changeMode(self):
+        pass
+
+    def setTeamColor(self):
+        pass
+
+    def changeSides(self):
+        pass
 
     def teardown(self):
         """Tear down actions."""
