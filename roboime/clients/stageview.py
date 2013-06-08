@@ -221,22 +221,23 @@ class StageView(QGraphicsView):
     def __init__(self, parent=None):
         super(StageView, self).__init__(parent)
 
-        self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
+        # All commented lines here are already loaded on GraphicsIntelligence.ui
+
+        #self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         self.setBackgroundBrush(QBrush(FIELD_GREEN))
-        self.setCacheMode(QGraphicsView.CacheNone)
-        self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
+        #self.setCacheMode(QGraphicsView.CacheNone)
+        #self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
         self.setScene(QGraphicsScene(0, 0, 0, 0))
         self._world = None
 
         # Set the zoom so the view doesn't starts all zoomed
         self.scale(1.0 / 15, 1.0 / 15)
 
-        self.setDragMode(QGraphicsView.ScrollHandDrag)              # Set mouse drag to click and drag
-        self.setFocusPolicy(Qt.WheelFocus)                          # Set focus on view when tabbing, clicking and scrolling the wheel
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)    # Disable horizontal and vertical scrollbars
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-
-        self.setInteractive(True)   # Set interactive so user can click to focus a robot
+        #self.setDragMode(QGraphicsView.ScrollHandDrag)              # Set mouse drag to click and drag
+        #self.setFocusPolicy(Qt.WheelFocus)                          # Set focus on view when tabbing, clicking and scrolling the wheel
+        #self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)    # Disable horizontal and vertical scrollbars
+        #self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        #self.setInteractive(True)   # Set interactive so user can click to focus a robot
 
     @property
     def world(self):
@@ -245,12 +246,13 @@ class StageView(QGraphicsView):
     @world.setter
     def world(self, w):
         self._world = w
-        self._width, self._height = s(w.length), s(w.width)
-        self.setScene(QGraphicsScene(-1.5 * self._width, -1.5 * self._height, 3 * self._width, 3 * self._height))
+        width, height = s(w.length), s(w.width)
+        self._fitw, self._fith = width + s(w.boundary_width + w.referee_width), height + s(w.boundary_width + w.referee_width)
+        self.setScene(QGraphicsScene(-1.5 * width, -1.5 * height, 3 * width, 3 * height))
 
     # Mouse wheel to zoom
     def wheelEvent(self, event):
-        self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        #self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
 
         scaleFactor = 1.10
         if event.delta() > 0:
@@ -258,11 +260,15 @@ class StageView(QGraphicsView):
         else:
             self.scale(1.0 / scaleFactor, 1.0 / scaleFactor)
 
+    # Resize the view to fit the screen
+    def fit(self):
+        self.fitInView(-self._fitw / 2, -self._fith / 2, self._fitw, self._fith, Qt.KeepAspectRatio)
+
     # Handle key events
     def keyPressEvent(self, event):
-        # Space key resets the view
+        # Resets the view
         if event.key() == Qt.Key_Space:
-            self.fitInView(-self._width / 2, -self._height / 2, self._width, self._height, Qt.KeepAspectRatio)
+            self.fit()
 
     def redraw(self):
         # TODO: only do this when geometry changes

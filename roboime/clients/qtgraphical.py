@@ -110,6 +110,8 @@ class QtGraphicalClient(QtGui.QMainWindow):
         self.ui.cmbOurTeam.currentIndexChanged.connect(self.setTeamColor)
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
 
+        self.ui.btnTabHide.clicked.connect(self.hideTabs)
+
     # GUI Functions
     def setPenaltyKicker(self):
         raise NotImplemented
@@ -140,6 +142,17 @@ class QtGraphicalClient(QtGui.QMainWindow):
 
     def changeSides(self):
         raise NotImplemented
+
+    def hideTabs(self):
+        if self.ui.tabWidget.isVisible():
+            self.ui.tabWidget.setVisible(False)
+            self.ui.btnTabHide.setText('Unhide')
+        else:
+            self.ui.tabWidget.setVisible(True)
+            self.ui.btnTabHide.setText('Hide')
+
+        # Reset camera position and scale, so it fits the screen
+        self.ui.stageView.fit()
 
     def teardown(self):
         """Tear down actions."""
