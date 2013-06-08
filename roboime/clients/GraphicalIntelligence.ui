@@ -38,9 +38,6 @@
       <property name="transformationAnchor">
        <enum>QGraphicsView::AnchorUnderMouse</enum>
       </property>
-      <property name="viewportUpdateMode">
-       <enum>QGraphicsView::MinimalViewportUpdate</enum>
-      </property>
      </widget>
     </item>
     <item row="2" column="0">
@@ -1396,9 +1393,6 @@
     </item>
     <item row="3" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout_4">
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
       <item>
        <spacer name="horizontalSpacer_4">
         <property name="orientation">
@@ -1406,8 +1400,8 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>40</width>
-          <height>20</height>
+          <width>0</width>
+          <height>0</height>
          </size>
         </property>
        </spacer>
@@ -1431,18 +1425,6 @@
         </property>
         <property name="text">
          <string>Hide</string>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>8</width>
-          <height>8</height>
-         </size>
-        </property>
-        <property name="default">
-         <bool>false</bool>
-        </property>
-        <property name="flat">
-         <bool>false</bool>
         </property>
        </widget>
       </item>

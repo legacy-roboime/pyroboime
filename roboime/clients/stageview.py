@@ -25,7 +25,7 @@ class RobotItem(QGraphicsItem):
         super(RobotItem, self).__init__()
         self.robot = robot
         self.outline = QPainterPath()
-        self.setFlags(QGraphicsItem.ItemIsSelectable|QGraphicsItem.ItemIsFocusable)
+        #self.setFlags(QGraphicsItem.ItemIsSelectable|QGraphicsItem.ItemIsFocusable)
 
     @property
     def uuid(self):
@@ -247,7 +247,6 @@ class StageView(QGraphicsView):
     def world(self, w):
         self._world = w
         width, height = s(w.length), s(w.width)
-        self._fitw, self._fith = width + s(w.boundary_width + w.referee_width), height + s(w.boundary_width + w.referee_width)
         self.setScene(QGraphicsScene(-1.5 * width, -1.5 * height, 3 * width, 3 * height))
 
     # Mouse wheel to zoom
@@ -262,7 +261,8 @@ class StageView(QGraphicsView):
 
     # Resize the view to fit the screen
     def fit(self):
-        self.fitInView(-self._fitw / 2, -self._fith / 2, self._fitw, self._fith, Qt.KeepAspectRatio)
+        boundary = self._world.boundary_width + self._world.referee_width
+        self.fitInView(-s(self._world.length / 2 + boundary), -s(self._world.width / 2 + boundary), s(self._world.length + 2 * boundary), s(self._world.width + 2 * boundary), Qt.KeepAspectRatio)
 
     # Handle key events
     def keyPressEvent(self, event):
