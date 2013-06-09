@@ -8,6 +8,4 @@ if __name__ == '__main__':
         show_perf=('--perf' in argv),
     )
     app.mainloop()
-else:
-    raise Exception('This is not a module.')
 

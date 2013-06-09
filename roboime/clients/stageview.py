@@ -25,6 +25,7 @@ class RobotItem(QGraphicsItem):
         super(RobotItem, self).__init__()
         self.robot = robot
         self.outline = QPainterPath()
+        self.setFlags(QGraphicsItem.ItemIsSelectable)
 
     @property
     def uuid(self):
@@ -59,7 +60,7 @@ class RobotItem(QGraphicsItem):
 
     def paint(self, painter, option, widget=None):
         # Save transformation:
-        old_transformation = painter.worldTransform()
+        painter.save();
 
         color = self.color
 
@@ -82,7 +83,7 @@ class RobotItem(QGraphicsItem):
         painter.drawText(-90, -210, 1000, 1000, 0, robot_id)
 
         # Reset transformation
-        painter.setTransform(old_transformation)
+        painter.restore();
 
 
 def draw_arc(x, y, radius_in, radius_out, angle_init, angle_end, painter):
@@ -108,7 +109,8 @@ class FieldItem(QGraphicsItem):
 
     def boundingRect(self):
         width, height = s(self.world.length), s(self.world.width)
-        return QRectF(-1.5 * width, -1.5 * height, 3 * width, 3 * height);
+        boundary = s(self.world.boundary_width + self.world.referee_width)
+        return QRectF(-width / 2.0 - boundary, -height / 2.0 - boundary, width + 2 * boundary, height + 2 * boundary);
 
     def position(self):
         self.setPos(0, 0)
@@ -118,7 +120,7 @@ class FieldItem(QGraphicsItem):
         line = s(self.world.line_width)
 
         # Save transformation:
-        old_transformation = painter.worldTransform()
+        painter.save();
 
         # Change position
         painter.translate(-width / 2, -height / 2)
@@ -146,9 +148,7 @@ class FieldItem(QGraphicsItem):
 
         # Central lines
         radius = s(self.world.center_radius)
-        #painter.fillRect((width - line) / 2, 0, line, height, WHITE)
-        # XXX: why did I need to double the line width?
-        painter.fillRect(width / 2 - line, 0, 2 * line, height, WHITE)
+        painter.fillRect((width - line) / 2, 0, line, height, WHITE)
         draw_arc(width / 2, height / 2, radius - line, radius, 0, 360, painter)
 
         # Defense lines
@@ -182,7 +182,7 @@ class FieldItem(QGraphicsItem):
         painter.drawRect(width, (height + gwidth) / 2, gdepth + gline, gline)
 
         # Reset transformation
-        painter.setTransform(old_transformation)
+        painter.restore();
 
 
 class BallItem(QGraphicsItem):
@@ -206,7 +206,7 @@ class BallItem(QGraphicsItem):
     def paint(self, painter, option, widget=None):
 
         # Save transformation:
-        old_transformation = painter.worldTransform()
+        painter.save();
 
         painter.setBrush(ORANGE)
         painter.setPen(ORANGE)
@@ -214,18 +214,21 @@ class BallItem(QGraphicsItem):
         painter.drawEllipse(-radius, -radius, 2 * radius, 2 * radius)
 
         # Reset transformation
-        painter.setTransform(old_transformation)
+        painter.restore();
 
 
 class StageView(QGraphicsView):
     def __init__(self, parent=None):
         super(StageView, self).__init__(parent)
 
-        self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
+        # All commented lines here are already loaded on GraphicsIntelligence.ui
+
         self.setBackgroundBrush(QBrush(FIELD_GREEN))
-        self.setCacheMode(QGraphicsView.CacheNone)
         self.setScene(QGraphicsScene(0, 0, 0, 0))
         self._world = None
+
+        # Set the zoom so the view doesn't starts all zoomed
+        self.scale(1.0 / 15, 1.0 / 15)
 
     @property
     def world(self):
@@ -235,7 +238,30 @@ class StageView(QGraphicsView):
     def world(self, w):
         self._world = w
         width, height = s(w.length), s(w.width)
-        self.setScene(QGraphicsScene(-width / 2, -height / 2, width, height))
+        self.setScene(QGraphicsScene(-1.5 * width, -1.5 * height, 3 * width, 3 * height))
+
+    # Mouse wheel to zoom
+    def wheelEvent(self, event):
+        scaleFactor = 1.10
+        if event.delta() > 0:
+            self.scale(scaleFactor, scaleFactor)
+        else:
+            self.scale(1.0 / scaleFactor, 1.0 / scaleFactor)
+
+    # Resize the view to fit the screen
+    def fit(self):
+        boundary = self._world.boundary_width + self._world.referee_width
+        self.fitInView(-s(self._world.length / 2 + boundary),
+            -s(self._world.width / 2 + boundary),
+            s(self._world.length + 2 * boundary),
+            s(self._world.width + 2 * boundary),
+            Qt.KeepAspectRatio)
+
+    # Handle key events
+    def keyPressEvent(self, event):
+        # Resets the view
+        if event.key() == Qt.Key_Space:
+            self.fit()
 
     def redraw(self):
         # TODO: only do this when geometry changes
@@ -251,9 +277,6 @@ class StageView(QGraphicsView):
             field = FieldItem(w)
             field.position()
             scene.addItem(field)
-
-            width, height = s(self.world.length), s(self.world.width)
-            border = s(self.world.boundary_width + self.world.referee_width)
 
             ball = BallItem(w.ball)
             ball.position()
@@ -271,5 +294,3 @@ class StageView(QGraphicsView):
                 if skill is not None:
                     skill.position()
                     scene.addItem(skill)
-
-            self.fitInView(-width / 2 - border, -height / 2 - border, width + 2 * border, height + 2 * border, Qt.KeepAspectRatio)
