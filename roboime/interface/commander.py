@@ -3,6 +3,7 @@ from math import pi
 from ..communication import grsim
 from time import time
 
+from ..utils.mathutils import sin, cos
 
 class Commander(object):
 #class Commander(Process):
@@ -52,12 +53,13 @@ class SimCommander(Commander):
                 vx, vy, va = a.speeds
                 c = packet.commands.robot_commands.add()
                 c.id = a.uid
-                c.kickspeedz = (a.chipkick or 0.0) * 3
+                chip_angle = 45
+                c.kickspeedz = (a.chipkick or 0.0) * sin(chip_angle)
                 if c.kickspeedz > 0:
                     # XXX FIXME this should be tested,
                     # we don't know at what angle we
                     # will be able to chipkick
-                    c.kickspeedx = 1.5 * c.kickspeedz
+                    c.kickspeedx = a.chipkick * cos(chip_angle)
                 else:
                     c.kickspeedx = (a.kick or 0.0) * 5
                 c.veltangent = vx

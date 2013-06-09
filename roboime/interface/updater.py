@@ -56,6 +56,13 @@ class RobotUpdate(Update):
         robot = team[self.i]
         robot.active = True
 
+        if robot.has_touched_ball:
+            for r in robot.team:
+                r.is_last_toucher = False
+                r.has_touched_ball = False
+            robot.is_last_toucher = True
+            robot.has_touched_ball = False
+
         for prop, value in self.data.iteritems():
             if prop != 'x' and prop != 'y':
                 setattr(robot, prop, value)

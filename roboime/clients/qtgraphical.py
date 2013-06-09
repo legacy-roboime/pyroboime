@@ -23,6 +23,7 @@ from ..core.tactics import defender
 from ..core.tactics import goalkeeper
 from ..core.tactics import zickler43
 from ..core.plays import autoretaliate
+from ..core.plays import indirectkick
 from ..core.plays import stop
 
 
@@ -207,6 +208,7 @@ class Intelligence(QtCore.QThread):
             ('(none)', Dummy()),
             ('Auto Retaliate', autoretaliate.AutoRetaliate(team, 0)),
             ('Stop', stop.Stop(team, 0)),
+            ('Indirect Kick', indirectkick.IndirectKick(team, 0)),
         ])
 
         self.individuals_blue = dict((i, self.individual(self.world.blue_team[i])) for i in range(count_robot))
@@ -222,11 +224,6 @@ class Intelligence(QtCore.QThread):
         self.current_individual_yellow = Dummy()
 
     def _loop(self):
-        #if 2 in self.world.blue_team:
-        #    r = self.world.blue_team[2]
-        #    r.max_speed = 2.0
-        #    if self.skill is None:
-        #        self.skill = sampledchipkick.SampledChipKick(r, lookpoint=self.world.left_goal)
         #        #self.skill = followandcover.FollowAndCover(r, follow=self.world.ball, cover=self.world.blue_team[3])
         #        #self.skill = sampledkick.SampledKick(r, lookpoint=self.world.left_goal)
         #        #self.skill = sampleddribble.SampledDribble(r, lookpoint=self.world.left_goal)

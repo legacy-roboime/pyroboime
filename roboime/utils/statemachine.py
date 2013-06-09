@@ -2,9 +2,13 @@ from random import random
 
 
 class State(object):
-    def __init__(self, deterministic):
+    def __init__(self, deterministic, name="State"):
         self.deterministic = deterministic
         self.transitions = []
+        self.name = name
+
+    def __repr__(self):
+        return self.name
 
 
 class Transition(object):
@@ -34,7 +38,7 @@ class Machine(object):
         self.transitions = transitions
 
     def execute(self):
-        possible_transitions = [t for t in self.transitions if t.condition() and t.from_state is self.current_state]
+        possible_transitions = [t for t in self.transitions if t.from_state is self.current_state and t.condition() ]
         if self.deterministic:
             if possible_transitions:
                 self.current_state = possible_transitions[0].to_state

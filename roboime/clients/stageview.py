@@ -67,8 +67,9 @@ class RobotItem(QGraphicsItem):
         # Change position
         painter.setBrush(color)
         painter.setPen(color)
+        
         robot_rotation = self.robot.angle
-
+        if robot_rotation is None: robot_rotation = 0
         # Draw robot shape
         painter.rotate(-self.cut_angle - robot_rotation)
         painter.drawPath(self.outline)

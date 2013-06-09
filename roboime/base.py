@@ -11,6 +11,8 @@ from collections import defaultdict
 from functools import partial
 from numpy import array
 from numpy import sign
+from numpy import linspace
+from numpy import sign
 from shapely import geometry
 
 from .utils import geom
@@ -171,9 +173,11 @@ class Robot(geom.Point):
 
         # some properties
         self.can_kick = True
+        
+        self.is_touching = False
+        self._has_touched = False
+        self.is_last_toucher = False
 
-
-        # XXX: This is ugly. Somebody make this less f***ing ugly please.
         class Steppable(object):
             def step(self):
                 pass
@@ -185,6 +189,10 @@ class Robot(geom.Point):
         super(Robot, self).update(*args, **kwargs)
         # TODO generate the actual body shape instead of a circle
         self._body = geom.Circle(self, self._radius)
+
+    @property
+    def ball(self):
+        return self.world.ball
 
     @property
     def enemy_team(self):
@@ -249,6 +257,19 @@ class Robot(geom.Point):
     def is_enemy(self, robot):
         """Name says it all."""
         return self.team.color != robot.team.color
+
+    @property
+    def has_touched_ball(self):
+        was_touching = self.is_touching
+        self.is_touching =  self.distance(self.ball) < self.radius + 2 * self.ball.radius
+        if not self.is_touching and was_touching:
+            self._has_touched = True
+            return True
+        return False
+
+    @has_touched_ball.setter
+    def has_touched_ball(self, value):
+        self._has_touched = value
 
     def step(self):
         if self._skill is not None:
@@ -325,6 +346,55 @@ class Team(defaultdict):
 
     def closest_robots_to_point(self, point, **kwargs):
         return self.world.closest_robots_to_point(point, color=self.color, **kwargs)
+
+    def best_indirect_positions(self, target=None, precision=6):
+        """
+        Discretizes points over the field (respecting a minimum border from the field,
+        and without entering none of the defense areas), according to given precision.
+        Searches for clear paths between initial position (ball), intermediate position,
+        and the target.
+        
+        Returns a sorted list of tuples (Points that are closer to the target come 
+        first):
+        [(point, distance_to_target), (point, distance_to_target), (point, distance_to_target), ...]
+        """
+        # TODO: aim for the best spot in the goal, not only to the middle of the enemy goal
+
+        #t = self.team
+        b = self.world.ball
+
+        if target is None:
+            target = self.enemy_goal
+
+        candidate = []
+
+        safety_margin = 2 * self[0].radius + 0.1
+
+        # field params:
+        f_l = self.world.length - self.world.defense_radius - safety_margin
+        f_w = self.world.width - safety_margin
+
+        # candidate points in the field range
+        for x in linspace(-f_l/2, f_l/2, precision):
+            for y in linspace(-f_w/2, f_w/2, precision - 2):
+                pt = geom.Point(x, y)
+                acceptable = True
+                final_line = geom.Point(0,0)
+                for enemy in self.world.enemy_team(self.color).iterrobots():
+                    # if the robot -> pt line doesn't cross any enemy body...
+                    start_line = geom.Line(b, pt)
+                    if not start_line.crosses(enemy.body):
+                        final_line = geom.Line(pt, target)
+                        # if the pt -> target line crosses any enemy body...
+                        if final_line.crosses(enemy.body):
+                            acceptable = False
+                if acceptable:
+                    candidate += [(pt, start_line.length + final_line.length)]
+        if not candidate:
+            goal_point = self.enemy_goal
+            return [(geom.Point(self.enemy_goal.x - sign(self.enemy_goal.x)*1, self.enemy_goal.y), 1)]
+        else:
+            return sorted(candidate, key=lambda tup: tup[1])
 
     def __iter__(self):
         return self.iterrobots(active=True)

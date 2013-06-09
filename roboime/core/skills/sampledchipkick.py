@@ -1,20 +1,18 @@
 from numpy.random import random
 
-from ...utils.mathutils import sqrt
+from ...utils.mathutils import sqrt, sin
 from .drivetoball import DriveToBall
 
 
-KICKPOWER = 5.0
+KICKPOWER = 2000.0
 #KICKPOWER = 1.0 # check this value...
 
 
 def kick_power(distance, initial_speed=0.0, final_speed=0.0):
     # TODO, redo this completely
-    mi = 0.4
+    chip_angle = 45
     g = 9.81
-    a = mi * g
-    return abs(initial_speed * final_speed + 2 * a * distance) / sqrt(KICKPOWER)
-
+    return sqrt(g * distance / sin (2 * chip_angle))
 
 class SampledChipKick(DriveToBall):
     """
@@ -42,7 +40,7 @@ class SampledChipKick(DriveToBall):
 
     def step(self):
         if self.close_enough():
-            # put some kicking in action
+            # XXX: This doesn't work. Setting a receiver far enough away makes the robot kick the ball into spaaaaaaaaaaaaaaaaaaaace 
             if self.receiver is not None:
                 power = kick_power(self.ball.distance(self.receiver))
             else:
