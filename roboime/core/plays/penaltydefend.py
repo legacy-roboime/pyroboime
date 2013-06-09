@@ -1,15 +1,22 @@
 from numpy import array
+from numpy import sign
 
 from .. import Play
-from ..tactics import Goalkeeper
-from ..skills import Goto
+from ..tactics.goalkeeper import Goalkeeper
+from ..skills.goto import Goto
 from ...utils.geom import Point
-
+from ..skills.halt import Halt
 
 class PenaltyDefend(Play):
     """
     Pretty straight forward too, defend a penalty.
     """
+
+    # FIXME: final goto might be crashing grSim ODE:
+    # description:
+    # error0: "assertion 'bNormalizationResult' failed in ..\..\include\ode/odemath.h"
+    # error1: "assertion 'context->isStructureValid()' failed in ..\..\ode\src\util.cpp:665"
+
     def __init__(self, team, goalkeeper_uid, **kwargs):
         super(PenaltyDefend, self).__init__(team, **kwargs)
         self.goalkeeper_uid = goalkeeper_uid
@@ -17,6 +24,7 @@ class PenaltyDefend(Play):
         self.tactics_factory = lambda robot: {
             'goalkeeper': Goalkeeper(robot, aggressive=False, angle=0),
             'goto': Goto(robot),
+            'halt': Halt(robot),
         }
 
     def step(self):
@@ -33,5 +41,6 @@ class PenaltyDefend(Play):
             if r_id == gk_id:
                 self.players[r_id]['goalkeeper'].step()
             else:
-                self.players[r_id]['goto'].target = Point(array(self.goal.penalty_line)[0] - array(robot.radius, robot.radius * 3 * r_id))
+                self.players[r_id]['goto'].target =  Point(array(self.goal.penalty_line)[0] + array((robot.radius * sign(self.goal.x), robot.radius * 3 * (1 + r_id))))
                 self.players[r_id]['goto'].step()
+                #self.players[r_id]['halt'].step()
