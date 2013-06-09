@@ -1,5 +1,10 @@
 """
 This module holds the base classes.
+
+Things worth knowing:
+
+uid in this context means unique id, it is unique within a team only
+uuid in this context is universal unique id, it is unique whithin a world
 """
 from itertools import imap
 from collections import defaultdict
@@ -11,10 +16,12 @@ from shapely import geometry
 from .utils import geom
 from .utils.mathutils import cos, sin
 
-import pdb
 
-Yellow = 'yellow'
-Blue = 'blue'
+# this codes are used to compute the uid
+# of a robot to make it unique even comparing
+# robots of different teams
+Yellow = 0x1e11000
+Blue = 0xb100e00
 
 
 class Component(object):
@@ -132,7 +139,7 @@ class Robot(geom.Point):
         super(Robot, self).__init__(0.0, 0.0)
         # TODO make a robot builder/factory to abstract these sizes
         self._radius = 180e-3 / 2
-        self.front_cut = self._radius * 0.8
+        self.front_cut = self._radius * 0.7
         self.max_speed = max_speed
         self.max_ang_speed = max_ang_speed
 
@@ -159,11 +166,19 @@ class Robot(geom.Point):
         # action to be dispatched by a commander
         self._action = Action(self)
 
-        # skill that will be executed
-        self._skill = None
+        # last skill that was executed
+        self.skill = None
 
         # some properties
         self.can_kick = True
+
+
+        # XXX: This is ugly. Somebody make this less f***ing ugly please.
+        class Steppable(object):
+            def step(self):
+                pass
+
+        self.current_tactic = Steppable()
 
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
@@ -178,6 +193,14 @@ class Robot(geom.Point):
     @property
     def enemy_goal(self):
         return self.team.enemy_goal if self.team is not None else None
+
+    @property
+    def is_blue(self):
+        return self.color == Blue
+
+    @property
+    def is_yellow(self):
+        return self.color == Yellow
 
     @property
     def body(self):
@@ -200,7 +223,14 @@ class Robot(geom.Point):
         if self.team is not None:
             return self.team.color
         else:
-            return None
+            # this means that this robot
+            # is not within a team, but it's
+            # color can be used to operate
+            return 0
+
+    @property
+    def uuid(self):
+        return self.uid + self.color
 
     @property
     def goal(self):
@@ -216,15 +246,6 @@ class Robot(geom.Point):
         else:
             return None
 
-    @property
-    def skill(self):
-        return self._skill
-
-    @skill.setter
-    def skill(self, nskill):
-        nskill._robot = self
-        self._skill = nskill
-
     def is_enemy(self, robot):
         """Name says it all."""
         return self.team.color != robot.team.color
@@ -239,10 +260,18 @@ class Team(defaultdict):
 
     def __init__(self, color, robots=[], world=None):
         super(Team, self).__init__(partial(Robot, team=self), imap(lambda r: (r.pattern, r), robots))
-        #super(Team, self).__init__(imap(lambda r: (r.uid, r), robots))
 
         self.color = color
         self.world = world
+
+        # team info attributes
+        self.name = None
+        self.score = None
+        self.red_cards = None
+        self.yellow_cards = None
+        self.yellow_card_times = None
+        self.timeouts = None
+        self.goalie = None
 
         # update robots' team
         for r in self.itervalues():
@@ -254,20 +283,6 @@ class Team(defaultdict):
         else:
             val = self[key] = self.default_factory(key)
             return val
-
-    #def __getitem__(self, uid):
-    #    for r in self:
-    #        if r.uid == uid:
-    #            return r
-    #    else:
-    #        r = Robot(uid)
-    #        r.team = self
-    #        self.append(r)
-    #        return r
-
-    #def __setitem__(self, *args):
-    #    #TODO: raise proper exception?
-    #    raise IndexError('__setitem__ not allowed')
 
     @classmethod
     def blue(cls, *args, **kwargs):
@@ -406,6 +421,19 @@ class Goal(geom.Point):
         ])
 
     @property
+    def penalty_line(self):
+        """A line the robots must not advance on penalty on this goal."""
+        return geom.Line(
+            geom.Point(self.x - (sign(self.x) or 1) * (self.world.penalty_spot_distance + self.world.penalty_line_distance), -self.world.width / 2),
+            geom.Point(self.x - (sign(self.x) or 1) * (self.world.penalty_spot_distance + self.world.penalty_line_distance), self.world.width / 2),
+        )
+
+    @property
+    def penalty_stop(self):
+        """A point where the ball should be on a penalty on this goal."""
+        return geom.Point(array(self) - array(((sign(self.x) or 1) * (self.world.penalty_spot_distance), 0)))
+
+    @property
     def line(self):
         return self._line
 
@@ -435,23 +463,48 @@ class Goal(geom.Point):
 
 
 class Referee(object):
-    class Stage:
-        FirstHalf = 'FirstHalf'
-        HalfTime = 'HalfTime'
-        SecondHalf = 'SecondHalf'
-        OvertimeFirstHalf = 'OvertimeFirstHalf'
-        OvertimeSecondHalf = 'OvertimeSecondHalf'
-        Penalty = 'Penalty'
 
-    class Mode:
+    class Stage:
+        NormalFirstHalfPre = 'NormalFirstHalfPre'
+        NormalFirstHalf = 'NormalFirstHalf'
+        NormalHalfTime = 'NormalHalfTime'
+        NormalSecondHalfPre = 'NormalSecondHalfPre'
+        NormalSecondHalf = 'NormalSecondHalf'
+        ExtraTimeBreak = 'ExtraTimeBreak'
+        ExtraFirstHalfPre = 'ExtraFirstHalfPre'
+        ExtraFirstHalf = 'ExtraFirstHalf'
+        ExtraHalfTime = 'ExtraHalfTime'
+        ExtraSecondHalfPre = 'ExtraSecondHalfPre'
+        ExtraSecondHalf = 'ExtraSecondHalf'
+        PenaltyShootoutBreak = 'PenaltyShootoutBreak'
+        PenaltyShootout = 'PenaltyShootout'
+        PostGame = 'PostGame'
+
+    class Command:
         Halt = 'Halt'
         Stop = 'Stop'
-        Start = 'Start'
+        NormalStart = 'NormalStart'
+        ForceStart = 'ForceStart'
+        PrepareKickoffYellow = 'PrepareKickoffYellow'
+        PrepareKickoffBlue = 'PrepareKickoffBlue'
+        PreparePenaltyYellow = 'PreparePenaltyYellow'
+        PreparePenaltyBlue = 'PreparePenaltyBlue'
+        DirectFreeYellow = 'DirectFreeYellow'
+        DirectFreeBlue = 'DirectFreeBlue'
+        IndirectFreeYellow = 'IndirectFreeYellow'
+        IndirectFreeBlue = 'IndirectFreeBlue'
+        TimeoutYellow = 'TimeoutYellow'
+        TimeoutBlue = 'TimeoutBlue'
+        GoalYellow = 'GoalYellow'
+        GoalBlue = 'GoalBlue'
 
     def __init__(self, world):
         self.world = world
+        self.timestamp = None
         self.stage = None
-        self.control = None
+        self.command = None
+        self.command_timestamp = None
+        self.stage_time_left = None
 
 
 class World(object):
@@ -536,7 +589,6 @@ class World(object):
         return self.goal(Blue)
 
     def goal(self, color):
-        pdb.set_trace
         if self.right_team.color == color:
             return self.right_goal
         elif self.left_team.color == color:
@@ -545,7 +597,6 @@ class World(object):
             raise Exception
 
     def enemy_goal(self, color):
-        pdb.set_trace
         if self.right_team.color == color:
             return self.left_goal
         elif self.left_team.color == color:

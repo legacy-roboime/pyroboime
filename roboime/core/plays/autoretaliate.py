@@ -23,20 +23,14 @@ class AutoRetaliate(Play):
         super(AutoRetaliate, self).__init__(team, **kwargs)
         self.goalkeeper_uid = goalkeeper_uid
         self.players = {}
-        self.tactics_factory = lambda robot: {
-            'goalkeeper': Goalkeeper(robot, aggressive=False, angle=0),
-            'attacker': Zickler43(robot),
-            'blocker': Blocker(robot, arc=0),
-            'defender': Defender(robot, enemy=self.ball, distance=0.6),
-        }
+        self.tactics_factory.update({
+            'goalkeeper': lambda robot: Goalkeeper(robot, aggressive=False, angle=0),
+            'attacker': lambda robot: Zickler43(robot),
+            'blocker': lambda robot: Blocker(robot, arc=0),
+            'defender': lambda robot: Defender(robot, enemy=self.ball, distance=0.6),
+        })
 
-    def step(self):
-        # dynamically create a set of tactics for new robots
-        for robot in self.team:
-            r_id = robot.uid
-            if r_id not in self.players:
-                self.players[r_id] = self.tactics_factory(robot)
-
+    def setup_tactics(self):
         # list of the ids of the robots in order of proximity to the ball
         closest_robots = [r.uid for r in self.team.closest_robots_to_ball(can_kick=True)]
 
@@ -66,10 +60,10 @@ class AutoRetaliate(Play):
         for robot in self.team:
             r_id = robot.uid
             if r_id == gk_id:
-                self.players[r_id]['goalkeeper'].step()
+                robot.current_tactic = self.players[r_id]['goalkeeper']
             elif r_id == atk_id:
-                self.players[r_id]['attacker'].step()
+                robot.current_tactic = self.players[r_id]['attacker']
             elif r_id == blk_id:
-                self.players[r_id]['blocker'].step()
+                robot.current_tactic = self.players[r_id]['blocker']
             else:
-                self.players[r_id]['defender'].step()
+                robot.current_tactic = self.players[r_id]['defender']

@@ -1,21 +1,17 @@
-from sys import platform
-if platform == 'win32':
-    from Queue import Queue
-    from threading import Event
-    from threading import Thread as Process
-    from threading import Lock
-else:
-    from multiprocessing import Process, Queue, Event, Lock
+#if platform == 'win32':
+#    from multiprocessing.dummy import Process, Queue, Event, Lock
+#else:
+#    from multiprocessing import Process, Queue, Event, Lock
+from multiprocessing import Process, Queue, Event, Lock
 from numpy import array
 
 from ..communication import sslvision
 from ..communication import refbox
 from .. import base
 
-#import pdb
 
 STOP_TIMEOUT = 1
-t0 = None
+
 
 class Update(object):
 
@@ -23,7 +19,7 @@ class Update(object):
         self.data = data
 
     def apply(self):
-        pass
+        raise NotImplemented
 
 
 class BallUpdate(Update):
@@ -52,15 +48,13 @@ class RobotUpdate(Update):
         return (0x100 if self.team_color is base.Blue else 0x200) + self.i
 
     def apply(self, world):
-        global t0
-        if t0 is None:
-            t0 = self.data['timestamp']
-        #print 'Timestamp real', self.data['timestamp'] - t0
+
         if self.team_color == base.Blue:
             team = world.blue_team
         elif self.team_color == base.Yellow:
             team = world.yellow_team
         robot = team[self.i]
+
         for prop, value in self.data.iteritems():
             if prop != 'x' and prop != 'y':
                 setattr(robot, prop, value)
@@ -97,15 +91,15 @@ class Updater(Process):
         self._exit = Event()
 
     def run(self):
-        try:
-            while not self._exit.is_set():
-                #with self.queue_lock:
-                if self.queue.full():
-                    #print 'Queue size', self.queue.qsize()
-                    self.queue.get()
-                self.queue.put(self.receive())
-        except KeyboardInterrupt:
-            pass
+        while not self._exit.is_set():
+            #with self.queue_lock:
+            self.queue.put(self.receive())
+            #self.queue.put_nowait(self.receive())
+            #if self.queue.full():
+            #    try:
+            #        self.queue.get_nowait()
+            #    except:
+            #        pass
 
     def stop(self):
         self._exit.set()
@@ -116,14 +110,18 @@ class Updater(Process):
             self.terminate()
 
     def receive(self):
-        pass
+        raise NotImplemented
 
 
 class VisionUpdater(Updater):
 
     def __init__(self, address):
-        Updater.__init__(self)
-        self.receiver = sslvision.VisionReceiver(address)
+        super(VisionUpdater, self).__init__()
+        self.address = address
+
+    def run(self):
+        self.receiver = sslvision.VisionReceiver(self.address)
+        super(VisionUpdater, self).run()
 
     def receive(self):
         updates = []
