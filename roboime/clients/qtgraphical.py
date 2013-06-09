@@ -3,20 +3,26 @@ from time import sleep
 #import sys, os
 from os import path
 from PyQt4 import QtGui, QtCore, uic
+from collections import OrderedDict
+from ..utils.geom import Point
 
 #from . import stageview
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface
-#from ..core.skills import goto
-#from ..core.skills import gotoavoid
-#from ..core.skills import drivetoobject
-#from ..core.skills import drivetoball
-#from ..core.skills import sampleddribble
-#from ..core.skills import sampledkick
-#from ..core.skills import followandcover
+from ..core.skills import goto
+from ..core.skills import gotoavoid
+from ..core.skills import drivetoobject
+from ..core.skills import drivetoball
+from ..core.skills import sampleddribble
+from ..core.skills import sampledkick
+from ..core.skills import followandcover
 from ..core.skills import sampledchipkick
-#from ..core.plays import autoretaliate
+from ..core.tactics import blocker
+from ..core.tactics import defender
+from ..core.tactics import goalkeeper
+from ..core.tactics import zickler43
+from ..core.plays import autoretaliate
 from ..core.plays import stop
 
 
@@ -34,7 +40,7 @@ class GraphicalWorld(World, QtCore.QMutex):
         self.unlock()
 
 
-class QtGraphicalClient(QtGui.QMainWindow):
+class QtGraphicalClient(object):
     """
     This is a QT graphical interface.
     """
@@ -56,6 +62,7 @@ class QtGraphicalClient(QtGui.QMainWindow):
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.ui.stageView.redraw)
 
+
         # FIXME: This should work.
         # Redraw stageview when the interface applies an update
         #self.intelligence.interface.world_updated.connect(self.ui.stageView.redraw)
@@ -68,80 +75,66 @@ class QtGraphicalClient(QtGui.QMainWindow):
         # Start redraw timer (once every 25ms)
         self.timer.start(25)
 
+        self.ui.statusBar.hide()
+
     def setupUI(self):
         # Setup GUI buttons and combo boxes
 
-        # Tactics ComboBoxes
-        self.ui.cmbSelectTacticOurs.addItem('Zickler43', 'zickler43')
-        self.ui.cmbSelectTacticOurs.addItem('Goleiro', 'gkpr')
-        self.ui.cmbSelectTacticOurs.addItem('Defesa 1', 'defU32')
+        ui = {
+            'cmbSelectRobotBlue': map(str, self.intelligence.individuals_blue.keys()),
+            'cmbSelectRobotYellow': map(str, self.intelligence.individuals_yellow.keys()),
+            'cmbSelectIndividualBlue': self.intelligence.individuals_blue[0].keys(),
+            'cmbSelectIndividualYellow': self.intelligence.individuals_yellow[0].keys(),
+            'cmbSelectPlayBlue': self.intelligence.plays_blue.keys(),
+            'cmbSelectPlayYellow': self.intelligence.plays_yellow.keys(),
+        }
 
-        self.ui.cmbSelectTacticTheirs.addItem('Zickler43', 'zickler43T')
-        self.ui.cmbSelectTacticTheirs.addItem('Goleiro', 'gkprT')
-        self.ui.cmbSelectTacticTheirs.addItem('Defesa 1', 'defT32')
-
-        # Plays ComboBoxes
-        self.ui.cmbSelectPlayOurs.addItem('Halt', 'haltU')
-        self.ui.cmbSelectPlayOurs.addItem('CBR2011', 'cbr')
-        #FIXME: Needs to format string 'Retaliacao' to accept tilde and cedilla
-        self.ui.cmbSelectPlayOurs.addItem('Retaliacao', 'retaliateU')
-        self.ui.cmbSelectPlayOurs.addItem('Minmax', 'minimax2')
-        self.ui.cmbSelectPlayOurs.addItem('Obedecer Juiz', 'refereeU')
-
-        self.ui.cmbSelectPlayTheirs.addItem('Halt', 'haltT')
-        self.ui.cmbSelectPlayTheirs.addItem('CBR2011', 'cbr2')
-        self.ui.cmbSelectPlayTheirs.addItem('Retaliacao', 'retaliateT')
-        self.ui.cmbSelectPlayTheirs.addItem('Obedecer Juiz', 'refereeT')
-
-        # Mode ComboBox
-        self.ui.cmbSelectMode.addItem('Play', 'PLAY')
-        self.ui.cmbSelectMode.addItem('Tatica', 'TACTIC')
-        self.ui.cmbSelectMode.addItem('Skill', 'SKILL')
+        for cmb in ui:
+            for i in ui[cmb]:
+                getattr(self.ui, cmb).addItem(i, i)
 
         # Connect signals to slots
         self.ui.cmbPenalty.currentIndexChanged.connect(self.setPenaltyKicker)
         self.ui.cmbGoalkeeper.currentIndexChanged.connect(self.setGoalkeeper)
         self.ui.cmbSelectOutput.currentIndexChanged.connect(self.changeIntelligenceOutput)
-        self.ui.cmbSelectPlayOurs.currentIndexChanged.connect(self.changePlayUs)
-        self.ui.cmbSelectTacticOurs.currentIndexChanged.connect(self.changeTacticUs)
-        self.ui.cmbSelectPlayTheirs.currentIndexChanged.connect(self.changePlayThem)
-        self.ui.cmbSelectTacticTheirs.currentIndexChanged.connect(self.changeTacticThem)
-        self.ui.cmbSelectMode.currentIndexChanged.connect(self.changeMode)
+        self.ui.cmbSelectPlayBlue.currentIndexChanged.connect(self.changePlayBlue)
+        self.ui.cmbSelectIndividualBlue.currentIndexChanged.connect(self.changeIndividualBlue)
+        self.ui.cmbSelectPlayYellow.currentIndexChanged.connect(self.changePlayYellow)
+        self.ui.cmbSelectIndividualYellow.currentIndexChanged.connect(self.changeIndividualYellow)
         self.ui.cmbOurTeam.currentIndexChanged.connect(self.setTeamColor)
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
-
-        self.ui.btnTabHide.clicked.connect(self.hideTabs)
+        self.ui.actionFullscreen.triggered.connect(self.toggleFullScreen)
 
     # GUI Functions
     def setPenaltyKicker(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def setGoalkeeper(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def changeIntelligenceOutput(self):
-        raise NotImplemented
+        raise NotImplementedError
 
-    def changePlayUs(self):
-        raise NotImplemented
+    def changePlayBlue(self):
+        self.intelligence.current_play_blue = self.intelligence.plays_blue[str(self.ui.cmbSelectPlayBlue.currentText())]
 
-    def changeTacticUs(self):
-        raise NotImplemented
+    def changeIndividualBlue(self):
+        raise NotImplementedError
 
-    def changePlayThem(self):
-        raise NotImplemented
+    def changePlayYellow(self):
+        self.intelligence.current_play_yellow = self.intelligence.plays_yellow[str(self.ui.cmbSelectPlayYellow.currentText())]
 
-    def changeTacticThem(self):
-        raise NotImplemented
+    def changeRobotYellow(self):
+        raise NotImplementedError
 
-    def changeMode(self):
-        raise NotImplemented
+    def changeIndividualYellow(self):
+        raise NotImplementedError
 
     def setTeamColor(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def changeSides(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def hideTabs(self):
         if self.ui.tabWidget.isVisible():
@@ -152,6 +145,20 @@ class QtGraphicalClient(QtGui.QMainWindow):
             self.ui.btnTabHide.setText('Hide')
 
         # Reset camera position and scale, so it fits the screen
+        self.ui.stageView.fit()
+
+    def toggleFullScreen(self, activate):
+        if self.ui.windowState() & QtCore.Qt.WindowFullScreen:
+            self.ui.showNormal()
+            self.ui.dockSetup.show()
+            self.ui.menuBar.show()
+            #self.ui.statusBar.show()
+        else:
+            self.ui.showFullScreen()
+            self.ui.dockSetup.hide()
+            self.ui.menuBar.show()
+            #self.ui.statusBar.hide()
+        QtGui.QApplication.processEvents()
         self.ui.stageView.fit()
 
     def teardown(self):
@@ -169,21 +176,48 @@ class QtGraphicalClient(QtGui.QMainWindow):
         event.accept()
 
 
-
 class Intelligence(QtCore.QThread):
 
-    def __init__(self, world):
+    def __init__(self, world, count_robot=6):
         super(Intelligence, self).__init__()
+
+        class Dummy(object):
+            def step(self):
+                pass
         self.stop = False
         self.world = world
         self.skill = None
         self.interface = SimulationInterface(self.world)
-        self.plays = {
-            #'autoretal_b': autoretaliate.AutoRetaliate(world.blue_team, 0),
-            #'autoretal_y': autoretaliate.AutoRetaliate(world.yellow_team, 0),
-            'stop_b': stop.Stop(world.blue_team, 0),
-            'stop_y': stop.Stop(world.yellow_team, 0),
-        }
+
+        self.individual = lambda robot: OrderedDict([
+            ('(none)', Dummy()),
+            ('Go To', goto.Goto(robot, target=Point(0, 0))),
+            ('Go To Avoid', gotoavoid.GotoAvoid(robot, target=Point(0, 0), avoid=self.world.ball)),
+            #('Drive To Object', drivetoobject.DriveToObject(robot)),
+            ('Drive To Ball', drivetoball.DriveToBall(robot, lookpoint=robot.enemy_goal)),
+            ('Sampled Dribble', sampleddribble.SampledDribble(robot, lookpoint=robot.enemy_goal)),
+            ('Sampled Kick', sampledkick.SampledKick(robot, lookpoint=robot.enemy_goal)),
+            ('Follow And Cover', followandcover.FollowAndCover(robot, follow=robot.goal, cover=self.world.ball)),
+            ('Sampled Chip Kick', sampledchipkick.SampledChipKick(robot, lookpoint=robot.enemy_goal)),
+            ('Blocker', blocker.Blocker(robot, arc=0)),
+            ('Goalkeeper', goalkeeper.Goalkeeper(robot, angle=30, aggressive=True)),
+            ('Zickler43', zickler43.Zickler43(robot)),
+            ('Defender', defender.Defender(robot, enemy=self.world.ball)),
+        ])
+        self.plays = lambda team: OrderedDict([
+            ('(none)', Dummy()),
+            ('Auto Retaliate', autoretaliate.AutoRetaliate(team, 0)),
+            ('Stop', stop.Stop(team, 0)),
+        ])
+
+        self.individuals_blue = dict((i, self.individual(self.world.blue_team[i])) for i in range(count_robot))
+        self.individuals_yellow = dict((i, self.individual(self.world.yellow_team[i])) for i in range(count_robot))
+
+        self.plays_blue = self.plays(self.world.blue_team)
+        self.plays_yellow = self.plays(self.world.yellow_team)
+
+        self.current_play_blue = Dummy()
+        self.current_play_yellow = Dummy()
 
     def _loop(self):
         #if 2 in self.world.blue_team:
@@ -199,8 +233,10 @@ class Intelligence(QtCore.QThread):
         #        #self.skill = goto.Goto(r, target=Point(0, 0))
         #        #self.skill = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
         #    self.skill.step()
-        for play in self.plays.itervalues():
-            play.step()
+        #for play in self.plays.itervalues():
+        #    play.step()
+        self.current_play_blue.step()
+        self.current_play_yellow.step()
 
         with self.world:
             self.interface.step()

@@ -25,7 +25,7 @@ class RobotItem(QGraphicsItem):
         super(RobotItem, self).__init__()
         self.robot = robot
         self.outline = QPainterPath()
-        #self.setFlags(QGraphicsItem.ItemIsSelectable|QGraphicsItem.ItemIsFocusable)
+        self.setFlags(QGraphicsItem.ItemIsSelectable)
 
     @property
     def uuid(self):
@@ -223,21 +223,12 @@ class StageView(QGraphicsView):
 
         # All commented lines here are already loaded on GraphicsIntelligence.ui
 
-        #self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         self.setBackgroundBrush(QBrush(FIELD_GREEN))
-        #self.setCacheMode(QGraphicsView.CacheNone)
-        #self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
         self.setScene(QGraphicsScene(0, 0, 0, 0))
         self._world = None
 
         # Set the zoom so the view doesn't starts all zoomed
         self.scale(1.0 / 15, 1.0 / 15)
-
-        #self.setDragMode(QGraphicsView.ScrollHandDrag)              # Set mouse drag to click and drag
-        #self.setFocusPolicy(Qt.WheelFocus)                          # Set focus on view when tabbing, clicking and scrolling the wheel
-        #self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)    # Disable horizontal and vertical scrollbars
-        #self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        #self.setInteractive(True)   # Set interactive so user can click to focus a robot
 
     @property
     def world(self):
@@ -251,8 +242,6 @@ class StageView(QGraphicsView):
 
     # Mouse wheel to zoom
     def wheelEvent(self, event):
-        #self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
-
         scaleFactor = 1.10
         if event.delta() > 0:
             self.scale(scaleFactor, scaleFactor)
@@ -262,7 +251,11 @@ class StageView(QGraphicsView):
     # Resize the view to fit the screen
     def fit(self):
         boundary = self._world.boundary_width + self._world.referee_width
-        self.fitInView(-s(self._world.length / 2 + boundary), -s(self._world.width / 2 + boundary), s(self._world.length + 2 * boundary), s(self._world.width + 2 * boundary), Qt.KeepAspectRatio)
+        self.fitInView(-s(self._world.length / 2 + boundary),
+            -s(self._world.width / 2 + boundary),
+            s(self._world.length + 2 * boundary),
+            s(self._world.width + 2 * boundary),
+            Qt.KeepAspectRatio)
 
     # Handle key events
     def keyPressEvent(self, event):
