@@ -256,6 +256,15 @@ class Team(defaultdict):
         self.color = color
         self.world = world
 
+        # team info attributes
+        self.name = None
+        self.score = None
+        self.red_cards = None
+        self.yellow_cards = None
+        self.yellow_card_times = None
+        self.timeouts = None
+        self.goalie = None
+
         # update robots' team
         for r in self.itervalues():
             r.team = self
@@ -446,23 +455,48 @@ class Goal(geom.Point):
 
 
 class Referee(object):
-    class Stage:
-        FirstHalf = 'FirstHalf'
-        HalfTime = 'HalfTime'
-        SecondHalf = 'SecondHalf'
-        OvertimeFirstHalf = 'OvertimeFirstHalf'
-        OvertimeSecondHalf = 'OvertimeSecondHalf'
-        Penalty = 'Penalty'
 
-    class Mode:
+    class Stage:
+        NormalFirstHalfPre = 'NormalFirstHalfPre'
+        NormalFirstHalf = 'NormalFirstHalf'
+        NormalHalfTime = 'NormalHalfTime'
+        NormalSecondHalfPre = 'NormalSecondHalfPre'
+        NormalSecondHalf = 'NormalSecondHalf'
+        ExtraTimeBreak = 'ExtraTimeBreak'
+        ExtraFirstHalfPre = 'ExtraFirstHalfPre'
+        ExtraFirstHalf = 'ExtraFirstHalf'
+        ExtraHalfTime = 'ExtraHalfTime'
+        ExtraSecondHalfPre = 'ExtraSecondHalfPre'
+        ExtraSecondHalf = 'ExtraSecondHalf'
+        PenaltyShootoutBreak = 'PenaltyShootoutBreak'
+        PenaltyShootout = 'PenaltyShootout'
+        PostGame = 'PostGame'
+
+    class Command:
         Halt = 'Halt'
         Stop = 'Stop'
-        Start = 'Start'
+        NormalStart = 'NormalStart'
+        ForceStart = 'ForceStart'
+        PrepareKickoffYellow = 'PrepareKickoffYellow'
+        PrepareKickoffBlue = 'PrepareKickoffBlue'
+        PreparePenaltyYellow = 'PreparePenaltyYellow'
+        PreparePenaltyBlue = 'PreparePenaltyBlue'
+        DirectFreeYellow = 'DirectFreeYellow'
+        DirectFreeBlue = 'DirectFreeBlue'
+        IndirectFreeYellow = 'IndirectFreeYellow'
+        IndirectFreeBlue = 'IndirectFreeBlue'
+        TimeoutYellow = 'TimeoutYellow'
+        TimeoutBlue = 'TimeoutBlue'
+        GoalYellow = 'GoalYellow'
+        GoalBlue = 'GoalBlue'
 
     def __init__(self, world):
         self.world = world
+        self.timestamp = None
         self.stage = None
-        self.control = None
+        self.command = None
+        self.command_timestamp = None
+        self.stage_time_left = None
 
 
 class World(object):
