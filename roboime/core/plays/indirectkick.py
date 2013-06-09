@@ -1,14 +1,14 @@
-# from .stopreferee import StopReferee
+from .stopreferee import StopReferee
 # from ..base import World
 from .. import Play
 
 
-# class IndirectKick(StopReferee):
-class IndirectKick(Play):
+class IndirectKick(StopReferee):
+#class IndirectKick(Play):
     """
     Currently this play will extend StopReferee by performing an
     indirect kick by positioning a robot on a good spot and making
-    a pass to it.
+    a pass to it. This will be deprecated Soon(TM).
     """
     # TODO constructor
     def __init__(self, team, goalkeeper_uid, **kwargs):
@@ -19,8 +19,8 @@ class IndirectKick(Play):
     def get_best_indirect_positions(self, target=None, precision=0.5):
         """
         Discretizes points over the field (respecting a minimum border from the field,
-        and without entering none of the defense areas), according to given precision.
-        Searches for clear paths between initial position (ball), intermediate position,
+        and without entering any of the defense areas), according to a given granularity.
+        It searches for clear paths between initial position (ball), intermediate position,
         and the target.
         
         Returns a sorted list of tuples (Points that are closer to the target come 
