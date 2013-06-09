@@ -171,9 +171,11 @@ class Robot(geom.Point):
 
         # some properties
         self.can_kick = True
+        
+        self.is_touching = False
+        self._has_touched = False
+        self.is_last_toucher = False
 
-
-        # XXX: This is ugly. Somebody make this less f***ing ugly please.
         class Steppable(object):
             def step(self):
                 pass
@@ -185,6 +187,10 @@ class Robot(geom.Point):
         super(Robot, self).update(*args, **kwargs)
         # TODO generate the actual body shape instead of a circle
         self._body = geom.Circle(self, self._radius)
+
+    @property
+    def ball(self):
+        return self.world.ball
 
     @property
     def enemy_team(self):
@@ -249,6 +255,19 @@ class Robot(geom.Point):
     def is_enemy(self, robot):
         """Name says it all."""
         return self.team.color != robot.team.color
+
+    @property
+    def has_touched_ball(self):
+        was_touching = self.is_touching
+        self.is_touching =  self.distance(self.ball) < self.radius + 2 * self.ball.radius
+        if not self.is_touching and was_touching:
+            self._has_touched = True
+            return True
+        return False
+
+    @has_touched_ball.setter
+    def has_touched_ball(self, value):
+        self._has_touched = value
 
     def step(self):
         if self._skill is not None:

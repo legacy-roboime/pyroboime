@@ -86,6 +86,7 @@ class Play(object):
 
         self.team = team
         self.tactics_factory = {}
+        self.players = {}
 
     @property
     def enemy_team(self):
