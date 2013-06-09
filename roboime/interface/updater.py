@@ -54,6 +54,7 @@ class RobotUpdate(Update):
         elif self.team_color == base.Yellow:
             team = world.yellow_team
         robot = team[self.i]
+        robot.active = True
 
         for prop, value in self.data.iteritems():
             if prop != 'x' and prop != 'y':
