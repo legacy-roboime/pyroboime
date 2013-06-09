@@ -99,8 +99,10 @@ class QtGraphicalClient(object):
         self.ui.cmbGoalkeeper.currentIndexChanged.connect(self.setGoalkeeper)
         self.ui.cmbSelectOutput.currentIndexChanged.connect(self.changeIntelligenceOutput)
         self.ui.cmbSelectPlayBlue.currentIndexChanged.connect(self.changePlayBlue)
+        self.ui.cmbSelectRobotBlue.currentIndexChanged.connect(self.changeIndividualBlue)
         self.ui.cmbSelectIndividualBlue.currentIndexChanged.connect(self.changeIndividualBlue)
         self.ui.cmbSelectPlayYellow.currentIndexChanged.connect(self.changePlayYellow)
+        self.ui.cmbSelectRobotYellow.currentIndexChanged.connect(self.changeIndividualYellow)
         self.ui.cmbSelectIndividualYellow.currentIndexChanged.connect(self.changeIndividualYellow)
         self.ui.cmbOurTeam.currentIndexChanged.connect(self.setTeamColor)
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
@@ -120,16 +122,13 @@ class QtGraphicalClient(object):
         self.intelligence.current_play_blue = self.intelligence.plays_blue[str(self.ui.cmbSelectPlayBlue.currentText())]
 
     def changeIndividualBlue(self):
-        raise NotImplementedError
+        self.intelligence.current_individual_blue = self.intelligence.individuals_blue[self.ui.cmbSelectRobotBlue.currentIndex()][str(self.ui.cmbSelectIndividualBlue.currentText())]
 
     def changePlayYellow(self):
         self.intelligence.current_play_yellow = self.intelligence.plays_yellow[str(self.ui.cmbSelectPlayYellow.currentText())]
 
-    def changeRobotYellow(self):
-        raise NotImplementedError
-
     def changeIndividualYellow(self):
-        raise NotImplementedError
+        self.intelligence.current_individual_yellow = self.intelligence.individuals_yellow[self.ui.cmbSelectRobotYellow.currentIndex()][str(self.ui.cmbSelectIndividualYellow.currentText())]
 
     def setTeamColor(self):
         raise NotImplementedError
@@ -221,6 +220,9 @@ class Intelligence(QtCore.QThread):
         self.current_play_blue = Dummy()
         self.current_play_yellow = Dummy()
 
+        self.current_individual_blue = Dummy()
+        self.current_individual_yellow = Dummy()
+
     def _loop(self):
         #        #self.skill = followandcover.FollowAndCover(r, follow=self.world.ball, cover=self.world.blue_team[3])
         #        #self.skill = sampledkick.SampledKick(r, lookpoint=self.world.left_goal)
@@ -234,6 +236,9 @@ class Intelligence(QtCore.QThread):
         #    play.step()
         self.current_play_blue.step()
         self.current_play_yellow.step()
+
+        self.current_individual_blue.step()
+        self.current_individual_yellow.step()
 
         with self.world:
             self.interface.step()

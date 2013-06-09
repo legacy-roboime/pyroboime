@@ -75,7 +75,7 @@ class IndirectKick(Stop, StateMachine):
         Stop.setup_tactics(self)
         print self.current_state
         if self.current_state == self.states['starting']:
-            self.best_position = self.best_indirect_positions()[0][0]
+            self.best_position = self.team.best_indirect_positions()[0][0]
             robots_closest_to_ball = self.team.closest_robots_to_ball()
             # TODO: Think of a better name
             robots_closest_to_bathtub = self.team.closest_robots_to_point(point=self.best_position)
@@ -110,7 +110,7 @@ class IndirectKick(Stop, StateMachine):
             #        robot.current_tactic = Steppable() 
     
         elif self.current_state == self.states['pass']:
-            self.best_position = self.best_indirect_positions()[0][0]
+            self.best_position = self.team.best_indirect_positions()[0][0]
 
             self.players[self.passer.uid]['passer'].receiver = self.receiver
             self.players[self.passer.uid]['passer'].lookpoint = self.receiver
@@ -142,53 +142,3 @@ class IndirectKick(Stop, StateMachine):
 
         # Executes state machine transitions
         self.execute()
-
-    
-    def best_indirect_positions(self, target=None, precision=6):
-        """
-        Discretizes points over the field (respecting a minimum border from the field,
-        and without entering none of the defense areas), according to given precision.
-        Searches for clear paths between initial position (ball), intermediate position,
-        and the target.
-        
-        Returns a sorted list of tuples (Points that are closer to the target come 
-        first):
-        [(point, distance_to_target), (point, distance_to_target), (point, distance_to_target), ...]
-        """
-        # TODO: aim for the best spot in the goal, not only to the middle of the enemy goal
-
-        t = self.team
-        b = self.ball
-
-        if target is None:
-            target = self.team.enemy_goal
-
-        candidate = []
-
-        safety_margin = 2 * self.team[0].radius + 0.1
-
-        # field params:
-        f_l = self.world.length - self.world.defense_radius - safety_margin
-        f_w = self.world.width - safety_margin
-
-        # candidate points in the field range
-        for x in linspace(-f_l/2, f_l/2, precision):
-            for y in linspace(-f_w/2, f_w/2, precision - 2):
-                pt = Point(x, y)
-                acceptable = True
-                final_line = Point(0,0)
-                for enemy in self.world.enemy_team(t.color).iterrobots():
-                    # if the robot -> pt line doesn't cross any enemy body...
-                    if not Line(b, pt).crosses(enemy.body):
-                        final_line = Line(pt, target)
-                        # if the pt -> target line crosses any enemy body...
-                        if final_line.crosses(enemy.body):
-                            acceptable = False
-                if acceptable:
-                    candidate += [(pt, final_line.length)]
-        if not candidate:
-            goal_point = t.enemy_goal
-            return [(Point(enemy_goal.x - sign(enemy_goal.x)*1, enemy_goal.y), 1)]
-        else:
-            return sorted(candidate, key=lambda tup: tup[1])
-
