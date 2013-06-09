@@ -172,6 +172,14 @@ class Robot(geom.Point):
         # some properties
         self.can_kick = True
 
+
+        # XXX: This is ugly. Somebody make this less f***ing ugly please.
+        class Steppable(object):
+            def step(self):
+                pass
+
+        self.current_tactic = Steppable()
+
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
         super(Robot, self).update(*args, **kwargs)
