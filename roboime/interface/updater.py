@@ -6,7 +6,7 @@ from multiprocessing import Process, Queue, Event, Lock
 from numpy import array
 
 from ..communication import sslvision
-from ..communication import refbox
+from ..communication import sslrefbox
 from .. import base
 
 
@@ -85,9 +85,26 @@ class GeometryUpdate(Update):
 class RefereeUpdate(Update):
 
     def apply(self, world):
-        # XXX: TEST
-        world.referee_data = self.data
+        for prop, value in self.data.iteritems():
+            setattr(world.referee, prop, value)
 
+    def uid(self):
+        return 0x43f3433
+
+
+class TeamUpdate(Update):
+
+    def __init__(self, team_color, data):
+        super(TeamUpdate, self).__init__(data)
+        self.data = data
+
+    def apply(self, world):
+        team = world.team(self.team_color)
+        for prop, value in self.data.iteritems():
+            setattr(team, prop, value)
+
+    def uid(self):
+        return 0x7e488
 
 class Updater(Process):
 
@@ -198,60 +215,68 @@ class SimVisionUpdater(VisionUpdater):
 
 class RefereeUpdater(Updater):
 
-    def __init__(self, address=('224.5.23.1', 10001)):
+    def __init__(self):
         super(RefereeUpdater, self).__init__()
-        self.receiver = refbox.RefboxOldReceiver(address)
+        #self.address = address
         self.counter = 0
 
-    def _command(self, char):
-        """
-        Command type     Command Description     Command
-        =================================================================================
-        Control commands
-                         Halt                    H
-                         Stop                    S
-                         Ready                   ' ' (space character)
-                         Start                   s
-        Game Notifications
-                         Begin first half        1
-                         Begin half time         h
-                         Begin second half       2
-                         Begin overtime half 1   o
-                         Begin overtime half 2   O
-                         Begin penalty shootout  a
-
-        Command type     Command Description     Yellow Team Command    Blue Team Command
-        =================================================================================
-        Game restarts
-                         Kick off                k                      K
-                         Penalty                 p                      P
-                         Direct Free kick        f                      F
-                         Indirect Free kick      i                      I
-        Extras
-                         Timeout                 t                      T
-                         Timeout end             z                      z
-                         Goal scored             g                      G
-                         decrease Goal score     d                      D
-                         Yellow Card             y                      Y
-                         Red Card                r                      R
-                         Cancel                  c
-        """
-        pass
+    def run(self):
+        #self.receiver = sslrefbox.SimRefboxReceiver(self.address)
+        self.receiver = sslrefbox.SimRefboxReceiver()
+        super(RefereeUpdater, self).run()
 
     def receive(self):
         updates = []
         packet = self.receiver.get_packet()
-        # receive until a command is issued
-        try:
-            while packet.counter < self.counter:
-                packet = self.get_packet()
-            self.counter = packet.counter
-            updates.append(RefereeUpdate({
-                'command': self._command(packet.command),
-                'goals_blue': packet.goals_blue,
-                'goals_yellow': packet.goals_yellow,
-                'time_remaining': packet.time_remaining,
-            }))
-            return updates
-        except:
-            pass
+        referee = packet.referee
+        #updates.append(RefereeUpdate({
+        #    'command': sslrefbox.CommandsDict[referee.command],
+        #    'command_timestamp': referee.command_timestamp,
+        #    'stage': sslrefbox.StagesDict[referee.stage],
+        #    'stage_time_left': referee.stage_time_left,
+        #    'timestamp': referee.packet_timestamp,
+        #}))
+        #updates.append(TeamUpdate(base.Blue, {
+        #    'score': referee.blue.score,
+        #    'red_cards': referee.blue.red_cards,
+        #    'yellow_card_times': referee.blue.yellow_card_times,
+        #    'yellow_cards': referee.blue.yellow_cards,
+        #    'timeouts': referee.blue.timeouts,
+        #    'timeout_time': referee.blue.timeout_time,
+        #    'goalie': referee.blue.goalie,
+        #}))
+        #updates.append(TeamUpdate(base.Yellow, {
+        #    'score': referee.yellow.score,
+        #    'red_cards': referee.yellow.red_cards,
+        #    'yellow_card_times': referee.yellow.yellow_card_times,
+        #    'yellow_cards': referee.yellow.yellow_cards,
+        #    'timeouts': referee.yellow.timeouts,
+        #    'timeout_time': referee.yellow.timeout_time,
+        #    'goalie': referee.yellow.goalie,
+        #}))
+        updates.append(RefereeUpdate({
+            'command': str(sslrefbox.CommandsDict[referee.command]),
+            'command_timestamp': int(referee.command_timestamp),
+            'stage': str(sslrefbox.StagesDict[referee.stage]),
+            #'stage_time_left': referee.stage_time_left,
+            #'timestamp': referee.packet_timestamp,
+        }))
+        #updates.append(TeamUpdate(base.Blue, {
+        #    'score': referee.blue.score,
+        #    'red_cards': referee.blue.red_cards,
+        #    'yellow_card_times': referee.blue.yellow_card_times,
+        #    'yellow_cards': referee.blue.yellow_cards,
+        #    'timeouts': referee.blue.timeouts,
+        #    'timeout_time': referee.blue.timeout_time,
+        #    'goalie': referee.blue.goalie,
+        #}))
+        #updates.append(TeamUpdate(base.Yellow, {
+        #    'score': referee.yellow.score,
+        #    'red_cards': referee.yellow.red_cards,
+        #    'yellow_card_times': referee.yellow.yellow_card_times,
+        #    'yellow_cards': referee.yellow.yellow_cards,
+        #    'timeouts': referee.yellow.timeouts,
+        #    'timeout_time': referee.yellow.timeout_time,
+        #    'goalie': referee.yellow.goalie,
+        #}))
+        return updates

@@ -131,7 +131,7 @@ class SimulationInterface(Interface):
     def __init__(self, world, filters=[], **kwargs):
         super(SimulationInterface, self).__init__(
             world,
-            updaters=[updater.SimVisionUpdater()],
+            updaters=[updater.SimVisionUpdater(), updater.RefereeUpdater()],
             commanders=[commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)],
             filters=filters + [filter.Speed(), filter.Scale()],
             **kwargs

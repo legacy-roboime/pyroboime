@@ -12,7 +12,7 @@ from ..base import World
 from ..interface import SimulationInterface
 from ..core.skills import goto
 from ..core.skills import gotoavoid
-from ..core.skills import drivetoobject
+#from ..core.skills import drivetoobject
 from ..core.skills import drivetoball
 from ..core.skills import sampleddribble
 from ..core.skills import sampledkick
@@ -25,6 +25,7 @@ from ..core.tactics import zickler43
 from ..core.plays import autoretaliate
 from ..core.plays import indirectkick
 from ..core.plays import stop
+from ..core.plays import obeyreferee
 
 
 class GraphicalWorld(World, QtCore.QMutex):
@@ -209,6 +210,7 @@ class Intelligence(QtCore.QThread):
             ('Auto Retaliate', autoretaliate.AutoRetaliate(team, 0)),
             ('Stop', stop.Stop(team, 0)),
             ('Indirect Kick', indirectkick.IndirectKick(team, 0)),
+            ('Obey Referee', obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(team, 0), 0)),
         ])
 
         self.individuals_blue = dict((i, self.individual(self.world.blue_team[i])) for i in range(count_robot))
@@ -239,6 +241,9 @@ class Intelligence(QtCore.QThread):
 
         self.current_individual_blue.step()
         self.current_individual_yellow.step()
+
+        #print self.world.referee.stage,
+        #print self.world.referee.command
 
         with self.world:
             self.interface.step()

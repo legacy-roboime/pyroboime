@@ -1,5 +1,6 @@
 from numpy import array
 from math import degrees
+from roboime.interface.updater import RobotUpdate, BallUpdate, GeometryUpdate
 
 
 class Filter(object):
@@ -35,15 +36,16 @@ class Scale(Filter):
 
     def filter_updates(self, updates):
         for update in updates:
-            filtered_data = {}
-            for key, value in update.data.iteritems():
-                if key == 'timestamp':
-                    filtered_data[key] = value
-                elif key == 'angle':
-                    filtered_data[key] = degrees(value)
-                else:
-                    filtered_data[key] = value / 1000.0
-            update.data = filtered_data
+            if isinstance(update, RobotUpdate) or isinstance(update, BallUpdate) or isinstance(update, GeometryUpdate):
+                filtered_data = {}
+                for key, value in update.data.iteritems():
+                    if key == 'timestamp':
+                        filtered_data[key] = value
+                    elif key == 'angle':
+                        filtered_data[key] = degrees(value)
+                    else:
+                        filtered_data[key] = value / 1000.0
+                update.data = filtered_data
 
 
 class Speed(Filter):
