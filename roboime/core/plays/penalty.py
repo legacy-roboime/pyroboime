@@ -4,6 +4,7 @@ from numpy import sign
 from .. import Play
 from ..tactics.goalkeeper import Goalkeeper
 from ..tactics.zickler43 import Zickler43
+from ..tactics.blocker import Blocker
 from ..skills.goto import Goto
 from ...utils.geom import Point
 
@@ -24,8 +25,11 @@ class Penalty(Play):
         self.tactics_factory = lambda robot: {
             'goalkeeper': Goalkeeper(robot, aggressive=False, angle=0),
             'attacker': Zickler43(robot),
+            'blocker': Blocker(robot, arc=0, distance=self.team[0].radius+2*self.world.ball.radius),
             'goto': Goto(robot),
         }
+        self.ready = False
+        self.attacker = team[0] if team else None
 
     def step(self):
         # list of the ids of the robots in order of proximity to the ball
@@ -49,7 +53,11 @@ class Penalty(Play):
             if r_id == gk_id:
                 self.players[r_id]['goalkeeper'].step()
             elif r_id == atk_id:
-                self.players[r_id]['attacker'].step()
+                self.attacker = robot
+                if ready: 
+                    self.players[r_id]['attacker'].step()
+                else:
+                    self.players[r_id]['blocker'].step()
             else:
                 self.players[r_id]['goto'].target =  Point(array(self.goal.penalty_line)[0] * (-1) - array((robot.radius * -1 * sign(self.goal.x), robot.radius * 3 * (1 + r_id))))
                 self.players[r_id]['goto'].step()

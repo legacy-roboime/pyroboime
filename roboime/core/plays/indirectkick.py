@@ -59,6 +59,11 @@ class IndirectKick(Stop, StateMachine):
         })
         self.best_position = None
 
+    def restart(self):
+        self.current_state = self.states['starting']
+        self.receiver = None
+        self.passer = None
+
     @property
     def goalkeeper(self):
         l = [r for r  in self.team if r.uid == self.goalkeeper_uid]
