@@ -160,7 +160,7 @@ class FieldCanvas(Canvas):
             for r in world.iterrobots():
                 self.draw_robot(r)
             # remove missing robots
-            rids = map(lambda r: id(r), world.iterrobots())
+            rids = map(id, self.world.iterrobots())
             for r in self.robots.iterkeys():
                 if r not in rids:
                     self.delete_robot(r)
