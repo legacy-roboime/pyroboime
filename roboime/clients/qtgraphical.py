@@ -56,7 +56,7 @@ class QtGraphicalClient(object):
         self.intelligence = Intelligence(self.world)
         #self.intelligence = Intelligence(self.world, self.ui.stageView.redraw)
 
-        self.ui = uic.loadUi(path.join(path.dirname(__file__), './GraphicalIntelligence.ui'))
+        self.ui = uic.loadUi(path.join(path.dirname(__file__), 'graphical.ui'))
         self.setupUI()
 
         self.ui.stageView.world = self.world
@@ -96,8 +96,8 @@ class QtGraphicalClient(object):
                 getattr(self.ui, cmb).addItem(i, i)
 
         # Connect signals to slots
-        self.ui.cmbPenalty.currentIndexChanged.connect(self.setPenaltyKicker)
-        self.ui.cmbGoalkeeper.currentIndexChanged.connect(self.setGoalkeeper)
+        #self.ui.cmbPenalty.currentIndexChanged.connect(self.setPenaltyKicker)
+        #self.ui.cmbGoalkeeper.currentIndexChanged.connect(self.setGoalkeeper)
         self.ui.cmbSelectOutput.currentIndexChanged.connect(self.changeIntelligenceOutput)
         self.ui.cmbSelectPlayBlue.currentIndexChanged.connect(self.changePlayBlue)
         self.ui.cmbSelectRobotBlue.currentIndexChanged.connect(self.changeIndividualBlue)
@@ -241,9 +241,6 @@ class Intelligence(QtCore.QThread):
 
         self.current_individual_blue.step()
         self.current_individual_yellow.step()
-
-        #print self.world.referee.stage,
-        #print self.world.referee.command
 
         with self.world:
             self.interface.step()
