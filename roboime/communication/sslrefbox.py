@@ -3,7 +3,7 @@ from struct import unpack
 
 from .network.multicast import MulticastReceiver
 from .protos.referee_pb2 import SSL_Referee
-from .protos.savestate_pb2 import SaveState
+#from .protos.savestate_pb2 import SaveState
 from ..base import Referee
 
 #CommandsDict = dict((k, v) for (v, k) in SSL_Referee.Command.items())
@@ -24,9 +24,11 @@ class RefboxReceiver(MulticastReceiver):
         MulticastReceiver.__init__(self, address)
 
     def get_packet(self):
-        state = SaveState()
-        state.ParseFromString(self.recv())
-        return state
+        referee = SSL_Referee()
+        data = self.recv()
+        #print data.encode('hex')
+        referee.ParseFromString(data)
+        return referee
 
 
 class RealRefboxReceiver(RefboxReceiver):

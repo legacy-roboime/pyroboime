@@ -227,8 +227,7 @@ class RefereeUpdater(Updater):
 
     def receive(self):
         updates = []
-        packet = self.receiver.get_packet()
-        referee = packet.referee
+        referee = self.receiver.get_packet()
         #updates.append(RefereeUpdate({
         #    'command': sslrefbox.CommandsDict[referee.command],
         #    'command_timestamp': referee.command_timestamp,
@@ -255,11 +254,11 @@ class RefereeUpdater(Updater):
         #    'goalie': referee.yellow.goalie,
         #}))
         updates.append(RefereeUpdate({
-            'command': str(sslrefbox.CommandsDict[referee.command]),
-            'command_timestamp': int(referee.command_timestamp),
-            'stage': str(sslrefbox.StagesDict[referee.stage]),
-            #'stage_time_left': referee.stage_time_left,
-            #'timestamp': referee.packet_timestamp,
+            'command': sslrefbox.CommandsDict[referee.command],
+            'command_timestamp': referee.command_timestamp,
+            'stage': sslrefbox.StagesDict[referee.stage],
+            'stage_time_left': referee.stage_time_left,
+            'timestamp': referee.packet_timestamp,
         }))
         #updates.append(TeamUpdate(base.Blue, {
         #    'score': referee.blue.score,
