@@ -26,7 +26,7 @@ from ..core.plays import autoretaliate
 from ..core.plays import indirectkick
 from ..core.plays import stop
 from ..core.plays import obeyreferee
-
+from ..core.plays import halt
 
 class GraphicalWorld(World, QtCore.QMutex):
 
@@ -211,6 +211,7 @@ class Intelligence(QtCore.QThread):
             ('Stop', stop.Stop(team, 0)),
             ('Indirect Kick', indirectkick.IndirectKick(team, 0)),
             ('Obey Referee', obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(team, 0), 0)),
+            ('Halt', halt.Halt(team)),
         ])
 
         self.individuals_blue = dict((i, self.individual(self.world.blue_team[i])) for i in range(count_robot))

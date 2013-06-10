@@ -26,7 +26,7 @@ class IndirectKick(Stop, StateMachine):
     """
 
 
-    def __init__(self, team, goalkeeper_uid, **kwargs):
+    def __init__(self, team, goalkeeper_uid, verbose=False, **kwargs):
         Stop.__init__(self, team, goalkeeper_uid, **kwargs)
         
         self.states = {
@@ -58,6 +58,7 @@ class IndirectKick(Stop, StateMachine):
             'zickler' : lambda robot: Zickler43(robot),
         })
         self.best_position = None
+        self.verbose = verbose
 
     def restart(self):
         self.current_state = self.states['starting']
@@ -73,7 +74,7 @@ class IndirectKick(Stop, StateMachine):
 
     def setup_tactics(self):
         Stop.setup_tactics(self)
-        print self.current_state
+        if self.verbose: print self.current_state
         if self.current_state == self.states['starting']:
             self.best_position = self.team.best_indirect_positions()[0][0]
             robots_closest_to_ball = self.team.closest_robots_to_ball()
