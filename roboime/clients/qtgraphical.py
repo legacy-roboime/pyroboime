@@ -62,7 +62,8 @@ class QtGraphicalClient(object):
         self.ui.stageView.world = self.world
 
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.ui.stageView.redraw)
+        #self.timer.timeout.connect(self.ui.stageView.redraw)
+        self.timer.timeout.connect(self.redraw)
 
 
         # FIXME: This should work.
@@ -108,6 +109,19 @@ class QtGraphicalClient(object):
         self.ui.cmbOurTeam.currentIndexChanged.connect(self.setTeamColor)
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
         self.ui.actionFullscreen.triggered.connect(self.toggleFullScreen)
+
+    def redraw(self):
+        self.ui.stageView.redraw()
+        w = self.intelligence.world
+        self.ui.txtRefCommand.setText(str(w.referee.pretty_command))
+        self.ui.txtRefStage.setText(str(w.referee.pretty_stage))
+        self.ui.txtTimeLeft.setText('{:.02f}'.format((w.referee.stage_time_left or 0) / 1e6))
+        self.ui.txtScoreLeft.setText(str(w.left_team.score))
+        self.ui.txtTimeoutsLeft.setText(str(w.left_team.timeouts))
+        self.ui.txtTimeoutTimeLeft.setText('{:.02f}'.format((w.left_team.timeout_time or 0) / 1e6))
+        self.ui.txtScoreRight.setText(str(w.right_team.score))
+        self.ui.txtTimeoutsRight.setText(str(w.right_team.timeouts))
+        self.ui.txtTimeoutTimeRight.setText('{:.02f}'.format((w.right_team.timeout_time or 0) / 1e6))
 
     # GUI Functions
     def setPenaltyKicker(self):

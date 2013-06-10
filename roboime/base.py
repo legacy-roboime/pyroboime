@@ -293,6 +293,7 @@ class Team(defaultdict):
         self.yellow_cards = None
         self.yellow_card_times = None
         self.timeouts = None
+        self.timeout_time = None
         self.goalie = None
 
         # update robots' team
@@ -535,7 +536,15 @@ class Goal(geom.Point):
 
 class Referee(object):
 
-    class Stage:
+    class _Enum(object):
+        @classmethod
+        def _pretty(cls, value):
+            for name in dir(cls):
+                if not name.startswith('_'):
+                    if getattr(cls, name) == value:
+                        return name
+
+    class Stage(_Enum):
         NormalFirstHalfPre = ref.NORMAL_FIRST_HALF_PRE
         NormalFirstHalf = ref.NORMAL_FIRST_HALF
         NormalHalfTime = ref.NORMAL_HALF_TIME
@@ -551,7 +560,7 @@ class Referee(object):
         PenaltyShootout = ref.PENALTY_SHOOTOUT
         PostGame = ref.POST_GAME
 
-    class Command:
+    class Command(_Enum):
         Halt = ref.HALT
         Stop = ref.STOP
         NormalStart = ref.NORMAL_START
@@ -576,7 +585,14 @@ class Referee(object):
         self.stage_time_left = None
         self.command = None
         self.command_timestamp = None
-        self.time_remaining = None
+
+    @property
+    def pretty_command(self):
+        return self.Command._pretty(self.command)
+
+    @property
+    def pretty_stage(self):
+        return self.Stage._pretty(self.stage)
 
 class World(object):
 
