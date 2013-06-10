@@ -108,7 +108,7 @@ class ObeyReferee(Play):
             else:
                 self.indirect_kick.step()
 
-        elif self.command in [Command.PrepareKickoffYellow, Command.PrepareKickoffBlue, Command.Stop]:
+        elif self.command in [Command.PrepareKickoffYellow, Command.PrepareKickoffBlue, Command.Stop, Command.TimeoutYellow, Command.TimeoutBlue]:
             self.stop.step()
 
         elif self.command == Command.Halt:
