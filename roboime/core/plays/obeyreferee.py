@@ -38,6 +38,7 @@ class ObeyReferee(Play):
         self.last_command = Command.Halt
         self.last_ball = Point(self.world.ball)
         self.verbose = verbose
+        self.halt = Halt(self.team)
 
     def step(self):
         first_time = False
@@ -111,7 +112,7 @@ class ObeyReferee(Play):
             self.stop.step()
 
         elif self.command == Command.Halt:
-            return
+            self.halt.step()
 
         elif (self.command == Command.NormalStart and 
                 ((self.last_command == Command.PrepareKickoffYellow and self.team.color == Yellow) or
