@@ -10,16 +10,22 @@ from ...base import Referee, Blue, Yellow
 from ...utils.geom import Point
 
 Command = Referee.Command
-TOLERANCE = 0.05
+TOLERANCE = 0.10
 
 
 class ObeyReferee(Play):
     """
-    Sometimes we should obey the referee, this class will do it
-    and also switch the appropriate plays for each ocasion.
+    On normal tournament play, actions should be chosen according to
+    referee commands. This (and other possible referee play variants)
+    is the only play that should read from referee commands. 
+
+    It switches the appropriate plays for each ocasion, and receives one
+    main play as a parameter: the play we'll be using to actually play
+    the game on normal start/forced start situations.
     """
 
-    def __init__(self, play, goalkeeper_uid, verbose=False):
+    # TODO: Implement this as a state machine variant (states as input, transitions as output).
+    def __init__(self, play, goalkeeper_uid, verbose=True):
         super(ObeyReferee, self).__init__(play.team)
         self.play = play
         self.stop = Stop(self.team, goalkeeper_uid)
@@ -35,15 +41,15 @@ class ObeyReferee(Play):
 
     def step(self):
         first_time = False
-        ball_distance = self.ball.distance(self.last_ball)
         if self.command != self.referee.command:
             self.last_command = self.command
             self.command = self.referee.command
             self.last_ball = Point(self.ball)
             first_time = True
-
+        ball_distance = self.ball.distance(self.last_ball)
+        
         if self.verbose:
-            print 'JUIZ ', self.command
+            pass
 
         if ((self.command == Command.DirectFreeYellow and self.team.color == Yellow) or
                 (self.command == Command.DirectFreeBlue and self.team.color == Blue)):
@@ -52,6 +58,8 @@ class ObeyReferee(Play):
         elif ((self.command == Command.PreparePenaltyYellow and self.team.color == Yellow) or
                 (self.command == Command.PreparePenaltyBlue and self.team.color == Blue)):
             # Sets up the penalty kicker on the penalty position
+            self.penalty_us.is_last_toucher = False
+            self.penalty_us.ready = False
             self.penalty_us.step()
 
 
@@ -69,9 +77,10 @@ class ObeyReferee(Play):
                  (self.command == Command.PreparePenaltyBlue and self.team.color == Yellow)):
             self.penalty_them.step()
 
-        elif ((self.last_command == Command.PreparePenaltyYellow and self.team.color == Blue) or
-                (self.last_command == Command.PreparePenaltyBlue and self.team.color == Yellow)):
-            if norm(self.worldball.speed) > TOLERANCE or ball_distance > TOLERANCE:
+        elif (self.command == Command.NormalStart and ((self.last_command == Command.PreparePenaltyYellow and self.team.color == Blue) or
+                (self.last_command == Command.PreparePenaltyBlue and self.team.color == Yellow))):
+            # TODO: Should I put the ball's speed back here?
+            if ball_distance > TOLERANCE:
                 self.play.step()
                 self.last_command = Command.NormalStart
             else:
@@ -84,7 +93,7 @@ class ObeyReferee(Play):
                 (self.command == Command.NormalStart and
                 (self.last_command == Command.PrepareKickoffYellow and self.team.color == Blue) or
                 (self.last_command == Command.PrepareKickoffBlue and self.team.color == Yellow))):
-            if norm(self.worldball.speed) > TOLERANCE or ball_distance > TOLERANCE:
+            if norm(self.world.ball.speed) > TOLERANCE or ball_distance > TOLERANCE:
                 self.play.step()
             else:
                 self.stop.step()
@@ -98,13 +107,15 @@ class ObeyReferee(Play):
             else:
                 self.indirect_kick.step()
 
-        elif self.command in [Command.PrepareKickoffYellow, Command.PrepareKickoffBlue]:
+        elif self.command in [Command.PrepareKickoffYellow, Command.PrepareKickoffBlue, Command.Stop]:
             self.stop.step()
+
+        elif self.command == Command.Halt:
+            return
 
         elif (self.command == Command.NormalStart and 
                 ((self.last_command == Command.PrepareKickoffYellow and self.team.color == Yellow) or
                 (self.last_command == Command.PrepareKickoffBlue and self.team.color == Blue))):
             self.play.step()
-
         else:
             self.play.step()
