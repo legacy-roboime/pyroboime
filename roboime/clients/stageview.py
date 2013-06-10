@@ -1,4 +1,4 @@
-from PyQt4.QtGui import QGraphicsItem, QGraphicsView, QColor, QBrush, QPainter, QGraphicsScene, QPainterPath, QFont
+from PyQt4.QtGui import QGraphicsItem, QGraphicsView, QColor, QBrush, QGraphicsScene, QPainterPath, QFont
 from PyQt4.QtCore import QRectF, Qt, QString
 
 from .qtutils import scale as s
@@ -279,10 +279,6 @@ class StageView(QGraphicsView):
             field.position()
             scene.addItem(field)
 
-            ball = BallItem(w.ball)
-            ball.position()
-            scene.addItem(ball)
-
             for r in w.iterrobots():
                 # draw the robot
                 robot = RobotItem(r)
@@ -295,3 +291,7 @@ class StageView(QGraphicsView):
                 if skill is not None:
                     skill.position()
                     scene.addItem(skill)
+
+            ball = BallItem(w.ball)
+            ball.position()
+            scene.addItem(ball)
