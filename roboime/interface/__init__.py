@@ -125,14 +125,31 @@ class Interface(Process):
         #for co in self.commanders:
         #    yield co
 
+class TxInterface(Interface):
+    
+    def __init__(self, world, filters=[], transmission_ipaddr='127.0.0.1', transmission_port=9050, **kwargs):
+        super(TxInterface, self).__init__(
+            world,
+           
+            updaters=[updater.RealVisionUpdater(), updater.RefereeUpdater()],
+            commanders=[
+                commander.Tx2012Commander(world.blue_team, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True),
+                commander.Tx2012Commander(world.yellow_team, ipaddr=ipaddr, port=port, verbose=True)
+            ],
+          
+            filters=filters + [filter.Speed(), filter.Scale()],
+            **kwargs
+        )
 
 class SimulationInterface(Interface):
 
     def __init__(self, world, filters=[], **kwargs):
         super(SimulationInterface, self).__init__(
             world,
+           
             updaters=[updater.SimVisionUpdater(), updater.RefereeUpdater()],
             commanders=[commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)],
+           
             filters=filters + [filter.Speed(), filter.Scale()],
             **kwargs
         )

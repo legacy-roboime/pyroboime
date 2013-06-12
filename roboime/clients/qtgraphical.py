@@ -189,7 +189,7 @@ class Intelligence(QtCore.QThread):
         self.world = world
         self.skill = None
         self.interface = SimulationInterface(self.world)
-
+        self.tx_interface = TxInterface(self.world, filters=[], ipaddr='192.168.91.105', port=9050)
         self.individual = lambda robot: OrderedDict([
             ('(none)', Dummy()),
             ('Go To', goto.Goto(robot, target=Point(0, 0))),
