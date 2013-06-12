@@ -3,13 +3,7 @@ from struct import unpack
 
 from .network.multicast import MulticastReceiver
 from .protos.referee_pb2 import SSL_Referee
-#from .protos.savestate_pb2 import SaveState
 from ..base import Referee
-
-#CommandsDict = dict((k, v) for (v, k) in SSL_Referee.Command.items())
-#StagesDict = dict((k, v) for (v, k) in SSL_Referee.Stage.items())
-CommandsDict = dict((getattr(SSL_Referee, getattr(Referee.Command, name)), getattr(Referee.Command, name)) for name in dir(Referee.Command) if not name.startswith('_'))
-StagesDict = dict((getattr(SSL_Referee, getattr(Referee.Stage, name)), getattr(Referee.Stage, name)) for name in dir(Referee.Stage) if not name.startswith('_'))
 
 
 class RefboxReceiver(MulticastReceiver):

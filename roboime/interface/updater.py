@@ -96,7 +96,7 @@ class TeamUpdate(Update):
 
     def __init__(self, team_color, data):
         super(TeamUpdate, self).__init__(data)
-        self.data = data
+        self.team_color = team_color
 
     def apply(self, world):
         team = world.team(self.team_color)
@@ -228,54 +228,29 @@ class RefereeUpdater(Updater):
     def receive(self):
         updates = []
         referee = self.receiver.get_packet()
-        #updates.append(RefereeUpdate({
-        #    'command': sslrefbox.CommandsDict[referee.command],
-        #    'command_timestamp': referee.command_timestamp,
-        #    'stage': sslrefbox.StagesDict[referee.stage],
-        #    'stage_time_left': referee.stage_time_left,
-        #    'timestamp': referee.packet_timestamp,
-        #}))
-        #updates.append(TeamUpdate(base.Blue, {
-        #    'score': referee.blue.score,
-        #    'red_cards': referee.blue.red_cards,
-        #    'yellow_card_times': referee.blue.yellow_card_times,
-        #    'yellow_cards': referee.blue.yellow_cards,
-        #    'timeouts': referee.blue.timeouts,
-        #    'timeout_time': referee.blue.timeout_time,
-        #    'goalie': referee.blue.goalie,
-        #}))
-        #updates.append(TeamUpdate(base.Yellow, {
-        #    'score': referee.yellow.score,
-        #    'red_cards': referee.yellow.red_cards,
-        #    'yellow_card_times': referee.yellow.yellow_card_times,
-        #    'yellow_cards': referee.yellow.yellow_cards,
-        #    'timeouts': referee.yellow.timeouts,
-        #    'timeout_time': referee.yellow.timeout_time,
-        #    'goalie': referee.yellow.goalie,
-        #}))
         updates.append(RefereeUpdate({
-            'command': sslrefbox.CommandsDict[referee.command],
+            'command': referee.command,
             'command_timestamp': referee.command_timestamp,
-            'stage': sslrefbox.StagesDict[referee.stage],
+            'stage': referee.stage,
             'stage_time_left': referee.stage_time_left,
             'timestamp': referee.packet_timestamp,
         }))
-        #updates.append(TeamUpdate(base.Blue, {
-        #    'score': referee.blue.score,
-        #    'red_cards': referee.blue.red_cards,
-        #    'yellow_card_times': referee.blue.yellow_card_times,
-        #    'yellow_cards': referee.blue.yellow_cards,
-        #    'timeouts': referee.blue.timeouts,
-        #    'timeout_time': referee.blue.timeout_time,
-        #    'goalie': referee.blue.goalie,
-        #}))
-        #updates.append(TeamUpdate(base.Yellow, {
-        #    'score': referee.yellow.score,
-        #    'red_cards': referee.yellow.red_cards,
-        #    'yellow_card_times': referee.yellow.yellow_card_times,
-        #    'yellow_cards': referee.yellow.yellow_cards,
-        #    'timeouts': referee.yellow.timeouts,
-        #    'timeout_time': referee.yellow.timeout_time,
-        #    'goalie': referee.yellow.goalie,
-        #}))
+        updates.append(TeamUpdate(base.Blue, {
+            'score': referee.blue.score,
+            'red_cards': referee.blue.red_cards,
+            #'yellow_card_times': referee.blue.yellow_card_times,
+            'yellow_cards': referee.blue.yellow_cards,
+            'timeouts': referee.blue.timeouts,
+            'timeout_time': referee.blue.timeout_time,
+            'goalie': referee.blue.goalie,
+        }))
+        updates.append(TeamUpdate(base.Yellow, {
+            'score': referee.yellow.score,
+            'red_cards': referee.yellow.red_cards,
+            #'yellow_card_times': referee.yellow.yellow_card_times,
+            'yellow_cards': referee.yellow.yellow_cards,
+            'timeouts': referee.yellow.timeouts,
+            'timeout_time': referee.yellow.timeout_time,
+            'goalie': referee.yellow.goalie,
+        }))
         return updates

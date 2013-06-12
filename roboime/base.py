@@ -17,6 +17,7 @@ from shapely import geometry
 
 from .utils import geom
 from .utils.mathutils import cos, sin
+from .communication.protos.referee_pb2 import SSL_Referee as ref
 
 
 # this codes are used to compute the uid
@@ -292,6 +293,7 @@ class Team(defaultdict):
         self.yellow_cards = None
         self.yellow_card_times = None
         self.timeouts = None
+        self.timeout_time = None
         self.goalie = None
 
         # update robots' team
@@ -534,39 +536,47 @@ class Goal(geom.Point):
 
 class Referee(object):
 
-    class Stage:
-        NormalFirstHalfPre = 'NORMAL_FIRST_HALF_PRE'
-        NormalFirstHalf = 'NORMAL_FIRST_HALF'
-        NormalHalfTime = 'NORMAL_HALF_TIME'
-        NormalSecondHalfPre = 'NORMAL_SECOND_HALF_PRE'
-        NormalSecondHalf = 'NORMAL_SECOND_HALF'
-        ExtraTimeBreak = 'EXTRA_TIME_BREAK'
-        ExtraFirstHalfPre = 'EXTRA_FIRST_HALF_PRE'
-        ExtraFirstHalf = 'EXTRA_FIRST_HALF'
-        ExtraHalfTime = 'EXTRA_HALF_TIME'
-        ExtraSecondHalfPre = 'EXTRA_SECOND_HALF_PRE'
-        ExtraSecondHalf = 'EXTRA_SECOND_HALF'
-        PenaltyShootoutBreak = 'PENALTY_SHOOTOUT_BREAK'
-        PenaltyShootout = 'PENALTY_SHOOTOUT'
-        PostGame = 'POST_GAME'
+    class _Enum(object):
+        @classmethod
+        def _pretty(cls, value):
+            for name in dir(cls):
+                if not name.startswith('_'):
+                    if getattr(cls, name) == value:
+                        return name
 
-    class Command:
-        Halt = 'HALT'
-        Stop = 'STOP'
-        NormalStart = 'NORMAL_START'
-        ForceStart = 'FORCE_START'
-        PrepareKickoffYellow = 'PREPARE_KICKOFF_YELLOW'
-        PrepareKickoffBlue = 'PREPARE_KICKOFF_BLUE'
-        PreparePenaltyYellow = 'PREPARE_PENALTY_YELLOW'
-        PreparePenaltyBlue = 'PREPARE_PENALTY_BLUE'
-        DirectFreeYellow = 'DIRECT_FREE_YELLOW'
-        DirectFreeBlue = 'DIRECT_FREE_BLUE'
-        IndirectFreeYellow = 'INDIRECT_FREE_YELLOW'
-        IndirectFreeBlue = 'INDIRECT_FREE_BLUE'
-        TimeoutYellow = 'TIMEOUT_YELLOW'
-        TimeoutBlue = 'TIMEOUT_BLUE'
-        GoalYellow = 'GOAL_YELLOW'
-        GoalBlue = 'GOAL_BLUE'
+    class Stage(_Enum):
+        NormalFirstHalfPre = ref.NORMAL_FIRST_HALF_PRE
+        NormalFirstHalf = ref.NORMAL_FIRST_HALF
+        NormalHalfTime = ref.NORMAL_HALF_TIME
+        NormalSecondHalfPre = ref.NORMAL_SECOND_HALF_PRE
+        NormalSecondHalf = ref.NORMAL_SECOND_HALF
+        ExtraTimeBreak = ref.EXTRA_TIME_BREAK
+        ExtraFirstHalfPre = ref.EXTRA_FIRST_HALF_PRE
+        ExtraFirstHalf = ref.EXTRA_FIRST_HALF
+        ExtraHalfTime = ref.EXTRA_HALF_TIME
+        ExtraSecondHalfPre = ref.EXTRA_SECOND_HALF_PRE
+        ExtraSecondHalf = ref.EXTRA_SECOND_HALF
+        PenaltyShootoutBreak = ref.PENALTY_SHOOTOUT_BREAK
+        PenaltyShootout = ref.PENALTY_SHOOTOUT
+        PostGame = ref.POST_GAME
+
+    class Command(_Enum):
+        Halt = ref.HALT
+        Stop = ref.STOP
+        NormalStart = ref.NORMAL_START
+        ForceStart = ref.FORCE_START
+        PrepareKickoffYellow = ref.PREPARE_KICKOFF_YELLOW
+        PrepareKickoffBlue = ref.PREPARE_KICKOFF_BLUE
+        PreparePenaltyYellow = ref.PREPARE_PENALTY_YELLOW
+        PreparePenaltyBlue = ref.PREPARE_PENALTY_BLUE
+        DirectFreeYellow = ref.DIRECT_FREE_YELLOW
+        DirectFreeBlue = ref.DIRECT_FREE_BLUE
+        IndirectFreeYellow = ref.INDIRECT_FREE_YELLOW
+        IndirectFreeBlue = ref.INDIRECT_FREE_BLUE
+        TimeoutYellow = ref.TIMEOUT_YELLOW
+        TimeoutBlue = ref.TIMEOUT_BLUE
+        GoalYellow = ref.GOAL_YELLOW
+        GoalBlue = ref.GOAL_BLUE
 
     def __init__(self, world):
         self.world = world
@@ -575,7 +585,14 @@ class Referee(object):
         self.stage_time_left = None
         self.command = None
         self.command_timestamp = None
-        self.time_remaining = None
+
+    @property
+    def pretty_command(self):
+        return self.Command._pretty(self.command)
+
+    @property
+    def pretty_stage(self):
+        return self.Stage._pretty(self.stage)
 
 class World(object):
 
