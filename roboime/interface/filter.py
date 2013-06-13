@@ -67,7 +67,9 @@ class Speed(Filter):
 
     def remember_updates(self, updates):
         for u in updates:
-            #FIXME: This is motherfucking ugly and unpythonic. We certainly don't need to have hard-coded uids all over the filters.
+            # FIXME: This is motherfucking ugly. We certainly don't need to have hard-coded uids all over the filters.
+            # this should be standarized, this magic numbers
+            # are ids to filter only updates for robots or the ball
             if u.uid() < 0x400 or u.uid() == 0xba11:
                 self.previous[u.uid()] = u
 
