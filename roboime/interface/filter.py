@@ -6,7 +6,7 @@ from roboime.interface.updater import RobotUpdate, BallUpdate, GeometryUpdate
 class Filter(object):
     """The filter class is the base for all filters.
 
-    Filters should basically contain an filter_updates and
+    Filters should basically contain a filter_updates and
     filter_commands methods, those will be called with an
     iterator of updates and a list of commands respectively.
 
@@ -66,6 +66,8 @@ class Speed(Filter):
 
     def remember_updates(self, updates):
         for u in updates:
+            # this should be standarized, this magic numbers
+            # are ids to filter only updates for robots or the ball
             if u.uid() < 0x400 or u.uid() == 0xba11:
                 self.previous[u.uid()] = u
 
