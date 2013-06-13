@@ -53,12 +53,24 @@ class Tx2012Commander(Commander):
         self.team = team
         self.verbose = verbose
         self.sender = unicast.UnicastSender(address=(ipaddr, port))
+
+        # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
+
+        # RoboIME 2013
         self.wheel_angles = [
-            -0.99483767363676785884650373803851,
-             0.99483767363676785884650373803851,
+            -1.0471975511965977461542144610932,
+             1.0471975511965977461542144610932,
              2.3561944901923449288469825374596,
             -2.3561944901923449288469825374596,
         ]
+ 
+        # RoboIME 2012
+        #self.wheel_angles = [
+        #    -0.99483767363676785884650373803851,
+        #     0.99483767363676785884650373803851,
+        #     2.3561944901923449288469825374596,
+        #    -2.3561944901923449288469825374596,
+        #]
         self.wheel_radius = 28.9;
         self.wheel_distance = 80.6;
 

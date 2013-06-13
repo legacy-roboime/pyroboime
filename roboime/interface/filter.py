@@ -1,12 +1,13 @@
 from numpy import array
 from math import degrees
-from roboime.interface.updater import RobotUpdate, BallUpdate, GeometryUpdate
+from collections import defaultdict
 
+from roboime.interface.updater import RobotUpdate, BallUpdate, GeometryUpdate
 
 class Filter(object):
     """The filter class is the base for all filters.
 
-    Filters should basically contain an filter_updates and
+    Filters should basically contain filter_updates and
     filter_commands methods, those will be called with an
     iterator of updates and a list of commands respectively.
 
@@ -66,6 +67,7 @@ class Speed(Filter):
 
     def remember_updates(self, updates):
         for u in updates:
+            #FIXME: This is motherfucking ugly and unpythonic. We certainly don't need to have hard-coded uids all over the filters.
             if u.uid() < 0x400 or u.uid() == 0xba11:
                 self.previous[u.uid()] = u
 
@@ -77,3 +79,57 @@ class Speed(Filter):
                 x, y, t = u.data['x'], u.data['y'], u.data['timestamp']
                 u.data['speed'] = array((x - px, y - py)) / (t - pt)
         self.remember_updates(updates)
+
+
+class LowPass(Filter):
+    """
+    This is a stub for a 4th order low-pass filter that eliminates high-frequency
+    oscillations on positions..
+
+    This filter's real purpose is to remove the oscillation in object positions which
+    occurs when the fields of vision of two cameras overlap.
+    """
+    def __init__(self):
+        super(LowPass, self).__init__()
+        self.gain = 6.
+        self.coef = [3., 0., -1. / 3., 0.]
+        self.ux = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
+        self.uy = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
+        self.vx = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
+        self.vy = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
+        self.u0 = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
+        self.v0 = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
+
+def filter_updates(self, updates):
+    for u in updates:
+        if isinstance(update, RobotUpdate) or isinstance(update, BallUpdate):
+            ux = self.ux[u.uid()]
+            uy = self.uy[u.uid()]
+            vx = self.vx[u.uid()]
+            vy = self.vy[u.uid()]
+            u0 = self.u0[u.uid()]
+            v0 = self.v0[u.uid()]
+    
+            ux[0] = ux[1]
+            ux[1] = ux[2]
+            ux[2] = ux[3]
+            ux[3] = u.data['x'] / self.gain
+            vx[0] = vx[1]
+            vx[1] = vx[2]
+            vx[2] = vx[3]
+            vx[3] = (ux[0] + ux[3]) + self.coef[0] * (ux[1] + ux[2]) + (self.coef[1] * vx[0]) + (self.coef[2] * vx[1]) + self.coef[3] * vx[2]
+
+            uy[0] = uy[1]
+            uy[1] = uy[2]
+            uy[2] = uy[3]
+            uy[3] = u.data['y'] / self.gain
+            vy[0] = vy[1]
+            vy[1] = vy[2]
+            vy[2] = vy[3]
+            vy[3] = (uy[0] + uy[3]) + self.coef[0] * (uy[1] + uy[2]) + (self.coef[1] * vy[0]) + (self.coef[2] * vy[1]) + self.coef[3] * vy[2]
+
+            u.data['x'], u.data['y'] = vx[3], vy[3]
+
+        # TODO: Angle filtering.
+        if isinstance(update, RobotUpdate):
+            pass

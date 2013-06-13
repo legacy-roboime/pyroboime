@@ -9,7 +9,7 @@ from ..utils.geom import Point
 #from . import stageview
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
-from ..interface import SimulationInterface
+from ..interface import SimulationInterface, TxInterface
 from ..core.skills import goto
 from ..core.skills import gotoavoid
 #from ..core.skills import drivetoobject
@@ -203,7 +203,7 @@ class Intelligence(QtCore.QThread):
         self.world = world
         self.skill = None
         self.interface = SimulationInterface(self.world)
-        self.tx_interface = TxInterface(self.world, filters=[], ipaddr='192.168.91.105', port=9050)
+        self.tx_interface = TxInterface(self.world, filters=[], transmission_ipaddr='192.168.91.105', transmission_port=9050)
         self.individual = lambda robot: OrderedDict([
             ('(none)', Dummy()),
             ('Go To', goto.Goto(robot, target=Point(0, 0))),

@@ -134,10 +134,10 @@ class TxInterface(Interface):
             updaters=[updater.RealVisionUpdater(), updater.RefereeUpdater()],
             commanders=[
                 commander.Tx2012Commander(world.blue_team, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True),
-                commander.Tx2012Commander(world.yellow_team, ipaddr=ipaddr, port=port, verbose=True)
+                commander.Tx2012Commander(world.yellow_team, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True)
             ],
           
-            filters=filters + [filter.Speed(), filter.Scale()],
+            filters=filters + [filter.LowPass(), filter.Speed(), filter.Scale()],
             **kwargs
         )
 
@@ -150,7 +150,7 @@ class SimulationInterface(Interface):
             updaters=[updater.SimVisionUpdater(), updater.RefereeUpdater()],
             commanders=[commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)],
            
-            filters=filters + [filter.Speed(), filter.Scale()],
+            filters=filters + [filter.LowPass(), filter.Speed(), filter.Scale()],
             **kwargs
         )
 
