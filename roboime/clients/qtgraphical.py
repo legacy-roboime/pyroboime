@@ -268,6 +268,8 @@ class Intelligence(QtCore.QThread):
                 sleep(10e-3)
         except:
             print 'Bad things happened'
+            from traceback import print_exc
+            print_exc()
             raise
         finally:
             self.interface.stop()
