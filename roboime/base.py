@@ -12,11 +12,12 @@ from functools import partial
 from numpy import array
 from numpy import sign
 from numpy import linspace
-from numpy import sign
+#from numpy import sign
 from shapely import geometry
 
 from .utils import geom
 from .utils.mathutils import cos, sin
+from .communication.protos.referee_pb2 import SSL_Referee as ref
 
 
 # this codes are used to compute the uid
@@ -173,7 +174,7 @@ class Robot(geom.Point):
 
         # some properties
         self.can_kick = True
-        
+
         self.is_touching = False
         self._has_touched = False
         self.is_last_toucher = False
@@ -292,6 +293,7 @@ class Team(defaultdict):
         self.yellow_cards = None
         self.yellow_card_times = None
         self.timeouts = None
+        self.timeout_time = None
         self.goalie = None
 
         # update robots' team
@@ -353,7 +355,7 @@ class Team(defaultdict):
         and without entering none of the defense areas), according to given precision.
         Searches for clear paths between initial position (ball), intermediate position,
         and the target.
-        
+
         Returns a sorted list of tuples (Points that are closer to the target come 
         first):
         [(point, distance_to_target), (point, distance_to_target), (point, distance_to_target), ...]
@@ -391,7 +393,7 @@ class Team(defaultdict):
                 if acceptable:
                     candidate += [(pt, start_line.length + final_line.length)]
         if not candidate:
-            goal_point = self.enemy_goal
+            #goal_point = self.enemy_goal
             return [(geom.Point(self.enemy_goal.x - sign(self.enemy_goal.x)*1, self.enemy_goal.y), 1)]
         else:
             return sorted(candidate, key=lambda tup: tup[1])
@@ -534,87 +536,102 @@ class Goal(geom.Point):
 
 class Referee(object):
 
-    class Stage:
-        NormalFirstHalfPre = 'NormalFirstHalfPre'
-        NormalFirstHalf = 'NormalFirstHalf'
-        NormalHalfTime = 'NormalHalfTime'
-        NormalSecondHalfPre = 'NormalSecondHalfPre'
-        NormalSecondHalf = 'NormalSecondHalf'
-        ExtraTimeBreak = 'ExtraTimeBreak'
-        ExtraFirstHalfPre = 'ExtraFirstHalfPre'
-        ExtraFirstHalf = 'ExtraFirstHalf'
-        ExtraHalfTime = 'ExtraHalfTime'
-        ExtraSecondHalfPre = 'ExtraSecondHalfPre'
-        ExtraSecondHalf = 'ExtraSecondHalf'
-        PenaltyShootoutBreak = 'PenaltyShootoutBreak'
-        PenaltyShootout = 'PenaltyShootout'
-        PostGame = 'PostGame'
+    class _Enum(object):
+        @classmethod
+        def _pretty(cls, value):
+            for name in dir(cls):
+                if not name.startswith('_'):
+                    if getattr(cls, name) == value:
+                        return name
 
-    class Command:
-        Halt = 'Halt'
-        Stop = 'Stop'
-        NormalStart = 'NormalStart'
-        ForceStart = 'ForceStart'
-        PrepareKickoffYellow = 'PrepareKickoffYellow'
-        PrepareKickoffBlue = 'PrepareKickoffBlue'
-        PreparePenaltyYellow = 'PreparePenaltyYellow'
-        PreparePenaltyBlue = 'PreparePenaltyBlue'
-        DirectFreeYellow = 'DirectFreeYellow'
-        DirectFreeBlue = 'DirectFreeBlue'
-        IndirectFreeYellow = 'IndirectFreeYellow'
-        IndirectFreeBlue = 'IndirectFreeBlue'
-        TimeoutYellow = 'TimeoutYellow'
-        TimeoutBlue = 'TimeoutBlue'
-        GoalYellow = 'GoalYellow'
-        GoalBlue = 'GoalBlue'
+    class Stage(_Enum):
+        NormalFirstHalfPre = ref.NORMAL_FIRST_HALF_PRE
+        NormalFirstHalf = ref.NORMAL_FIRST_HALF
+        NormalHalfTime = ref.NORMAL_HALF_TIME
+        NormalSecondHalfPre = ref.NORMAL_SECOND_HALF_PRE
+        NormalSecondHalf = ref.NORMAL_SECOND_HALF
+        ExtraTimeBreak = ref.EXTRA_TIME_BREAK
+        ExtraFirstHalfPre = ref.EXTRA_FIRST_HALF_PRE
+        ExtraFirstHalf = ref.EXTRA_FIRST_HALF
+        ExtraHalfTime = ref.EXTRA_HALF_TIME
+        ExtraSecondHalfPre = ref.EXTRA_SECOND_HALF_PRE
+        ExtraSecondHalf = ref.EXTRA_SECOND_HALF
+        PenaltyShootoutBreak = ref.PENALTY_SHOOTOUT_BREAK
+        PenaltyShootout = ref.PENALTY_SHOOTOUT
+        PostGame = ref.POST_GAME
+
+    class Command(_Enum):
+        Halt = ref.HALT
+        Stop = ref.STOP
+        NormalStart = ref.NORMAL_START
+        ForceStart = ref.FORCE_START
+        PrepareKickoffYellow = ref.PREPARE_KICKOFF_YELLOW
+        PrepareKickoffBlue = ref.PREPARE_KICKOFF_BLUE
+        PreparePenaltyYellow = ref.PREPARE_PENALTY_YELLOW
+        PreparePenaltyBlue = ref.PREPARE_PENALTY_BLUE
+        DirectFreeYellow = ref.DIRECT_FREE_YELLOW
+        DirectFreeBlue = ref.DIRECT_FREE_BLUE
+        IndirectFreeYellow = ref.INDIRECT_FREE_YELLOW
+        IndirectFreeBlue = ref.INDIRECT_FREE_BLUE
+        TimeoutYellow = ref.TIMEOUT_YELLOW
+        TimeoutBlue = ref.TIMEOUT_BLUE
+        GoalYellow = ref.GOAL_YELLOW
+        GoalBlue = ref.GOAL_BLUE
 
     def __init__(self, world):
         self.world = world
         self.timestamp = None
         self.stage = None
+        self.stage_time_left = None
         self.command = None
         self.command_timestamp = None
-        self.stage_time_left = None
 
+    @property
+    def pretty_command(self):
+        return self.Command._pretty(self.command)
+
+    @property
+    def pretty_stage(self):
+        return self.Stage._pretty(self.stage)
 
 class World(object):
 
     def __init__(self, right_team=None, left_team=None):
         # metric constants
-        self.width = 0.0
-        self.length = 0.0
-        self.line_width = 0.0
-        self.boundary_width = 0.0
-        self.referee_width = 0.0
-        self.center_radius = 0.0
-        self.defense_radius = 0.0
-        self.defense_stretch = 0.0
-        self.free_kick_distance = 0.0
-        self.penalty_spot_distance = 0.0
-        self.penalty_line_distance = 0.0
-        self.goal_width = 0.0
-        self.goal_depth = 0.0
-        self.goal_wall_width = 0.0
-        self.inited = False
+       self.width = 0.0
+       self.length = 0.0
+       self.line_width = 0.0
+       self.boundary_width = 0.0
+       self.referee_width = 0.0
+       self.center_radius = 0.0
+       self.defense_radius = 0.0
+       self.defense_stretch = 0.0
+       self.free_kick_distance = 0.0
+       self.penalty_spot_distance = 0.0
+       self.penalty_line_distance = 0.0
+       self.goal_width = 0.0
+       self.goal_depth = 0.0
+       self.goal_wall_width = 0.0
+       self.inited = False
 
-        # objects
-        if right_team is None:
-            self.right_team = Team.yellow(world=self)
-        else:
-            right_team.world = self
-            self.right_team = right_team
-        if left_team is None:
-            self.left_team = Team.blue(world=self)
-        else:
-            left_team.world = self
-            self.left_team = left_team
-        self.right_goal = Goal(self)
-        self.left_goal = Goal(self)
-        self.referee = None
-        self.ball = Ball(self)
+       # objects
+       if right_team is None:
+           self.right_team = Team.yellow(world=self)
+       else:
+           right_team.world = self
+           self.right_team = right_team
+       if left_team is None:
+           self.left_team = Team.blue(world=self)
+       else:
+           left_team.world = self
+           self.left_team = left_team
+       self.right_goal = Goal(self)
+       self.left_goal = Goal(self)
+       self.referee = None
+       self.ball = Ball(self)
 
-        # the referee
-        self.referee = Referee(self)
+       # the referee
+       self.referee = Referee(self)
 
     def switch_sides(self):
         self.right_team, self.left_team = self.left_team, self.right_team
