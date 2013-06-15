@@ -136,17 +136,6 @@ class QtGraphicalClient(object):
     def changeSides(self):
         raise NotImplementedError
 
-    def hideTabs(self):
-        if self.ui.tabWidget.isVisible():
-            self.ui.tabWidget.setVisible(False)
-            self.ui.btnTabHide.setText('Unhide')
-        else:
-            self.ui.tabWidget.setVisible(True)
-            self.ui.btnTabHide.setText('Hide')
-
-        # Reset camera position and scale, so it fits the screen
-        self.ui.stageView.fit()
-
     def toggleFullScreen(self, activate):
         if self.ui.windowState() & QtCore.Qt.WindowFullScreen:
             self.ui.showNormal()
@@ -224,16 +213,6 @@ class Intelligence(QtCore.QThread):
         self.current_individual_yellow = Dummy()
 
     def _loop(self):
-        #        #self.skill = followandcover.FollowAndCover(r, follow=self.world.ball, cover=self.world.blue_team[3])
-        #        #self.skill = sampledkick.SampledKick(r, lookpoint=self.world.left_goal)
-        #        #self.skill = sampleddribble.SampledDribble(r, lookpoint=self.world.left_goal)
-        #        #self.skill = drivetoball.DriveToBall(r, lookpoint=self.world.left_goal)
-        #        #self.skill = gotoavoid.GotoAvoid(r, target=Point(0, 0), avoid=self.world.ball)
-        #        #self.skill = goto.Goto(r, target=Point(0, 0))
-        #        #self.skill = goto.Goto(r, x=r.x, y=r.y, angle=90, speed=1, ang_speed=10)
-        #    self.skill.step()
-        #for play in self.plays.itervalues():
-        #    play.step()
         self.current_play_blue.step()
         self.current_play_yellow.step()
 
