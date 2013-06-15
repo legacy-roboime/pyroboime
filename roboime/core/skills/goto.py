@@ -94,9 +94,6 @@ class Goto(Skill):
         # at last set the action accordingly
         r.action.absolute_speeds = v[0], v[1], va
 
-        # register skill on the robot
-        r.skill = self
-
     @property
     def point_away_from_defense_area(self):
         # FIXME: Only works if robot is inside defense area (which, honestly, is the only place you should ever be using this).
