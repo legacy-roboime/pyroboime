@@ -173,7 +173,7 @@ class Robot(geom.Point):
 
         # some properties
         self.can_kick = True
-        
+
         self.is_touching = False
         self._has_touched = False
         self.is_last_toucher = False
@@ -353,8 +353,8 @@ class Team(defaultdict):
         and without entering none of the defense areas), according to given precision.
         Searches for clear paths between initial position (ball), intermediate position,
         and the target.
-        
-        Returns a sorted list of tuples (Points that are closer to the target come 
+
+        Returns a sorted list of tuples (Points that are closer to the target come
         first):
         [(point, distance_to_target), (point, distance_to_target), (point, distance_to_target), ...]
         """

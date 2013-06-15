@@ -69,6 +69,8 @@ class QtGraphicalClient(object):
         #self.intelligence.interface.world_updated.connect(self.ui.stageView.redraw)
 
         self.ui.show()
+        self.useSimulation = True
+        self.resetPatterns()
 
         # Start children threads
         self.intelligence.start()
@@ -108,6 +110,12 @@ class QtGraphicalClient(object):
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
         self.ui.actionFullscreen.triggered.connect(self.toggleFullScreen)
 
+        for n in range(self.intelligence.count_robot):
+            getattr(self.ui, 'kickAbilityT' + str(n)).valueChanged.connect(self.setRobotKickAbility)
+            getattr(self.ui, 'kickAbilityU' + str(n)).valueChanged.connect(self.setRobotKickAbility)
+            getattr(self.ui, 'cmbRobot_' + str(n)).currentIndexChanged.connect(self.resetPatterns)
+            getattr(self.ui, 'cmbAdversary_' + str(n)).currentIndexChanged.connect(self.resetPatterns)
+
     # GUI Functions
     def setPenaltyKicker(self):
         raise NotImplementedError
@@ -116,7 +124,12 @@ class QtGraphicalClient(object):
         raise NotImplementedError
 
     def changeIntelligenceOutput(self):
-        raise NotImplementedError
+        #mutex: no mutex to lock like in cpp
+        if self.ui.cmbSelectOutput.currentIndex == 0:
+            self.useSimulation = True
+        else:
+            self.useSimutalion = False
+        self.resetPatterns()
 
     def changePlayBlue(self):
         self.intelligence.current_play_blue = self.intelligence.plays_blue[str(self.ui.cmbSelectPlayBlue.currentText())]
@@ -130,11 +143,39 @@ class QtGraphicalClient(object):
     def changeIndividualYellow(self):
         self.intelligence.current_individual_yellow = self.intelligence.individuals_yellow[self.ui.cmbSelectRobotYellow.currentIndex()][str(self.ui.cmbSelectIndividualYellow.currentText())]
 
+    #XXX: not implemented in c++
     def setTeamColor(self):
         raise NotImplementedError
 
     def changeSides(self):
         raise NotImplementedError
+
+    def setRobotKickAbility(self):
+        '''
+        us, they = (self.world.blue_team, self.world.yellow_team) if self.ui.cmbOurTeam.currentText == 'Azul' else (self.world.yellow_team, self.world.blue_team)
+        for i in range(self.intelligence.count_robot):
+            us[i].can_kick = True if getattr(self.ui, 'kickAbilityU' + str(i)).value > 0.00 else False
+            they[i].can_kick = True if getattr(self.ui, 'kickAbilityT' + str(i)).value > 0.00 else False
+            print 'Us robot', i, 'ability:', us[i].can_kick
+            print 'They robot', i, 'ability', they[i].can_kick
+
+        for r in self.world.robots:
+            if r.can_kick == False:
+                print 'Robot', r.pattern, 'cannot kick!'
+        '''
+            pass
+
+    def resetPatterns(self):
+        if self.useSimulation:
+            for i, r in enumerate(self.world.blue_team):
+                r.pattern = i
+            for i, r in enumerate(self.world.yellow_team):
+                r.pattern = i
+        else:
+            for i, r in enumerate(self.world.blue_team):
+                r.pattern = getattr(self.ui, 'cmbRobot_' + str(i)).currentIndex()
+            for i, r in enumerate(self.world.yellow_team):
+                r.pattern = getattr(self.ui, 'cmbAdversary_' + str(i)).currentIndex()
 
     def toggleFullScreen(self, activate):
         if self.ui.windowState() & QtCore.Qt.WindowFullScreen:
@@ -175,6 +216,7 @@ class Intelligence(QtCore.QThread):
                 pass
         self.stop = False
         self.world = world
+        self.count_robot = count_robot
         self.skill = None
         self.interface = SimulationInterface(self.world)
 
@@ -182,7 +224,7 @@ class Intelligence(QtCore.QThread):
             ('(none)', Dummy()),
             ('Go To', goto.Goto(robot, target=Point(0, 0))),
             ('Go To Avoid', gotoavoid.GotoAvoid(robot, target=Point(0, 0), avoid=self.world.ball)),
-            #('Drive To Object', drivetoobject.DriveToObject(robot)),
+            ('Drive To Object', drivetoobject.DriveToObject(robot, lookpoint=robot.enemy_goal, point=self.world.ball)),
             ('Drive To Ball', drivetoball.DriveToBall(robot, lookpoint=robot.enemy_goal)),
             ('Sampled Dribble', sampleddribble.SampledDribble(robot, lookpoint=robot.enemy_goal)),
             ('Sampled Kick', sampledkick.SampledKick(robot, lookpoint=robot.enemy_goal)),
