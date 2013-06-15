@@ -169,8 +169,9 @@ class Robot(geom.Point):
         # action to be dispatched by a commander
         self._action = Action(self)
 
-        # last skill that was executed
+        # last skill, and tactic that was executed
         self.skill = None
+        self.tactic = None
 
         # some properties
         self.can_kick = True
@@ -295,6 +296,9 @@ class Team(defaultdict):
         self.timeouts = None
         self.timeout_time = None
         self.goalie = None
+
+        # last play stepped on this team
+        self.play = None
 
         # update robots' team
         for r in self.itervalues():

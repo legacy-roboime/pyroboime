@@ -38,7 +38,7 @@ class SampledChipKick(DriveToBall):
         self.minpower = minpower
         self.maxpower = maxpower
 
-    def step(self):
+    def _step(self):
         if self.close_enough():
             # XXX: This doesn't work. Setting a receiver far enough away makes the robot kick the ball into spaaaaaaaaaaaaaaaaaaaace 
             if self.receiver is not None:
@@ -56,6 +56,6 @@ class SampledChipKick(DriveToBall):
         # temporarily decrease the threshold, does it has to be temporary?
         _threshold, self.threshold = self.threshold, 0.05
         # let DriveToBall do its thing
-        super(SampledChipKick, self).step()
+        super(SampledChipKick, self)._step()
         # and restore the threshold
         self.threshold = _threshold

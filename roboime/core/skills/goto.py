@@ -52,7 +52,7 @@ class Goto(Skill):
     def final_target(self, target):
         self._final_target = target
 
-    def step(self):
+    def _step(self):
         r = self.robot
         t = self.target
         f_t = self.final_target
