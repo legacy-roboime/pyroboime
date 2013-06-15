@@ -15,9 +15,11 @@ class Zickler43(Tactic):
     For more details see page 43 of the Zickler thesis.
 
     Ok, actually, no. This tactic is far from the original however
-    the purpose is basically the same. This is an attacker.
+    the purpose is basically the same. This is an attacker. Main 
+    differences from zickler thesis are that this tactic is deterministic,
+    and that the minikick skill doesn't appear here.
 
-    Somebody has to make goals, so, this is it, this will is
+    Somebody has to make goals, so, this is it, this will be
     the tactic that will make goals. And it will!
     """
     def __init__(self, robot, deterministic=True):

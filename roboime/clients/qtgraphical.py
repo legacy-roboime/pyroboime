@@ -9,7 +9,7 @@ from ..utils.geom import Point
 #from . import stageview
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
-from ..interface import SimulationInterface
+from ..interface import SimulationInterface, TxInterface
 from ..core.skills import goto
 from ..core.skills import gotoavoid
 from ..core.skills import drivetoobject
@@ -25,7 +25,8 @@ from ..core.tactics import zickler43
 from ..core.plays import autoretaliate
 from ..core.plays import indirectkick
 from ..core.plays import stop
-
+from ..core.plays import obeyreferee
+from ..core.plays import halt
 
 class GraphicalWorld(World, QtCore.QMutex):
 
@@ -55,13 +56,14 @@ class QtGraphicalClient(object):
         self.intelligence = Intelligence(self.world)
         #self.intelligence = Intelligence(self.world, self.ui.stageView.redraw)
 
-        self.ui = uic.loadUi(path.join(path.dirname(__file__), './GraphicalIntelligence.ui'))
+        self.ui = uic.loadUi(path.join(path.dirname(__file__), 'graphical.ui'))
         self.setupUI()
 
         self.ui.stageView.world = self.world
 
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.ui.stageView.redraw)
+        #self.timer.timeout.connect(self.ui.stageView.redraw)
+        self.timer.timeout.connect(self.redraw)
 
 
         # FIXME: This should work.
@@ -97,8 +99,8 @@ class QtGraphicalClient(object):
                 getattr(self.ui, cmb).addItem(i, i)
 
         # Connect signals to slots
-        self.ui.cmbPenalty.currentIndexChanged.connect(self.setPenaltyKicker)
-        self.ui.cmbGoalkeeper.currentIndexChanged.connect(self.setGoalkeeper)
+        #self.ui.cmbPenalty.currentIndexChanged.connect(self.setPenaltyKicker)
+        #self.ui.cmbGoalkeeper.currentIndexChanged.connect(self.setGoalkeeper)
         self.ui.cmbSelectOutput.currentIndexChanged.connect(self.changeIntelligenceOutput)
         self.ui.cmbSelectPlayBlue.currentIndexChanged.connect(self.changePlayBlue)
         self.ui.cmbSelectRobotBlue.currentIndexChanged.connect(self.changeIndividualBlue)
@@ -115,6 +117,19 @@ class QtGraphicalClient(object):
             getattr(self.ui, 'kickAbilityU' + str(n)).valueChanged.connect(self.setRobotKickAbility)
             getattr(self.ui, 'cmbRobot_' + str(n)).currentIndexChanged.connect(self.resetPatterns)
             getattr(self.ui, 'cmbAdversary_' + str(n)).currentIndexChanged.connect(self.resetPatterns)
+
+    def redraw(self):
+        self.ui.stageView.redraw()
+        w = self.intelligence.world
+        self.ui.txtRefCommand.setText(str(w.referee.pretty_command))
+        self.ui.txtRefStage.setText(str(w.referee.pretty_stage))
+        self.ui.txtTimeLeft.setText('{:.02f}'.format((w.referee.stage_time_left or 0) / 1e6))
+        self.ui.txtScoreLeft.setText(str(w.left_team.score))
+        self.ui.txtTimeoutsLeft.setText(str(w.left_team.timeouts))
+        self.ui.txtTimeoutTimeLeft.setText('{:.02f}'.format((w.left_team.timeout_time or 0) / 1e6))
+        self.ui.txtScoreRight.setText(str(w.right_team.score))
+        self.ui.txtTimeoutsRight.setText(str(w.right_team.timeouts))
+        self.ui.txtTimeoutTimeRight.setText('{:.02f}'.format((w.right_team.timeout_time or 0) / 1e6))
 
     # GUI Functions
     def setPenaltyKicker(self):
@@ -219,7 +234,7 @@ class Intelligence(QtCore.QThread):
         self.count_robot = count_robot
         self.skill = None
         self.interface = SimulationInterface(self.world)
-
+        self.tx_interface = TxInterface(self.world, filters=[], transmission_ipaddr='192.168.91.105', transmission_port=9050)
         self.individual = lambda robot: OrderedDict([
             ('(none)', Dummy()),
             ('Go To', goto.Goto(robot, target=Point(0, 0))),
@@ -240,6 +255,8 @@ class Intelligence(QtCore.QThread):
             ('Auto Retaliate', autoretaliate.AutoRetaliate(team, 0)),
             ('Stop', stop.Stop(team, 0)),
             ('Indirect Kick', indirectkick.IndirectKick(team, 0)),
+            ('Obey Referee', obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(team, 0), 0)),
+            ('Halt', halt.Halt(team)),
         ])
 
         self.individuals_blue = dict((i, self.individual(self.world.blue_team[i])) for i in range(count_robot))

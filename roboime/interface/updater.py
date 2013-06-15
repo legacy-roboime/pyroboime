@@ -1,4 +1,3 @@
-from sys import platform
 #if platform == 'win32':
 #    from multiprocessing.dummy import Process, Queue, Event, Lock
 #else:
@@ -7,6 +6,7 @@ from multiprocessing import Process, Queue, Event, Lock
 from numpy import array
 
 from ..communication import sslvision
+from ..communication import sslrefbox
 from .. import base
 
 
@@ -82,11 +82,36 @@ class GeometryUpdate(Update):
         return 0x6e0
 
 
+class RefereeUpdate(Update):
+
+    def apply(self, world):
+        for prop, value in self.data.iteritems():
+            setattr(world.referee, prop, value)
+
+    def uid(self):
+        return 0x43f3433
+
+
+class TeamUpdate(Update):
+
+    def __init__(self, team_color, data):
+        super(TeamUpdate, self).__init__(data)
+        self.team_color = team_color
+
+    def apply(self, world):
+        team = world.team(self.team_color)
+        for prop, value in self.data.iteritems():
+            setattr(team, prop, value)
+
+    def uid(self):
+        return 0x7e488
+
 class Updater(Process):
 
     def __init__(self, maxsize=15):
         Process.__init__(self)
-        self.queue = Queue(maxsize)
+        #self.queue = Queue(maxsize)
+        self.queue = Queue()
         self.queue_lock = Lock()
         self._exit = Event()
 
@@ -186,3 +211,46 @@ class SimVisionUpdater(VisionUpdater):
 
     def __init__(self):
         VisionUpdater.__init__(self, ('224.5.23.2', 11002))
+
+
+class RefereeUpdater(Updater):
+
+    def __init__(self):
+        super(RefereeUpdater, self).__init__()
+        #self.address = address
+        self.counter = 0
+
+    def run(self):
+        #self.receiver = sslrefbox.SimRefboxReceiver(self.address)
+        self.receiver = sslrefbox.SimRefboxReceiver()
+        super(RefereeUpdater, self).run()
+
+    def receive(self):
+        updates = []
+        referee = self.receiver.get_packet()
+        updates.append(RefereeUpdate({
+            'command': referee.command,
+            'command_timestamp': referee.command_timestamp,
+            'stage': referee.stage,
+            'stage_time_left': referee.stage_time_left,
+            'timestamp': referee.packet_timestamp,
+        }))
+        updates.append(TeamUpdate(base.Blue, {
+            'score': referee.blue.score,
+            'red_cards': referee.blue.red_cards,
+            #'yellow_card_times': referee.blue.yellow_card_times,
+            'yellow_cards': referee.blue.yellow_cards,
+            'timeouts': referee.blue.timeouts,
+            'timeout_time': referee.blue.timeout_time,
+            'goalie': referee.blue.goalie,
+        }))
+        updates.append(TeamUpdate(base.Yellow, {
+            'score': referee.yellow.score,
+            'red_cards': referee.yellow.red_cards,
+            #'yellow_card_times': referee.yellow.yellow_card_times,
+            'yellow_cards': referee.yellow.yellow_cards,
+            'timeouts': referee.yellow.timeouts,
+            'timeout_time': referee.yellow.timeout_time,
+            'goalie': referee.yellow.goalie,
+        }))
+        return updates

@@ -54,7 +54,7 @@ class Penalty(Play):
                 self.players[r_id]['goalkeeper'].step()
             elif r_id == atk_id:
                 self.attacker = robot
-                if ready: 
+                if self.ready: 
                     self.players[r_id]['attacker'].step()
                 else:
                     self.players[r_id]['blocker'].step()

@@ -4,7 +4,6 @@ from random import random
 class State(object):
     def __init__(self, deterministic, name="State"):
         self.deterministic = deterministic
-        self.transitions = []
         self.name = name
 
     def __repr__(self):

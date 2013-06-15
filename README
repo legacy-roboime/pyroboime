@@ -1,11 +1,11 @@
-This is an attempt to develop the intelligence project on python...
-Python 2 is required due to google.protobuf, aside from that, the code is designed to be Python 3 compatible.
+This is an attempt to develop the intelligence project on python.
+Python 2 is required due to google.protobuf, aside from that, the code is designed to be mostly Python 3 compatible.
 
 If running 64-bit Python, the following , 64-bit packages for numpy and scipy are also needed. these cna be found in:
     http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy
     http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy
 	
-Great Python debugger for Windows users (even though it is ment to be a platform independent debugger):
+Great Python debugger for Windows users (even though it is meant to be a platform-independent debugger):
 	Winpdb (http://winpdb.org/download/)
 	Which needs wxPython (http://sourceforge.net/projects/wxpython/?source=dlp)
 	
