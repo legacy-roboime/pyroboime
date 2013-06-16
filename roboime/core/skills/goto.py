@@ -13,10 +13,12 @@ class Goto(Skill):
     regard to the position of any other objects on the field.
     """
 
-    attraction_factor = 12.0
-    repulsion_factor = 3.0
-    magnetic_factor = 3.0
-    delta_speed_factor = 0.0
+    attraction_factor = 50.0
+    repulsion_factor = 10.0
+    magnetic_factor = 8.0
+    delta_speed_factor = 0.1
+    min_distance = 1e-2
+    power = 1.3
 
     def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
         """
@@ -77,11 +79,11 @@ class Goto(Skill):
 
     def attraction_force(self):
         # the error vector from the robot to the target point
-        error = array(self.target) - array(self.robot)
+        delta = array(self.target) - array(self.robot)
 
         # attractive force
-        error_norm = max(self.robot.distance(self.final_target), 1e-3)
-        attraction_force = self.attraction_factor * error * (3 + 1 / error_norm ** 2)
+        dist = max(self.robot.distance(self.final_target), self.min_distance)
+        attraction_force = delta * (1 + 1 / (dist / self.attraction_factor) ** self.power)
 
         return attraction_force
 
@@ -89,23 +91,23 @@ class Goto(Skill):
         robot = self.robot
         for other in filter(lambda other: other is not robot, self.world.iterrobots()):
             # difference of position
-            delta = array(other) - array(robot)
+            delta = array(robot) - array(other)
             # considered distance
             dist = norm(delta) + robot.radius + other.radius
             # cap the distance to a minimum of 1mm
-            dist = max(dist, 1e-3)
+            dist = max(dist, self.min_distance)
             # normalize the delta
             delta /= norm(delta)
             # perpendicular delta
             pdelta = array(delta[1], -delta[0])
             # normalized difference of speeds of the robots
             sdelta = other.speed - robot.speed
-            sdelta /= max(norm(sdelta), 1e-3)
+            sdelta /= max(norm(sdelta), self.min_distance)
 
             # calculating each force
-            repulsion_force = -self.repulsion_factor * delta / dist ** 2
-            magnetic_force = self.magnetic_factor * pdelta / dist ** 2
-            delta_speed_force = self.delta_speed_factor * sdelta / dist ** 2
+            repulsion_force = delta / (dist / self.repulsion_factor) ** self.power
+            magnetic_force = pdelta / (dist / self.magnetic_factor) ** self.power
+            delta_speed_force = sdelta / (dist / self.delta_speed_factor) ** self.power
             force = sum((repulsion_force, magnetic_force, delta_speed_force))
             yield force
 

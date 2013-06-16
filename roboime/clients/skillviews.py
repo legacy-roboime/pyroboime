@@ -73,13 +73,13 @@ class GotoView(SkillView):
             # draw an arrow for every repulsion force
             painter.setPen(PINK)
             for force in self.skill.other_forces():
-                fx, fy = force * 10
+                fx, fy = force
                 draw_arrow_line(painter, 0, 0, fx, -fy, m)
 
             # draw an arrow for attraction force
             painter.setPen(LIGHT_BLUE)
             force = self.skill.attraction_force()
-            fx, fy = force * 10
+            fx, fy = force
             draw_arrow_line(painter, 0, 0, fx, -fy, m)
 
         # Reset transformation
