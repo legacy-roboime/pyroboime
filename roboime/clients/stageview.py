@@ -19,6 +19,28 @@ WHITE = Qt.white
 LIGHT_GREY = QColor(0xcc, 0xcc, 0xcc)
 ORANGE = QColor(0xff, 0xbb, 0x00)
 
+class RobotIdItem(QGraphicsItem):
+    def __init__(self, robot):
+        super(RobotIdItem, self).__init__()
+        self.robot = robot
+
+    def boundingRect(self):
+        return QRectF(0,0,0,0)
+
+    def position(self):
+        x, y = s(self.robot)
+        self.setPos(x, -y)
+
+    def paint(self, painter, option, widget=None):
+        # Draw id
+        painter.save()
+        robot_id = QString('?')
+        robot_id.setNum(self.robot.uid)
+        painter.setBrush(BLACK)
+        painter.setPen(BLACK)
+        painter.setFont(QFont('Courier', 132, 2))
+        painter.drawText(-90, -140, robot_id)
+        painter.restore()
 
 class RobotItem(QGraphicsItem):
     def __init__(self, robot):
@@ -67,7 +89,7 @@ class RobotItem(QGraphicsItem):
         # Change position
         painter.setBrush(color)
         painter.setPen(color)
-        
+
         robot_rotation = self.robot.angle
         if robot_rotation is None: robot_rotation = 0
         # Draw robot shape
@@ -75,13 +97,13 @@ class RobotItem(QGraphicsItem):
         painter.drawPath(self.outline)
         painter.rotate(self.cut_angle + robot_rotation)
 
-        # Draw id
-        robot_id = QString('?')
-        robot_id.setNum(self.robot.uid)
-        painter.setBrush(BLACK)
-        painter.setPen(BLACK)
-        painter.setFont(QFont('Courier', 132, 2, False))
-        painter.drawText(-90, -210, 1000, 1000, 0, robot_id)
+        ## Draw id
+        #robot_id = QString('?')
+        #robot_id.setNum(self.robot.uid)
+        #painter.setBrush(BLACK)
+        #painter.setPen(BLACK)
+        #painter.setFont(QFont('Courier', 132, 2, False))
+        #painter.drawText(-90, -210, 1000, 1000, 0, robot_id)
 
         # Reset transformation
         painter.restore();
@@ -279,13 +301,21 @@ class StageView(QGraphicsView):
             field.position()
             scene.addItem(field)
 
-            for r in w.iterrobots():
+            robots = w.robots
+
+            for r in robots:
                 # draw the robot
                 robot = RobotItem(r)
                 robot.position()
                 scene.addItem(robot)
 
-            for r in w.iterrobots():
+            for r in robots:
+                # draw the robot ids
+                robotid = RobotIdItem(r)
+                robotid.position()
+                scene.addItem(robotid)
+
+            for r in robots:
                 # draw the skill
                 skill = skillviews.view_selector(r.skill)
                 if skill is not None:

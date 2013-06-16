@@ -84,7 +84,6 @@ class QtGraphicalClient(object):
 
     def setupUI(self):
         # Setup GUI buttons and combo boxes
-
         ui = {
             'cmbSelectRobotBlue': map(str, self.intelligence.individuals_blue.keys()),
             'cmbSelectRobotYellow': map(str, self.intelligence.individuals_yellow.keys()),
@@ -97,6 +96,8 @@ class QtGraphicalClient(object):
         for cmb in ui:
             for i in ui[cmb]:
                 getattr(self.ui, cmb).addItem(i, i)
+
+        # Create the robot widget
 
         # Connect signals to slots
         #self.ui.cmbPenalty.currentIndexChanged.connect(self.setPenaltyKicker)
@@ -111,12 +112,8 @@ class QtGraphicalClient(object):
         self.ui.cmbOurTeam.currentIndexChanged.connect(self.setTeamColor)
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
         self.ui.actionFullscreen.triggered.connect(self.toggleFullScreen)
-
-        for n in range(self.intelligence.count_robot):
-            getattr(self.ui, 'kickAbilityT' + str(n)).valueChanged.connect(self.setRobotKickAbility)
-            getattr(self.ui, 'kickAbilityU' + str(n)).valueChanged.connect(self.setRobotKickAbility)
-            getattr(self.ui, 'cmbRobot_' + str(n)).currentIndexChanged.connect(self.resetPatterns)
-            getattr(self.ui, 'cmbAdversary_' + str(n)).currentIndexChanged.connect(self.resetPatterns)
+        self.ui.actionMainDock.toggled.connect(self.toggleMainDock)
+        self.ui.actionRobotDock.toggled.connect(self.toggleRobotDock)
 
     def redraw(self):
         self.ui.stageView.redraw()
@@ -178,7 +175,7 @@ class QtGraphicalClient(object):
             if r.can_kick == False:
                 print 'Robot', r.pattern, 'cannot kick!'
         '''
-            pass
+        pass
 
     def resetPatterns(self):
         if self.useSimulation:
@@ -192,7 +189,7 @@ class QtGraphicalClient(object):
             for i, r in enumerate(self.world.yellow_team):
                 r.pattern = getattr(self.ui, 'cmbAdversary_' + str(i)).currentIndex()
 
-    def toggleFullScreen(self, activate):
+    def toggleFullScreen(self):
         if self.ui.windowState() & QtCore.Qt.WindowFullScreen:
             self.ui.showNormal()
             self.ui.dockSetup.show()
@@ -205,6 +202,18 @@ class QtGraphicalClient(object):
             #self.ui.statusBar.hide()
         QtGui.QApplication.processEvents()
         self.ui.stageView.fit()
+
+    def toggleMainDock(self, activate):
+        if activate:
+            self.ui.dockSetup.show()
+        else:
+            self.ui.dockSetup.hide()
+
+    def toggleRobotDock(self, activate):
+        if activate:
+            self.ui.dockRobot.show()
+        else:
+            self.ui.dockRobot.hide()
 
     def teardown(self):
         """Tear down actions."""

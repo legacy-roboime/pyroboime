@@ -21,7 +21,16 @@
     </sizepolicy>
    </property>
    <layout class="QGridLayout" name="gridLayout_3">
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <property name="spacing">
@@ -60,7 +69,7 @@
      <x>0</x>
      <y>0</y>
      <width>1201</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuArquivo">
@@ -75,7 +84,15 @@
     </property>
     <addaction name="actionFullscreen"/>
    </widget>
+   <widget class="QMenu" name="menuJanelas">
+    <property name="title">
+     <string>Janelas</string>
+    </property>
+    <addaction name="actionMainDock"/>
+    <addaction name="actionRobotDock"/>
+   </widget>
    <addaction name="menuArquivo"/>
+   <addaction name="menuJanelas"/>
    <addaction name="menuOp_es"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -109,7 +126,16 @@
      <property name="sizeConstraint">
       <enum>QLayout::SetNoConstraint</enum>
      </property>
-     <property name="margin">
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
       <number>0</number>
      </property>
      <item>
@@ -150,38 +176,79 @@
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
             <layout class="QGridLayout" name="gridLayout_2">
-             <item row="0" column="1">
+             <item row="1" column="1">
               <widget class="QLineEdit" name="txtRefCommand">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="readOnly">
                 <bool>true</bool>
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="txtRefStage">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
               <widget class="QLabel" name="lblTempoJogo">
                <property name="text">
                 <string>Tempo restante:</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
+             <item row="1" column="2" alignment="Qt::AlignHCenter">
               <widget class="QLineEdit" name="txtTimeLeft">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>50</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="readOnly">
                 <bool>true</bool>
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
+             <item row="0" column="1">
               <widget class="QLabel" name="lblJuiz">
                <property name="text">
                 <string>Juiz:</string>
                </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
               </widget>
              </item>
-             <item row="0" column="2">
-              <widget class="QLineEdit" name="txtRefStage"/>
-             </item>
             </layout>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout">
@@ -199,6 +266,18 @@
               <layout class="QHBoxLayout" name="horizontalLayout">
                <item>
                 <widget class="QLineEdit" name="txtScoreLeft">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>40</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="readOnly">
                   <bool>true</bool>
                  </property>
@@ -213,6 +292,18 @@
                </item>
                <item>
                 <widget class="QLineEdit" name="txtScoreRight">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>40</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="readOnly">
                   <bool>true</bool>
                  </property>
@@ -221,6 +312,19 @@
               </layout>
              </item>
             </layout>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <layout class="QGridLayout" name="gridLayout">
@@ -294,7 +398,7 @@
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <property name="spacing">
-          <number>-1</number>
+          <number>6</number>
          </property>
          <item>
           <layout class="QGridLayout" name="gridLayout_5">
@@ -512,6 +616,25 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="dockRobot">
+   <property name="windowTitle">
+    <string>Controle do Robô</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>4</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QGridLayout" name="gridLayout_9">
+     <item row="0" column="0">
+      <layout class="QGridLayout" name="gridLayout_8">
+       <property name="horizontalSpacing">
+        <number>0</number>
+       </property>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionSair">
    <property name="text">
     <string>Sair</string>
@@ -524,10 +647,32 @@
   </action>
   <action name="actionFullscreen">
    <property name="text">
-    <string>Tela Cheia</string>
+    <string>Tela Cheia (F2)</string>
    </property>
    <property name="shortcut">
     <string>F2</string>
+   </property>
+  </action>
+  <action name="actionMainDock">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Principal</string>
+   </property>
+  </action>
+  <action name="actionRobotDock">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Controle do Robô</string>
    </property>
   </action>
  </widget>
