@@ -42,7 +42,7 @@ class GotoAvoid(Goto):
                 if len(inter) == 2:
                     p1, p2 = circ_avoid.intersection(circ_robot_avoid)
                     p = p1 if p1.distance(t) < p2.distance(t) else p2
-                    p = p1
+                    #p = p1
                 else:
                     # in this case the robot is inside the avoidance circle
                     # we calculate the normal segment to the line from the robot
