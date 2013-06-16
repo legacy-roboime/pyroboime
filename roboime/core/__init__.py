@@ -113,6 +113,10 @@ class Play(object):
         return self.team.goal
 
     @property
+    def goalie(self):
+        return self.team.goalie
+
+    @property
     def ball(self):
         return self.world.ball
 

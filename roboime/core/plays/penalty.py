@@ -18,9 +18,8 @@ class Penalty(Play):
     # error0: "assertion 'bNormalizationResult' failed in ..\..\include\ode/odemath.h"
     # error1: "assertion 'context->isStructureValid()' failed in ..\..\ode\src\util.cpp:665"
 
-    def __init__(self, team, goalkeeper_uid, **kwargs):
+    def __init__(self, team, **kwargs):
         super(Penalty, self).__init__(team, **kwargs)
-        self.goalkeeper_uid = goalkeeper_uid
         self.players = {}
         self.tactics_factory = lambda robot: {
             'goalkeeper': Goalkeeper(robot, aggressive=False, angle=0),
@@ -36,7 +35,7 @@ class Penalty(Play):
         closest_robots = [r.uid for r in self.team.closest_robots_to_ball(can_kick=True)]
 
         # make sure we do not account for the goalkeeper on that list
-        gk_id = self.goalkeeper_uid
+        gk_id = self.goalie
         if gk_id in closest_robots:
             closest_robots.remove(gk_id)
 

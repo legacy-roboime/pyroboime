@@ -292,10 +292,10 @@ class Intelligence(QtCore.QThread):
         ])
         self.plays = lambda team: OrderedDict([
             ('(none)', Dummy()),
-            ('Auto Retaliate', autoretaliate.AutoRetaliate(team, 0)),
-            ('Stop', stop.Stop(team, 0)),
-            ('Indirect Kick', indirectkick.IndirectKick(team, 0)),
-            ('Obey Referee', obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(team, 0), 0)),
+            ('Auto Retaliate', autoretaliate.AutoRetaliate(team)),
+            ('Stop', stop.Stop(team)),
+            ('Indirect Kick', indirectkick.IndirectKick(team)),
+            ('Obey Referee', obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(team))),
             ('Halt', halt.Halt(team)),
         ])
 
