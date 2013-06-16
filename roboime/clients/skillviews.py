@@ -1,5 +1,6 @@
-from PyQt4.QtGui import QGraphicsItem, QGraphicsView, QColor, QBrush, QPainter, QGraphicsScene, QPainterPath, QFont
-from PyQt4.QtCore import QRectF, Qt, QString
+from PyQt4.QtGui import QGraphicsItem
+from PyQt4.QtCore import QRectF, Qt
+from collections import OrderedDict
 
 from .qtutils import scale as s
 from ..core.skills import goto
@@ -8,6 +9,17 @@ from ..core.skills import goto
 BLACK = Qt.black
 GREEN = Qt.green
 RED = Qt.red
+
+
+view_table = OrderedDict()
+
+
+def view_for(skill):
+    # TODO: make this resolve dependencies
+    def _view_for(view):
+        view_table[skill] = view
+        return view
+    return _view_for
 
 
 class SkillView(QGraphicsItem):
@@ -21,6 +33,7 @@ class SkillView(QGraphicsItem):
         self.setPos(x, -y)
 
 
+@view_for(goto.Goto)
 class GotoView(SkillView):
     def __init__(self, goto, **kwargs):
         super(GotoView, self).__init__(goto, **kwargs)
@@ -59,5 +72,6 @@ class GotoView(SkillView):
 
 def view_selector(skill):
     """Will return an instance of the propert view."""
-    if isinstance(skill, goto.Goto):
-        return GotoView(skill)
+    for s, view in view_table.iteritems():
+        if isinstance(skill, s):
+            return view(skill)
