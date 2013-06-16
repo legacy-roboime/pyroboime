@@ -153,6 +153,7 @@ class Robot(geom.Point):
         # and some geometry framework can use that angle
         self.angle = None
         self.speed = None
+        self.acceleration = None
         self.active = False
 
         # basic
