@@ -94,44 +94,67 @@ class LowPass(Filter):
     def __init__(self):
         super(LowPass, self).__init__()
         self.gain = 6.
+        self.last_theta = None
         self.coef = [3., 0., -1. / 3., 0.]
-        self.ux = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
-        self.uy = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
-        self.vx = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
-        self.vy = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
-        self.u0 = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
-        self.v0 = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
+        self.ux = defaultdict(lambda: [0., 0., 0., 0.])
+        self.uy = defaultdict(lambda: [0., 0., 0., 0.])
+        self.vx = defaultdict(lambda: [0., 0., 0., 0.])
+        self.vy = defaultdict(lambda: [0., 0., 0., 0.])
+        self.uo = defaultdict(lambda: [0., 0., 0., 0.])
+        self.vo = defaultdict(lambda: [0., 0., 0., 0.])
 
-def filter_updates(self, updates):
-    for u in updates:
-        if isinstance(update, RobotUpdate) or isinstance(update, BallUpdate):
-            ux = self.ux[u.uid()]
-            uy = self.uy[u.uid()]
-            vx = self.vx[u.uid()]
-            vy = self.vy[u.uid()]
-            u0 = self.u0[u.uid()]
-            v0 = self.v0[u.uid()]
-    
-            ux[0] = ux[1]
-            ux[1] = ux[2]
-            ux[2] = ux[3]
-            ux[3] = u.data['x'] / self.gain
-            vx[0] = vx[1]
-            vx[1] = vx[2]
-            vx[2] = vx[3]
-            vx[3] = (ux[0] + ux[3]) + self.coef[0] * (ux[1] + ux[2]) + (self.coef[1] * vx[0]) + (self.coef[2] * vx[1]) + self.coef[3] * vx[2]
+    def filter_updates(self, updates):
+        for u in updates:
+            print 'coe'
+            if isinstance(update, RobotUpdate) or isinstance(update, BallUpdate):
+                ux = self.ux[u.uid()]
+                uy = self.uy[u.uid()]
+                vx = self.vx[u.uid()]
+                vy = self.vy[u.uid()]
+                uo = self.uo[u.uid()]
+                vo = self.vo[u.uid()]
+        
+                ux[0] = ux[1]
+                ux[1] = ux[2]
+                ux[2] = ux[3]
+                ux[3] = u.data['x'] / self.gain
+                vx[0] = vx[1]
+                vx[1] = vx[2]
+                vx[2] = vx[3]
+                vx[3] = (ux[0] + ux[3]) + self.coef[0] * (ux[1] + ux[2]) + (self.coef[1] * vx[0]) + (self.coef[2] * vx[1]) + self.coef[3] * vx[2]
 
-            uy[0] = uy[1]
-            uy[1] = uy[2]
-            uy[2] = uy[3]
-            uy[3] = u.data['y'] / self.gain
-            vy[0] = vy[1]
-            vy[1] = vy[2]
-            vy[2] = vy[3]
-            vy[3] = (uy[0] + uy[3]) + self.coef[0] * (uy[1] + uy[2]) + (self.coef[1] * vy[0]) + (self.coef[2] * vy[1]) + self.coef[3] * vy[2]
+                uy[0] = uy[1]
+                uy[1] = uy[2]
+                uy[2] = uy[3]
+                uy[3] = u.data['y'] / self.gain
+                vy[0] = vy[1]
+                vy[1] = vy[2]
+                vy[2] = vy[3]
+                vy[3] = (uy[0] + uy[3]) + self.coef[0] * (uy[1] + uy[2]) + (self.coef[1] * vy[0]) + (self.coef[2] * vy[1]) + self.coef[3] * vy[2]
+                print u.data['x'], vx[3]
+                u.data['x'], u.data['y'] = vx[3], vy[3]
 
-            u.data['x'], u.data['y'] = vx[3], vy[3]
+            # TODO: Angle filtering.
+            if isinstance(update, RobotUpdate):
+                theta = u.data['orientation']
 
-        # TODO: Angle filtering.
-        if isinstance(update, RobotUpdate):
-            pass
+                if self.last_theta == None:
+                    self.last_theta = theta
+                last_theta = self.last_theta
+
+                d_theta = theta - last_theta
+                d_theta = remainder(d_theta, 2*pi)
+
+                uo[0] = uo[1]
+                uo[1] = uo[2]
+                uo[2] = uo[3]
+                uo[3] = d_theta / self.gain
+                vo[0] = vo[1]
+                vo[1] = vo[2]
+                vo[2] = vo[3]
+                vo[3] = (uo[0] + uo[3]) + self.coef[0] * (uo[1] + uo[2]) + (self.coef[1] * vo[0]) + (self.coef[2] * vo[1]) + self.coef[3] * vo[2]
+
+                vo[3]= remainder(vo[3], 2*pi)
+                
+                self.last_theta = theta + vo[3]
+                u.data['orientation'] = vo[3] + theta
