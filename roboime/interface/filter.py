@@ -105,7 +105,7 @@ class LowPass(Filter):
 
     def filter_updates(self, updates):
         for u in updates:
-            print 'coe'
+            #print 'coe'
             if isinstance(update, RobotUpdate) or isinstance(update, BallUpdate):
                 ux = self.ux[u.uid()]
                 uy = self.uy[u.uid()]
@@ -131,7 +131,7 @@ class LowPass(Filter):
                 vy[1] = vy[2]
                 vy[2] = vy[3]
                 vy[3] = (uy[0] + uy[3]) + self.coef[0] * (uy[1] + uy[2]) + (self.coef[1] * vy[0]) + (self.coef[2] * vy[1]) + self.coef[3] * vy[2]
-                print u.data['x'], vx[3]
+                #print u.data['x'], vx[3]
                 u.data['x'], u.data['y'] = vx[3], vy[3]
 
             # TODO: Angle filtering.

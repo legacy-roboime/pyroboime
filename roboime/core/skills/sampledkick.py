@@ -39,7 +39,7 @@ class SampledKick(DriveToBall):
         self.minpower = minpower
         self.maxpower = maxpower
 
-    def step(self):
+    def _step(self):
         if self.close_enough():
             # put some kicking in action
             if self.receiver is not None:
@@ -57,6 +57,6 @@ class SampledKick(DriveToBall):
         # temporarily decrease the threshold, does it has to be temporary?
         _threshold, self.threshold = self.threshold, 0.05
         # let DriveToBall do its thing
-        super(SampledKick, self).step()
+        super(SampledKick, self)._step()
         # and restore the threshold
         self.threshold = _threshold

@@ -52,7 +52,7 @@ class Goto(Skill):
     def final_target(self, target):
         self._final_target = target
 
-    def step(self):
+    def _step(self):
         r = self.robot
         t = self.target
         f_t = self.final_target
@@ -93,9 +93,6 @@ class Goto(Skill):
 
         # at last set the action accordingly
         r.action.absolute_speeds = v[0], v[1], va
-
-        # register skill on the robot
-        r.skill = self
 
     @property
     def point_away_from_defense_area(self):

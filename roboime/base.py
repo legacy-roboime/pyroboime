@@ -7,7 +7,7 @@ uid in this context means unique id, it is unique within a team only
 uuid in this context is universal unique id, it is unique whithin a world
 """
 from itertools import imap
-from collections import defaultdict
+#from collections import defaultdict
 from functools import partial
 from numpy import array
 from numpy import sign
@@ -17,6 +17,7 @@ from shapely import geometry
 
 from .utils import geom
 from .utils.mathutils import cos, sin
+from .utils.keydefaultdict import keydefaultdict
 from .communication.protos.referee_pb2 import SSL_Referee as ref
 
 
@@ -169,8 +170,9 @@ class Robot(geom.Point):
         # action to be dispatched by a commander
         self._action = Action(self)
 
-        # last skill that was executed
+        # last skill, and tactic that was executed
         self.skill = None
+        self.tactic = None
 
         # some properties
         self.can_kick = True
@@ -262,7 +264,7 @@ class Robot(geom.Point):
     @property
     def has_touched_ball(self):
         was_touching = self.is_touching
-        self.is_touching =  self.distance(self.ball) < self.radius + 2 * self.ball.radius
+        self.is_touching = self.distance(self.ball) < self.radius + 2 * self.ball.radius
         if not self.is_touching and was_touching:
             self._has_touched = True
             return True
@@ -277,7 +279,7 @@ class Robot(geom.Point):
             self._skill.step()
 
 
-class Team(defaultdict):
+class Team(keydefaultdict):
     """This is basically a list of robots."""
 
     def __init__(self, color, robots=[], world=None):
@@ -296,16 +298,12 @@ class Team(defaultdict):
         self.timeout_time = None
         self.goalie = None
 
+        # last play stepped on this team
+        self.play = None
+
         # update robots' team
         for r in self.itervalues():
             r.team = self
-
-    def __missing__(self, key):
-        if self.default_factory is None:
-            raise KeyError(key)
-        else:
-            val = self[key] = self.default_factory(key)
-            return val
 
     @classmethod
     def blue(cls, *args, **kwargs):
@@ -356,7 +354,7 @@ class Team(defaultdict):
         Searches for clear paths between initial position (ball), intermediate position,
         and the target.
 
-        Returns a sorted list of tuples (Points that are closer to the target come 
+        Returns a sorted list of tuples (Points that are closer to the target come
         first):
         [(point, distance_to_target), (point, distance_to_target), (point, distance_to_target), ...]
         """
@@ -377,11 +375,11 @@ class Team(defaultdict):
         f_w = self.world.width - safety_margin
 
         # candidate points in the field range
-        for x in linspace(-f_l/2, f_l/2, precision):
-            for y in linspace(-f_w/2, f_w/2, precision - 2):
+        for x in linspace(-f_l / 2, f_l / 2, precision):
+            for y in linspace(-f_w / 2, f_w / 2, precision - 2):
                 pt = geom.Point(x, y)
                 acceptable = True
-                final_line = geom.Point(0,0)
+                final_line = geom.Point(0, 0)
                 for enemy in self.world.enemy_team(self.color).iterrobots():
                     # if the robot -> pt line doesn't cross any enemy body...
                     start_line = geom.Line(b, pt)
@@ -394,7 +392,7 @@ class Team(defaultdict):
                     candidate += [(pt, start_line.length + final_line.length)]
         if not candidate:
             #goal_point = self.enemy_goal
-            return [(geom.Point(self.enemy_goal.x - sign(self.enemy_goal.x)*1, self.enemy_goal.y), 1)]
+            return [(geom.Point(self.enemy_goal.x - sign(self.enemy_goal.x), self.enemy_goal.y), 1)]
         else:
             return sorted(candidate, key=lambda tup: tup[1])
 
@@ -594,44 +592,45 @@ class Referee(object):
     def pretty_stage(self):
         return self.Stage._pretty(self.stage)
 
+
 class World(object):
 
     def __init__(self, right_team=None, left_team=None):
         # metric constants
-       self.width = 0.0
-       self.length = 0.0
-       self.line_width = 0.0
-       self.boundary_width = 0.0
-       self.referee_width = 0.0
-       self.center_radius = 0.0
-       self.defense_radius = 0.0
-       self.defense_stretch = 0.0
-       self.free_kick_distance = 0.0
-       self.penalty_spot_distance = 0.0
-       self.penalty_line_distance = 0.0
-       self.goal_width = 0.0
-       self.goal_depth = 0.0
-       self.goal_wall_width = 0.0
-       self.inited = False
+        self.width = 0.0
+        self.length = 0.0
+        self.line_width = 0.0
+        self.boundary_width = 0.0
+        self.referee_width = 0.0
+        self.center_radius = 0.0
+        self.defense_radius = 0.0
+        self.defense_stretch = 0.0
+        self.free_kick_distance = 0.0
+        self.penalty_spot_distance = 0.0
+        self.penalty_line_distance = 0.0
+        self.goal_width = 0.0
+        self.goal_depth = 0.0
+        self.goal_wall_width = 0.0
+        self.inited = False
 
-       # objects
-       if right_team is None:
-           self.right_team = Team.yellow(world=self)
-       else:
-           right_team.world = self
-           self.right_team = right_team
-       if left_team is None:
-           self.left_team = Team.blue(world=self)
-       else:
-           left_team.world = self
-           self.left_team = left_team
-       self.right_goal = Goal(self)
-       self.left_goal = Goal(self)
-       self.referee = None
-       self.ball = Ball(self)
+        # objects
+        if right_team is None:
+            self.right_team = Team.yellow(world=self)
+        else:
+            right_team.world = self
+            self.right_team = right_team
+        if left_team is None:
+            self.left_team = Team.blue(world=self)
+        else:
+            left_team.world = self
+            self.left_team = left_team
+        self.right_goal = Goal(self)
+        self.left_goal = Goal(self)
+        self.referee = None
+        self.ball = Ball(self)
 
-       # the referee
-       self.referee = Referee(self)
+        # the referee
+        self.referee = Referee(self)
 
     def switch_sides(self):
         self.right_team, self.left_team = self.left_team, self.right_team

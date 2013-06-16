@@ -37,14 +37,14 @@ class DriveTo(Goto):
         self.max_error_d = max_error_d
         self.max_error_a = max_error_a
 
-    def step(self):
+    def _step(self):
         # make numpy arrays out of b_point and threshold with b_angle direction so we can sum them
         p1 = array(self.b_point)
         p2 = array([cos(self.b_angle), sin(self.b_angle)]) * self.threshold
 
         # sum'em and let DriveTo do its thing
         self.target = Point(p1 + p2)
-        super(DriveTo, self).step()
+        super(DriveTo, self)._step()
 
     def close_enough(self):
         if self.target is None:

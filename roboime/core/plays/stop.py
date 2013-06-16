@@ -15,12 +15,12 @@ class Stop(Play):
         self.goalkeeper_uid = goalkeeper_uid
         self.players = {}
         self.tactics_factory.update({
-            'goalkeeper' : lambda robot: Goalkeeper(robot, aggressive=False, angle=0),
-            'blocker' : lambda robot: Blocker(robot, arc=0),
-            'defender' : lambda robot: Defender(robot, enemy=self.ball, distance=0.6),
+            'goalkeeper': lambda robot: Goalkeeper(robot, aggressive=False, angle=0),
+            'blocker': lambda robot: Blocker(robot, arc=0),
+            'defender': lambda robot: Defender(robot, enemy=self.ball, distance=0.6),
         })
 
-    def setup_tactics(self): 
+    def setup_tactics(self):
         # list of the ids of the robots in order of proximity to the ball
         closest_robots = [r.uid for r in self.team.closest_robots_to_ball(can_kick=True)]
 

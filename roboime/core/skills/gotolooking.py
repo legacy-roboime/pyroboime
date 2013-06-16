@@ -9,6 +9,6 @@ class GotoLooking(Goto):
         super(GotoLooking, self).__init__(robot, **kwargs)
         self.lookpoint = lookpoint
 
-    def step(self):
+    def _step(self):
         self.angle = self.robot.angle_to_point(self.lookpoint)
-        super(GotoLooking, self).step()
+        super(GotoLooking, self)._step()

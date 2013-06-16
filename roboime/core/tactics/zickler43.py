@@ -15,7 +15,7 @@ class Zickler43(Tactic):
     For more details see page 43 of the Zickler thesis.
 
     Ok, actually, no. This tactic is far from the original however
-    the purpose is basically the same. This is an attacker. Main 
+    the purpose is basically the same. This is an attacker. Main
     differences from zickler thesis are that this tactic is deterministic,
     and that the minikick skill doesn't appear here.
 
@@ -29,7 +29,7 @@ class Zickler43(Tactic):
         self.goal_kick = SampledKick(robot, deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.9, maxpower=1.0)
         self.wait = Halt(robot)
 
-        super(Zickler43, self).__init__([robot], deterministic=deterministic, initial_state=self.drive, transitions=[
+        super(Zickler43, self).__init__(robot, deterministic=deterministic, initial_state=self.drive, transitions=[
             Transition(self.drive, self.dribble, condition=lambda: self.drive.close_enough()),
             Transition(self.dribble, self.drive, condition=lambda: not self.dribble.close_enough()),
             Transition(self.dribble, self.goal_kick, condition=lambda: self.dribble.close_enough()),
@@ -48,11 +48,11 @@ class Zickler43(Tactic):
         for state in [self.drive, self.dribble, self.goal_kick]:
             state.lookpoint = point
 
-    def step(self):
+    def _step(self):
         lookpoint = self.point_to_kick()
         if lookpoint is not None:
             self.lookpoint = lookpoint
-        super(Zickler43, self).step()
+        super(Zickler43, self)._step()
 
     def point_to_kick(self):
         enemy_goal = self.robot.enemy_goal

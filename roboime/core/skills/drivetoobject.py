@@ -20,7 +20,7 @@ class DriveToObject(DriveTo):
         super(DriveToObject, self).__init__(robot, b_point=point, **kwargs)
         self.lookpoint = lookpoint
 
-    def step(self):
+    def _step(self):
         # the angle from the object to the lookpoint, thanks to shapely is this
         # that's the angle we want to be at
         self.angle = self.b_point.angle_to_point(self.lookpoint)
@@ -33,4 +33,4 @@ class DriveToObject(DriveTo):
         # ultimately we should update our base angle to the oposite
         # of our target angle and let drive to object to its thing
         self.b_angle = self.angle + 180
-        super(DriveToObject, self).step()
+        super(DriveToObject, self)._step()
