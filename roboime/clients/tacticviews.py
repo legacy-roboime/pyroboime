@@ -51,7 +51,7 @@ class BlockerView(TacticView):
 
     def paint(self, painter, option, widget=None):
         # Save transformation:
-        painter.save();
+        painter.save()
 
         gx, gy = self.relative_point(self.tactic.goto.final_target)
         bx, by = self.relative_point(self.tactic.blockpoint)
@@ -69,7 +69,7 @@ class BlockerView(TacticView):
         #painter.drawLine(x - m, y + m, x + m, y - m)
 
         # Reset transformation
-        painter.restore();
+        painter.restore()
 
 
 @view_for(zickler43.Zickler43)
@@ -82,7 +82,7 @@ class Zickler43View(TacticView):
 
     def paint(self, painter, option, widget=None):
         # Save transformation:
-        painter.save();
+        painter.save()
 
         #gx, gy = self.relative_point(self.tactic.goto.final_target)
         gx, gy = self.relative_point(self.robot.ball)
@@ -101,7 +101,7 @@ class Zickler43View(TacticView):
         #painter.drawLine(x - m, y + m, x + m, y - m)
 
         # Reset transformation
-        painter.restore();
+        painter.restore()
 
 
 def view_selector(tactic):

@@ -19,7 +19,7 @@ class RobotIdView(QGraphicsItem):
         self.robot = robot
 
     def boundingRect(self):
-        return QRectF(-80,-80,160,160)
+        return QRectF(-80, -80, 160, 160)
 
     def position(self):
         x, y = s(self.robot)
@@ -77,7 +77,7 @@ class RobotView(QGraphicsItem):
 
     def paint(self, painter, option, widget=None):
         # Save transformation:
-        painter.save();
+        painter.save()
 
         color = self.color
 
@@ -92,7 +92,7 @@ class RobotView(QGraphicsItem):
         painter.rotate(self.cut_angle + robot_rotation)
 
         # Reset transformation
-        painter.restore();
+        painter.restore()
 
 
 class FieldView(QGraphicsItem):
@@ -108,7 +108,7 @@ class FieldView(QGraphicsItem):
     def boundingRect(self):
         width, height = s(self.world.length), s(self.world.width)
         boundary = s(self.world.boundary_width + self.world.referee_width)
-        return QRectF(-width / 2.0 - boundary, -height / 2.0 - boundary, width + 2 * boundary, height + 2 * boundary);
+        return QRectF(-width / 2.0 - boundary, -height / 2.0 - boundary, width + 2 * boundary, height + 2 * boundary)
 
     def position(self):
         self.setPos(0, 0)
@@ -118,7 +118,7 @@ class FieldView(QGraphicsItem):
         line = s(self.world.line_width)
 
         # Save transformation:
-        painter.save();
+        painter.save()
 
         # Change position
         painter.translate(-width / 2, -height / 2)
@@ -180,7 +180,7 @@ class FieldView(QGraphicsItem):
         painter.drawRect(width, (height + gwidth) / 2, gdepth + gline, gline)
 
         # Reset transformation
-        painter.restore();
+        painter.restore()
 
 
 class BallView(QGraphicsItem):
@@ -204,7 +204,7 @@ class BallView(QGraphicsItem):
     def paint(self, painter, option, widget=None):
 
         # Save transformation:
-        painter.save();
+        painter.save()
 
         painter.setBrush(ORANGE)
         painter.setPen(ORANGE)
@@ -212,4 +212,4 @@ class BallView(QGraphicsItem):
         painter.drawEllipse(-radius, -radius, 2 * radius, 2 * radius)
 
         # Reset transformation
-        painter.restore();
+        painter.restore()

@@ -47,11 +47,13 @@ class StageView(QGraphicsView):
     # Resize the view to fit the screen
     def fit(self):
         boundary = self._world.boundary_width + self._world.referee_width
-        self.fitInView(-s(self._world.length / 2 + boundary),
+        self.fitInView(
+            -s(self._world.length / 2 + boundary),
             -s(self._world.width / 2 + boundary),
             s(self._world.length + 2 * boundary),
             s(self._world.width + 2 * boundary),
-            Qt.KeepAspectRatio)
+            Qt.KeepAspectRatio
+        )
 
     # Handle key events
     def keyPressEvent(self, event):

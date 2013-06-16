@@ -18,7 +18,6 @@ class Goto(Skill):
     magnetic_factor = 3.0
     delta_speed_factor = 0.0
 
-
     def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
         """
         final_target: the ultimate position the robot should attain

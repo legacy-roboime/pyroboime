@@ -55,7 +55,7 @@ class GotoView(SkillView):
 
     def paint(self, painter, option, widget=None):
         # Save transformation:
-        painter.save();
+        painter.save()
 
         x, y = self.relative_point(self.skill.final_target)
         m = self.margin
@@ -84,7 +84,7 @@ class GotoView(SkillView):
             draw_arrow_line(painter, 0, 0, fx, -fy, m)
 
         # Reset transformation
-        painter.restore();
+        painter.restore()
 
 
 @view_for(gotoavoid.GotoAvoid)
@@ -103,7 +103,7 @@ class GotoAvoidView(GotoView):
         super(GotoAvoidView, self).paint(painter, option, widget)
 
         # Save transformation:
-        painter.save();
+        painter.save()
 
         #p1 = array(self.skill.base_point)
         #p2 = array([cos(self.skill.base_angle), sin(self.skill.base_angle)]) * self.skill.threshold
@@ -125,7 +125,7 @@ class GotoAvoidView(GotoView):
         painter.drawEllipse(x - avr, y - avr, 2 * avr, 2 * avr)
 
         # Reset transformation
-        painter.restore();
+        painter.restore()
 
 
 @view_for(driveto.DriveTo)
@@ -144,7 +144,7 @@ def DriveToView(GotoAvoidView):
         super(DriveToView, self).paint(painter, option, widget)
 
         # Save transformation:
-        painter.save();
+        painter.save()
 
         p1 = array(self.skill.base_point)
         p2 = array([cos(self.skill.base_angle), sin(self.skill.base_angle)]) * self.skill.threshold
@@ -159,7 +159,7 @@ def DriveToView(GotoAvoidView):
         draw_x(painter, x, y, m)
 
         # Reset transformation
-        painter.restore();
+        painter.restore()
 
 
 _weighted_view_table = []

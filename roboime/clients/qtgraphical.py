@@ -28,6 +28,7 @@ from ..core.plays import stop
 from ..core.plays import obeyreferee
 from ..core.plays import halt
 
+
 class GraphicalWorld(World, QtCore.QMutex):
 
     def __init__(self, *args, **kwargs):
@@ -50,7 +51,6 @@ class QtGraphicalClient(object):
     def __init__(self):
         super(QtGraphicalClient, self).__init__()
 
-
         self.world = GraphicalWorld()
 
         self.intelligence = Intelligence(self.world)
@@ -64,7 +64,6 @@ class QtGraphicalClient(object):
         self.timer = QtCore.QTimer()
         #self.timer.timeout.connect(self.ui.stageView.redraw)
         self.timer.timeout.connect(self.redraw)
-
 
         # FIXME: This should work.
         # Redraw stageview when the interface applies an update
