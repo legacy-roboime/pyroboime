@@ -57,8 +57,8 @@ class GotoAvoidView(SkillView):
         # Save transformation:
         painter.save();
 
-        p1 = array(self.skill.b_point)
-        p2 = array([cos(self.skill.b_angle), sin(self.skill.b_angle)]) * self.skill.threshold
+        p1 = array(self.skill.base_point)
+        p2 = array([cos(self.skill.base_angle), sin(self.skill.base_angle)]) * self.skill.threshold
         self.target = p1 + p2
 
         x, y = self.relative_point(self.target)

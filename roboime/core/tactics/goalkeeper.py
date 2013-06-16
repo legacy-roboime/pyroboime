@@ -29,9 +29,9 @@ class Goalkeeper(Tactic):
         """
         super(Goalkeeper, self).__init__(robot, deterministic=True)
         self.aggressive = aggressive
-        self.goto = GotoLooking(robot, target=robot.goal, is_goalkeeper=True, lookpoint=robot.world.ball)
-        self.kick = SampledKick(robot, lookpoint=robot.enemy_goal)
-        self.chip = SampledChipKick(robot, lookpoint=robot.enemy_goal)
+        self.goto = GotoLooking(robot, target=lambda: robot.goal, lookpoint=robot.world.ball)
+        self.kick = SampledKick(robot, lookpoint=lambda: robot.enemy_goal)
+        self.chip = SampledChipKick(robot, lookpoint=lambda: robot.enemy_goal)
         self.angle = angle
         # should parametrize these
         # time in seconds to predict future ball position

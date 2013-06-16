@@ -1,22 +1,18 @@
 from numpy import array
-# from numpy.linalg import norm
 
 from .goto import Goto
-# from ...utils.mathutils import pi
 from ...utils.mathutils import cos, sin
-# from ...utils.statemachine import Machine
-# from ...utils.geom import Line
 from ...utils.geom import Point
 
 
 class FishingRod(Goto):
     def __init__(self, robot, b_angle, t_angle=None, threshold=5):
         """
-         threshold: fixed distance
-         b_angle: base angle, driving orientation
-         b_point: base point, the robot itself
-         t_angle: target angle, robot facing angle
-         target: target point
+        threshold: fixed distance
+        b_angle: base angle, driving orientation
+        b_point: base point, the robot itself
+        t_angle: target angle, robot facing angle
+        target: target point
         """
 
         super(FishingRod, self).__init__(robot, angle=t_angle)

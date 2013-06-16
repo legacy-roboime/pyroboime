@@ -14,17 +14,17 @@ class DriveToObject(DriveTo):
                   robot: robot
 
         In adition to those, checkout DriveTo parameters as they are also
-        valid for this skill, EXCEPT for b_point, which is mapped to point.
+        valid for this skill, EXCEPT for base_point, which is mapped to point.
         """
         if not 'threshold' in kwargs:
             kwargs['threshold'] = robot.front_cut
-        super(DriveToObject, self).__init__(robot, b_point=point, **kwargs)
+        super(DriveToObject, self).__init__(robot, base_point=point, **kwargs)
         self.lookpoint = lookpoint
 
     def _step(self):
         # the angle from the object to the lookpoint, thanks to shapely is this
         # that's the angle we want to be at
-        self.angle = self.b_point.angle_to_point(self.lookpoint)
+        self.angle = self.base_point.angle_to_point(self.lookpoint)
 
         # nondeterministically we should add a random spice to our
         # target angle, of course, within the limits of max_ang_var
@@ -33,5 +33,5 @@ class DriveToObject(DriveTo):
 
         # ultimately we should update our base angle to the oposite
         # of our target angle and let drive to object to its thing
-        self.b_angle = remainder(self.angle + 180, 360)
+        self.base_angle = remainder(self.angle + 180, 360)
         super(DriveToObject, self)._step()

@@ -254,6 +254,10 @@ class Robot(geom.Point):
             return None
 
     @property
+    def is_goalie(self):
+        return self.team.goalie == self.uid if self.team is not None else None
+
+    @property
     def world(self):
         if self.team is not None:
             return self.team.world
