@@ -25,7 +25,7 @@ class RobotIdItem(QGraphicsItem):
         self.robot = robot
 
     def boundingRect(self):
-        return QRectF(0,0,0,0)
+        return QRectF(-80,-80,160,160)
 
     def position(self):
         x, y = s(self.robot)
@@ -41,6 +41,7 @@ class RobotIdItem(QGraphicsItem):
         painter.setFont(QFont('Courier', 132, 2))
         painter.drawText(-90, -140, robot_id)
         painter.restore()
+
 
 class RobotItem(QGraphicsItem):
     def __init__(self, robot):
@@ -96,14 +97,6 @@ class RobotItem(QGraphicsItem):
         painter.rotate(-self.cut_angle - robot_rotation)
         painter.drawPath(self.outline)
         painter.rotate(self.cut_angle + robot_rotation)
-
-        ## Draw id
-        #robot_id = QString('?')
-        #robot_id.setNum(self.robot.uid)
-        #painter.setBrush(BLACK)
-        #painter.setPen(BLACK)
-        #painter.setFont(QFont('Courier', 132, 2, False))
-        #painter.drawText(-90, -210, 1000, 1000, 0, robot_id)
 
         # Reset transformation
         painter.restore();
@@ -243,14 +236,9 @@ class BallItem(QGraphicsItem):
 class StageView(QGraphicsView):
     def __init__(self, parent=None):
         super(StageView, self).__init__(parent)
-
-        # All commented lines here are already loaded on GraphicsIntelligence.ui
-
         self.setBackgroundBrush(QBrush(FIELD_GREEN))
         self.setScene(QGraphicsScene(0, 0, 0, 0))
         self._world = None
-
-        # Set the zoom so the view doesn't starts all zoomed
         self.scale(1.0 / 15, 1.0 / 15)
 
     @property

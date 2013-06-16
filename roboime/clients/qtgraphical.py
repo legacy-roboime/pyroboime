@@ -112,8 +112,13 @@ class QtGraphicalClient(object):
         self.ui.cmbOurTeam.currentIndexChanged.connect(self.setTeamColor)
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
         self.ui.actionFullscreen.triggered.connect(self.toggleFullScreen)
-        self.ui.actionMainDock.toggled.connect(self.toggleMainDock)
+        self.ui.actionSetupDock.toggled.connect(self.toggleSetupDock)
+        self.ui.dockSetup.visibilityChanged.connect(self.toggleSetupDockAction)
         self.ui.actionRobotDock.toggled.connect(self.toggleRobotDock)
+        self.ui.dockRobot.visibilityChanged.connect(self.toggleRobotDockAction)
+
+        for i in range(self.intelligence.count_robot):
+            self.ui.cmbRobotID.addItem(str(i))
 
     def redraw(self):
         self.ui.stageView.redraw()
@@ -127,6 +132,20 @@ class QtGraphicalClient(object):
         self.ui.txtScoreRight.setText(str(w.right_team.score))
         self.ui.txtTimeoutsRight.setText(str(w.right_team.timeouts))
         self.ui.txtTimeoutTimeRight.setText('{:.02f}'.format((w.right_team.timeout_time or 0) / 1e6))
+
+        uid = self.ui.cmbRobotID.currentIndex()
+        team = w.blue_team if self.ui.cmbRobotTeam.currentText() == 'Azul' else w.yellow_team
+        robot = team[uid]
+        self.ui.txtRobotPosition.setText('x {: 6.2f}  y {: 6.2f}'.format(robot.x, robot.y))
+        if robot.angle is None:
+            self.ui.txtRobotAngle.setText('-')
+        else:
+            self.ui.txtRobotAngle.setText('{: 6.2f}'.format(robot.angle))
+        if robot.speed is None:
+            self.ui.txtRobotSpeed.setText('x -  y -')
+        else:
+            self.ui.txtRobotSpeed.setText('x {: 6.2f}  y {: 6.2f}'.format(robot.speed[0], robot.speed[1]))
+        self.ui.txtRobotCanKick.setText(str(robot.can_kick))
 
     # GUI Functions
     def setPenaltyKicker(self):
@@ -193,27 +212,35 @@ class QtGraphicalClient(object):
         if self.ui.windowState() & QtCore.Qt.WindowFullScreen:
             self.ui.showNormal()
             self.ui.dockSetup.show()
+            self.ui.dockRobot.show()
             self.ui.menuBar.show()
             #self.ui.statusBar.show()
         else:
             self.ui.showFullScreen()
             self.ui.dockSetup.hide()
+            self.ui.dockRobot.hide()
             self.ui.menuBar.show()
             #self.ui.statusBar.hide()
         QtGui.QApplication.processEvents()
         self.ui.stageView.fit()
 
-    def toggleMainDock(self, activate):
+    def toggleSetupDock(self, activate):
         if activate:
             self.ui.dockSetup.show()
         else:
             self.ui.dockSetup.hide()
+
+    def toggleSetupDockAction(self, activate):
+        self.ui.actionSetupDock.setChecked(activate)
 
     def toggleRobotDock(self, activate):
         if activate:
             self.ui.dockRobot.show()
         else:
             self.ui.dockRobot.hide()
+
+    def toggleRobotDockAction(self, activate):
+        self.ui.actionRobotDock.setChecked(activate)
 
     def teardown(self):
         """Tear down actions."""
