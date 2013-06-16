@@ -28,7 +28,6 @@ class GotoAvoid(Goto):
         a = self.avoid
         t = self.final_target
 
-        # TODO add error margin
         if self.avoid is not None and self.should_avoid:
             avoid_radius = self.avoid_radius
             # If the robot can go straight to the target unimpeded by avoid, do so.
@@ -36,7 +35,10 @@ class GotoAvoid(Goto):
                 p = t
             else:
                 # find the tangent point to avoid's circumference
-                circ_avoid = a.buffer(avoid_radius + .05).boundary
+
+                # XXX: .04 is a magic parameter of wizardry. It works beautifully. Altering this
+                # to 0.5 breaks the conditions.
+                circ_avoid = a.buffer(avoid_radius + .04).boundary
                 circ_robot_avoid = r.buffer(r.distance(a)).boundary
                 inter = circ_avoid.intersection(circ_robot_avoid)
                 if len(inter) == 2:
