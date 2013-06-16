@@ -23,6 +23,7 @@ def view_for(mapped_skill):
 
 
 class SkillView(QGraphicsItem):
+
     def __init__(self, skill):
         super(SkillView, self).__init__()
         self.skill = skill
@@ -35,8 +36,6 @@ class SkillView(QGraphicsItem):
 
 @view_for(goto.Goto)
 class GotoView(SkillView):
-    def __init__(self, goto, **kwargs):
-        super(GotoView, self).__init__(goto, **kwargs)
 
     def relative_point(self):
         x, y = s(self.skill.robot)

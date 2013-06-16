@@ -4,6 +4,7 @@ from PyQt4.QtCore import QRectF, Qt, QString
 from .qtutils import scale as s
 from ..utils.mathutils import sin, cos, acos
 from . import skillviews
+from . import tacticviews
 
 # some known uuids
 BALL = 0xba11
@@ -309,6 +310,13 @@ class StageView(QGraphicsView):
                 if skill is not None:
                     skill.position()
                     scene.addItem(skill)
+
+            for r in robots:
+                # draw the tactic
+                tactic = tacticviews.view_selector(r.tactic)
+                if tactic is not None:
+                    tactic.position()
+                    scene.addItem(tactic)
 
             ball = BallItem(w.ball)
             ball.position()
