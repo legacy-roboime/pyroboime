@@ -46,8 +46,8 @@ class Action(object):
     def __init__(self, robot, target=None, speeds=None):
         """
         The action can do a veeery rudimentary control, for that one has to set
-        a target instead of the speeds. This feature is deprecated and may be 
-        removed at any time. Pass the x, y, angular speeds to the action instead 
+        a target instead of the speeds. This feature is deprecated and may be
+        removed at any time. Pass the x, y, angular speeds to the action instead
         when creating it.
 
         For going to the point x=3, y=5 with and angle=30:
@@ -153,6 +153,7 @@ class Robot(geom.Point):
         # and some geometry framework can use that angle
         self.angle = None
         self.speed = None
+        self.acceleration = None
         self.active = False
 
         # basic

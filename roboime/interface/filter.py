@@ -69,10 +69,7 @@ class Speed(Filter):
 
     def remember_updates(self, updates):
         for u in updates:
-            # FIXME: This is motherfucking ugly. We certainly don't need to have hard-coded uids all over the filters.
-            # this should be standarized, this magic numbers
-            # are ids to filter only updates for robots or the ball
-            if u.uid() < 0x400 or u.uid() == 0xba11:
+            if isinstance(u, RobotUpdate) or isinstance(u, BallUpdate):
                 self.previous[u.uid()] = u
 
     def filter_updates(self, updates):
@@ -82,6 +79,37 @@ class Speed(Filter):
                 px, py, pt, = pu.data['x'], pu.data['y'], pu.data['timestamp']
                 x, y, t = u.data['x'], u.data['y'], u.data['timestamp']
                 u.data['speed'] = array((x - px, y - py)) / (t - pt)
+        self.remember_updates(updates)
+
+
+class Acceleration(Filter):
+    """
+    This filter infers acceleration based on memorization of packages
+    with smaller timestamps.
+
+    The process per se is really stupid, accel = delta_speed / delta_time,
+    but in the lack of an smarter filter this should do fine.
+
+    It seems a good idea to filter the data coming from this filter
+    with something smarter.
+    """
+
+    def __init__(self):
+        super(Acceleration, self).__init__()
+        self.previous = {}
+
+    def remember_updates(self, updates):
+        for u in updates:
+            if (isinstance(u, RobotUpdate) or isinstance(u, BallUpdate)) and 'speed' in u.data:
+                self.previous[u.uid()] = u
+
+    def filter_updates(self, updates):
+        for u in updates:
+            if u.uid() in self.previous:
+                pu = self.previous[u.uid()]
+                ps, pt, = pu.data['speed'], pu.data['timestamp']
+                s, t = u.data['speed'], u.data['timestamp']
+                u.data['acceleration'] = (s - ps) / (t - pt)
         self.remember_updates(updates)
 
 

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1201</width>
+    <width>1268</width>
     <height>715</height>
    </rect>
   </property>
@@ -59,7 +59,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1201</width>
+     <width>1268</width>
      <height>22</height>
     </rect>
    </property>
@@ -75,7 +75,15 @@
     </property>
     <addaction name="actionFullscreen"/>
    </widget>
+   <widget class="QMenu" name="menuJanelas">
+    <property name="title">
+     <string>Janelas</string>
+    </property>
+    <addaction name="actionSetupDock"/>
+    <addaction name="actionRobotDock"/>
+   </widget>
    <addaction name="menuArquivo"/>
+   <addaction name="menuJanelas"/>
    <addaction name="menuOp_es"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -114,9 +122,6 @@
      </property>
      <item>
       <widget class="QTabWidget" name="tabWidget">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -130,7 +135,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab">
         <property name="sizePolicy">
@@ -150,38 +155,79 @@
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
             <layout class="QGridLayout" name="gridLayout_2">
-             <item row="0" column="1">
+             <item row="1" column="1">
               <widget class="QLineEdit" name="txtRefCommand">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="readOnly">
                 <bool>true</bool>
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="txtRefStage">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
               <widget class="QLabel" name="lblTempoJogo">
                <property name="text">
                 <string>Tempo restante:</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
+             <item row="1" column="2" alignment="Qt::AlignHCenter">
               <widget class="QLineEdit" name="txtTimeLeft">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>50</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="readOnly">
                 <bool>true</bool>
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
+             <item row="0" column="1">
               <widget class="QLabel" name="lblJuiz">
                <property name="text">
                 <string>Juiz:</string>
                </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
               </widget>
              </item>
-             <item row="0" column="2">
-              <widget class="QLineEdit" name="txtRefStage"/>
-             </item>
             </layout>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout">
@@ -199,6 +245,18 @@
               <layout class="QHBoxLayout" name="horizontalLayout">
                <item>
                 <widget class="QLineEdit" name="txtScoreLeft">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>40</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="readOnly">
                   <bool>true</bool>
                  </property>
@@ -213,6 +271,18 @@
                </item>
                <item>
                 <widget class="QLineEdit" name="txtScoreRight">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>40</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="readOnly">
                   <bool>true</bool>
                  </property>
@@ -221,6 +291,19 @@
               </layout>
              </item>
             </layout>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <layout class="QGridLayout" name="gridLayout">
@@ -294,7 +377,7 @@
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <property name="spacing">
-          <number>-1</number>
+          <number>6</number>
          </property>
          <item>
           <layout class="QGridLayout" name="gridLayout_5">
@@ -480,19 +563,6 @@
            </item>
           </layout>
          </item>
-         <item>
-          <spacer name="verticalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
         </layout>
        </widget>
        <widget class="QWidget" name="tab_2">
@@ -512,6 +582,200 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="dockRobot">
+   <property name="minimumSize">
+    <size>
+     <width>326</width>
+     <height>218</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>Controle do Robô</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>4</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QGridLayout" name="gridLayout_9">
+     <property name="margin">
+      <number>0</number>
+     </property>
+     <property name="spacing">
+      <number>6</number>
+     </property>
+     <item row="1" column="0">
+      <layout class="QGridLayout" name="gridLayout_7">
+       <property name="margin">
+        <number>12</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="QGraphicsView" name="viewRobotView">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>100</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>100</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <layout class="QGridLayout" name="gridLayout_8">
+         <property name="margin">
+          <number>6</number>
+         </property>
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_12">
+           <property name="text">
+            <string>Ângulo</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLabel" name="txtRobotSpeed">
+           <property name="font">
+            <font>
+             <family>Courier</family>
+            </font>
+           </property>
+           <property name="text">
+            <string>--</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLabel" name="txtRobotAngle">
+           <property name="font">
+            <font>
+             <family>Courier</family>
+            </font>
+           </property>
+           <property name="text">
+            <string>--</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_14">
+           <property name="text">
+            <string>Velocidade</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QLabel" name="txtRobotCanKick">
+           <property name="font">
+            <font>
+             <family>Courier</family>
+            </font>
+           </property>
+           <property name="text">
+            <string>--</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>CanChute</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QComboBox" name="cmbRobotID">
+           <property name="currentIndex">
+            <number>-1</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>Posição</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>Robô</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Time</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="txtRobotPosition">
+           <property name="font">
+            <font>
+             <family>Courier</family>
+            </font>
+           </property>
+           <property name="text">
+            <string>--</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QComboBox" name="cmbRobotTeam">
+           <item>
+            <property name="text">
+             <string>Azul</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Amarelo</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_10">
+           <property name="text">
+            <string>Aceleração</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLabel" name="txtRobotAcceleration">
+           <property name="font">
+            <font>
+             <family>Courier</family>
+             <pointsize>13</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>--</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionSair">
    <property name="text">
     <string>Sair</string>
@@ -524,10 +788,32 @@
   </action>
   <action name="actionFullscreen">
    <property name="text">
-    <string>Tela Cheia</string>
+    <string>Tela Cheia (F2)</string>
    </property>
    <property name="shortcut">
     <string>F2</string>
+   </property>
+  </action>
+  <action name="actionSetupDock">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Principal</string>
+   </property>
+  </action>
+  <action name="actionRobotDock">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Controle do Robô</string>
    </property>
   </action>
  </widget>

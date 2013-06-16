@@ -153,7 +153,11 @@ class SimulationInterface(Interface):
             commanders=[commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)],
 
             #filters=filters + [filter.LowPass(), filter.Speed(), filter.Scale()],
-            filters=filters + [filter.Speed(), filter.Scale()],
+            filters=filters + [
+                filter.Acceleration(),
+                filter.Speed(),
+                filter.Scale(),
+            ],
             **kwargs
         )
 
