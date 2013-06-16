@@ -7,6 +7,7 @@ from ..skills.gotolooking import GotoLooking
 from ...utils.mathutils import sin
 from ...utils.mathutils import cos
 
+
 class Blocker(Tactic):
     """
     Follow a point, maintaining a fixed distance from it while

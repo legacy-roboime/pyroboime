@@ -59,25 +59,25 @@ class Tx2012Commander(Commander):
         # RoboIME 2013
         self.wheel_angles = [
             -1.0471975511965977461542144610932,
-             1.0471975511965977461542144610932,
-             2.3561944901923449288469825374596,
+            +1.0471975511965977461542144610932,
+            +2.3561944901923449288469825374596,
             -2.3561944901923449288469825374596,
         ]
- 
+
         # RoboIME 2012
         #self.wheel_angles = [
         #    -0.99483767363676785884650373803851,
-        #     0.99483767363676785884650373803851,
-        #     2.3561944901923449288469825374596,
+        #    +0.99483767363676785884650373803851,
+        #    +2.3561944901923449288469825374596,
         #    -2.3561944901923449288469825374596,
         #]
-        self.wheel_radius = 28.9;
-        self.wheel_distance = 80.6;
+        self.wheel_radius = 28.9
+        self.wheel_distance = 80.6
 
     def omniwheel_speeds(self, theta, vx, vy, va):
         speeds = []
         for j in xrange(4):
-            a = self.wheel_angles[j];
+            a = self.wheel_angles[j]
             val = cos(a) * (vy * cos(theta) - vx * sin(theta)) - sin(a) * (vx * cos(theta) + vy * sin(theta)) + va * self.wheel_distance
             val /= self.wheel_radius
             val /= 2 * pi
@@ -95,7 +95,7 @@ class Tx2012Commander(Commander):
                     string_list.append(str(self.mapping_dict[a.uid]))
                 else:
                     continue
-                
+
                 string_list.append(str((a.robot.angle or 0.0)))
                 string_list.extend([str(i) for i in self.omniwheel_speeds(a.robot.angle, vx, vy, va)])
                 string_list.append(str((a.dribble or 0.0)))
@@ -108,7 +108,8 @@ class Tx2012Commander(Commander):
                 a.reset()
 
             packet = ' '.join(string_list)
-            if self.verbose: print packet
+            if self.verbose:
+                print packet
             if packet:
                 self.sender.send(packet)
 
@@ -134,7 +135,7 @@ class TxCommander(Commander):
         self.team = team
         self.verbose = verbose
         self.sender = unicast.UnicastSender(address=(ipaddr, port))
- 
+
     def send(self, actions):
         string_list = []
         if len(actions) > 0:
@@ -147,7 +148,7 @@ class TxCommander(Commander):
                     string_list.append(str(self.mapping_dict[a.uid]))
                 else:
                     continue
-                
+
                 string_list.append(str((a.robot.angle or 0.0)))
                 string_list.append(str((vx or 0.0)))
                 string_list.append(str((vy or 0.0)))
@@ -158,8 +159,9 @@ class TxCommander(Commander):
                 a.reset()
 
             packet = ' '.join(string_list)
-            if self.verbose: print packet
-            if packet: 
+            if self.verbose:
+                print packet
+            if packet:
                 self.sender.send(packet)
 
 

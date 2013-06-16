@@ -4,6 +4,7 @@ from collections import defaultdict
 
 from roboime.interface.updater import RobotUpdate, BallUpdate, GeometryUpdate
 
+
 class Filter(object):
     """The filter class is the base for all filters.
 
@@ -102,36 +103,36 @@ class LowPass(Filter):
         self.u0 = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
         self.v0 = defaultdict(local_factory=lambda: [0., 0., 0., 0.])
 
-def filter_updates(self, updates):
-    for u in updates:
-        if isinstance(update, RobotUpdate) or isinstance(update, BallUpdate):
-            ux = self.ux[u.uid()]
-            uy = self.uy[u.uid()]
-            vx = self.vx[u.uid()]
-            vy = self.vy[u.uid()]
-            u0 = self.u0[u.uid()]
-            v0 = self.v0[u.uid()]
-    
-            ux[0] = ux[1]
-            ux[1] = ux[2]
-            ux[2] = ux[3]
-            ux[3] = u.data['x'] / self.gain
-            vx[0] = vx[1]
-            vx[1] = vx[2]
-            vx[2] = vx[3]
-            vx[3] = (ux[0] + ux[3]) + self.coef[0] * (ux[1] + ux[2]) + (self.coef[1] * vx[0]) + (self.coef[2] * vx[1]) + self.coef[3] * vx[2]
+    def filter_updates(self, updates):
+        for u in updates:
+            if isinstance(u, RobotUpdate) or isinstance(u, BallUpdate):
+                ux = self.ux[u.uid()]
+                uy = self.uy[u.uid()]
+                vx = self.vx[u.uid()]
+                vy = self.vy[u.uid()]
+                #u0 = self.u0[u.uid()]
+                #v0 = self.v0[u.uid()]
 
-            uy[0] = uy[1]
-            uy[1] = uy[2]
-            uy[2] = uy[3]
-            uy[3] = u.data['y'] / self.gain
-            vy[0] = vy[1]
-            vy[1] = vy[2]
-            vy[2] = vy[3]
-            vy[3] = (uy[0] + uy[3]) + self.coef[0] * (uy[1] + uy[2]) + (self.coef[1] * vy[0]) + (self.coef[2] * vy[1]) + self.coef[3] * vy[2]
+                ux[0] = ux[1]
+                ux[1] = ux[2]
+                ux[2] = ux[3]
+                ux[3] = u.data['x'] / self.gain
+                vx[0] = vx[1]
+                vx[1] = vx[2]
+                vx[2] = vx[3]
+                vx[3] = (ux[0] + ux[3]) + self.coef[0] * (ux[1] + ux[2]) + (self.coef[1] * vx[0]) + (self.coef[2] * vx[1]) + self.coef[3] * vx[2]
 
-            u.data['x'], u.data['y'] = vx[3], vy[3]
+                uy[0] = uy[1]
+                uy[1] = uy[2]
+                uy[2] = uy[3]
+                uy[3] = u.data['y'] / self.gain
+                vy[0] = vy[1]
+                vy[1] = vy[2]
+                vy[2] = vy[3]
+                vy[3] = (uy[0] + uy[3]) + self.coef[0] * (uy[1] + uy[2]) + (self.coef[1] * vy[0]) + (self.coef[2] * vy[1]) + self.coef[3] * vy[2]
 
-        # TODO: Angle filtering.
-        if isinstance(update, RobotUpdate):
-            pass
+                u.data['x'], u.data['y'] = vx[3], vy[3]
+
+            # TODO: Angle filtering.
+            if isinstance(u, RobotUpdate):
+                pass

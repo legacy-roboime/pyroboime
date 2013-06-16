@@ -3,6 +3,7 @@ from ...utils.statemachine import Transition
 from ..skills.drivetoobject import DriveToObject
 from ..skills.followandcover import FollowAndCover
 
+
 class Defender(Tactic):
     """
     If you need robots on the defense line, use this.
@@ -52,7 +53,8 @@ class Defender(Tactic):
             transitions=[
                 Transition(self.drive_to_object, self.follow_and_cover, condition=lambda: self.enemy.distance(self.robot.goal) < self.proximity - self.flapping_margin),
                 Transition(self.follow_and_cover, self.drive_to_object, condition=lambda: self.enemy.distance(self.robot.goal) > self.proximity + self.flapping_margin),
-        ])
+            ]
+        )
 
     @property
     def enemy(self):

@@ -25,7 +25,7 @@ class Penalty(Play):
         self.tactics_factory = lambda robot: {
             'goalkeeper': Goalkeeper(robot, aggressive=False, angle=0),
             'attacker': Zickler43(robot),
-            'blocker': Blocker(robot, arc=0, distance=self.team[0].radius+2*self.world.ball.radius),
+            'blocker': Blocker(robot, arc=0, distance=self.team[0].radius + 2 * self.world.ball.radius),
             'goto': Goto(robot),
         }
         self.ready = False
@@ -54,10 +54,10 @@ class Penalty(Play):
                 self.players[r_id]['goalkeeper'].step()
             elif r_id == atk_id:
                 self.attacker = robot
-                if self.ready: 
+                if self.ready:
                     self.players[r_id]['attacker'].step()
                 else:
                     self.players[r_id]['blocker'].step()
             else:
-                self.players[r_id]['goto'].target =  Point(array(self.goal.penalty_line)[0] * (-1) - array((robot.radius * -1 * sign(self.goal.x), robot.radius * 3 * (1 + r_id))))
+                self.players[r_id]['goto'].target = Point(array(self.goal.penalty_line)[0] * (-1) - array((robot.radius * -1 * sign(self.goal.x), robot.radius * 3 * (1 + r_id))))
                 self.players[r_id]['goto'].step()

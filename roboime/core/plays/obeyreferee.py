@@ -17,7 +17,7 @@ class ObeyReferee(Play):
     """
     On normal tournament play, actions should be chosen according to
     referee commands. This (and other possible referee play variants)
-    is the only play that should read from referee commands. 
+    is the only play that should read from referee commands.
 
     It switches the appropriate plays for each ocasion, and receives one
     main play as a parameter: the play we'll be using to actually play
@@ -48,7 +48,7 @@ class ObeyReferee(Play):
             self.last_ball = Point(self.ball)
             first_time = True
         ball_distance = self.ball.distance(self.last_ball)
-        
+
         if self.verbose:
             pass
 
@@ -63,8 +63,7 @@ class ObeyReferee(Play):
             self.penalty_us.ready = False
             self.penalty_us.step()
 
-
-        elif (self.command == Command.NormalStart and 
+        elif (self.command == Command.NormalStart and
                 ((self.last_command == Command.PreparePenaltyYellow and self.team.color == Yellow) or
                 (self.last_command == Command.PreparePenaltyBlue and self.team.color == Blue))):
             # After the penalty kicker reaches its position, it actually kicks
@@ -75,10 +74,11 @@ class ObeyReferee(Play):
                 self.last_command = Command.NormalStart
 
         elif ((self.command == Command.PreparePenaltyYellow and self.team.color == Blue) or
-                 (self.command == Command.PreparePenaltyBlue and self.team.color == Yellow)):
+              (self.command == Command.PreparePenaltyBlue and self.team.color == Yellow)):
             self.penalty_them.step()
 
-        elif (self.command == Command.NormalStart and ((self.last_command == Command.PreparePenaltyYellow and self.team.color == Blue) or
+        elif (self.command == Command.NormalStart and
+                ((self.last_command == Command.PreparePenaltyYellow and self.team.color == Blue) or
                 (self.last_command == Command.PreparePenaltyBlue and self.team.color == Yellow))):
             # TODO: Should I put the ball's speed back here?
             if ball_distance > TOLERANCE:
@@ -114,7 +114,7 @@ class ObeyReferee(Play):
         elif self.command == Command.Halt:
             self.halt.step()
 
-        elif (self.command == Command.NormalStart and 
+        elif (self.command == Command.NormalStart and
                 ((self.last_command == Command.PrepareKickoffYellow and self.team.color == Yellow) or
                 (self.last_command == Command.PrepareKickoffBlue and self.team.color == Blue))):
             self.play.step()

@@ -7,6 +7,7 @@ from ..skills.goto import Goto
 from ...utils.geom import Point
 from ..skills.halt import Halt
 
+
 class PenaltyDefend(Play):
     """
     Pretty straight forward too, defend a penalty.
@@ -41,6 +42,6 @@ class PenaltyDefend(Play):
             if r_id == gk_id:
                 self.players[r_id]['goalkeeper'].step()
             else:
-                self.players[r_id]['goto'].target =  Point(array(self.goal.penalty_line)[0] + array((robot.radius * sign(self.goal.x), robot.radius * 3 * (1 + r_id))))
+                self.players[r_id]['goto'].target = Point(array(self.goal.penalty_line)[0] + array((robot.radius * sign(self.goal.x), robot.radius * 3 * (1 + r_id))))
                 self.players[r_id]['goto'].step()
                 #self.players[r_id]['halt'].step()

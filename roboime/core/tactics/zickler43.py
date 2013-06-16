@@ -15,7 +15,7 @@ class Zickler43(Tactic):
     For more details see page 43 of the Zickler thesis.
 
     Ok, actually, no. This tactic is far from the original however
-    the purpose is basically the same. This is an attacker. Main 
+    the purpose is basically the same. This is an attacker. Main
     differences from zickler thesis are that this tactic is deterministic,
     and that the minikick skill doesn't appear here.
 
