@@ -1,5 +1,6 @@
 from numpy import array
-from math import degrees
+from numpy.random import normal
+from math import degrees, sqrt
 from roboime.interface.updater import RobotUpdate, BallUpdate, GeometryUpdate
 
 
@@ -77,3 +78,95 @@ class Speed(Filter):
                 x, y, t = u.data['x'], u.data['y'], u.data['timestamp']
                 u.data['speed'] = array((x - px, y - py)) / (t - pt)
         self.remember_updates(updates)
+
+
+class UpdateLog(Filter):
+    """
+    This filter is a form of storing updates on a file for further debugging
+    purposes.
+    
+    On instantiation, requires a filename to store updates. If the filename is
+    None or if there is some problem opening the file, the filter just ignores
+    the problem and goes on.
+    """
+    def __init__(self, filename):
+        import datetime as dt
+        try:
+            self.file = open(filename, 'a')
+            self.file.writelines(["Communications log file opened: %s\n" % (filename), "At %s\n" % (dt.datetime.now().isoformat(' '))])
+        except:
+            self.file = None
+            print("Could not open log file (%s). Continuing..." % (filename))
+        super(UpdateLog, self).__init__()
+        
+    def filter_updates(self, updates):
+        if self.file != None:
+            for u in updates:
+                self.file.write(str(u)+"\n")
+
+
+class CommandUpdateLog(UpdateLog):
+    """
+    This filter is based on the UpdateLog filter and also stores commands.
+    """
+    def filter_commands(self, commands):
+        if self.file != None:
+            for c in commands:
+                self.file.write(str(c)+"\n")
+                
+
+class PositionLog(Filter):
+    """
+    This filter stores the position data on a CSV file, with a format suitable
+    for easy loading on a math program, like using pylab's loadtxt().
+    
+    The format is:
+    timestamp   UID x   y   angle
+    
+    This format is stored as a header in the first line of the file, like a
+    Python comment (start with #).
+    """
+    def __init__(self, filename):
+        try:
+            self.file = open(filename, 'w') #TODO: change to 'a' if want to append logs
+            self.file.write("#Time\tUID\tx\ty\tangle\n")
+        except:
+            self.file = None
+            if filename != None:
+                print("Could not open log file (%s). Continuing..." % (filename))
+        super(PositionLog, self).__init__()
+        
+    def filter_updates(self, updates):
+        if self.file != None:
+            for u in updates:
+                if u.uid() < 0x400 or u.uid() == 0xba11:
+                    self.file.write("%f\t%s\t%f\t%f\t%f\n" % (u.data['timestamp'], \
+                                                              int(u.uid()), \
+                                                              u.data.get('x',0), \
+                                                              u.data.get('y',0), \
+                                                              u.data.get('angle',0)))
+                                                              
+
+class Noise(Filter):
+    """
+    This filter adds a variance to the input x, y and angle variables. This is
+    used to evaluate filter performance. Despite having this feature on grSim,
+    using a filter inside the client allows storage of the data before the
+    addition of noise. This allows easier performance comparison when 
+    PositionLog filters are added both before and after noise addition.
+    
+    Variances for x, y and angle data is defined on filter instantiation.
+    """
+    def __init__(self, variance_x, variance_y, variance_angle):
+        self.std_dev_x = sqrt(variance_x)
+        self.std_dev_y = sqrt(variance_y)
+        self.std_dev_a = sqrt(variance_angle)
+        
+    def filter_updates(self, updates):
+        for u in updates:
+            if u.uid() < 0x400 or u.uid() == 0xba11:
+                u.data['x'] = normal(u.data['x'], self.std_dev_x)
+                u.data['y'] = normal(u.data['y'], self.std_dev_y)
+            if u.uid() < 0x400:
+                u.data['angle'] = normal(u.data['angle'], self.std_dev_a)
+            

@@ -7,7 +7,7 @@ from multiprocessing import Process, Event
 from . import updater
 from . import commander
 from . import filter
-
+from .. import options
 
 def _update_loop(queue, updater):
     while True:
@@ -133,7 +133,11 @@ class SimulationInterface(Interface):
             world,
             updaters=[updater.SimVisionUpdater(), updater.RefereeUpdater()],
             commanders=[commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)],
-            filters=filters + [filter.Speed(), filter.Scale()],
+            filters=filters + [filter.Speed(),
+                               filter.Scale(),
+                               filter.PositionLog(options.position_log_filename),
+                               filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
+                               filter.PositionLog(options.position_log_noise_filename)],
             **kwargs
         )
 
