@@ -14,11 +14,11 @@ RED = Qt.red
 view_table = OrderedDict()
 
 
-def view_for(skill):
+def view_for(mapped_skill):
     # TODO: make this resolve dependencies
-    def _view_for(view):
-        view_table[skill] = view
-        return view
+    def _view_for(view_class):
+        view_table[mapped_skill] = view_class
+        return view_class
     return _view_for
 
 
