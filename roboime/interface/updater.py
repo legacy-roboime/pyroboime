@@ -106,6 +106,7 @@ class TeamUpdate(Update):
     def uid(self):
         return 0x7e488
 
+
 class Updater(Process):
 
     def __init__(self, maxsize=15):

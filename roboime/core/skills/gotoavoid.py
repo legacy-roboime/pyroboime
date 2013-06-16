@@ -13,7 +13,7 @@ class GotoAvoid(Goto):
         super(GotoAvoid, self).__init__(robot, target, angle=angle, final_target=target)
         self.avoid = avoid
 
-    def step(self):
+    def _step(self):
         r = self.robot
         a = self.avoid
         t = self.final_target
@@ -40,4 +40,4 @@ class GotoAvoid(Goto):
                 p1, p2 = array(r) + normal * avoid_radius, array(r) - normal * avoid_radius
                 p = p1 if p1.distance(t) < p2.distance(t) else p2
         self.target = p
-        super(GotoAvoid, self).step()
+        super(GotoAvoid, self)._step()

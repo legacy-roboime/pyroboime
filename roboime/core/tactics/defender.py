@@ -3,6 +3,7 @@ from ...utils.statemachine import Transition
 from ..skills.drivetoobject import DriveToObject
 from ..skills.followandcover import FollowAndCover
 
+
 class Defender(Tactic):
     """
     If you need robots on the defense line, use this.
@@ -23,33 +24,37 @@ class Defender(Tactic):
         """
         self.proximity = proximity
         self.cover = robot.goal if cover is None else cover
-        self.robots = [robot]
         self.distance = distance
         self.follow_distance = follow_distance
         self.proximity = proximity
         self.flapping_margin = flapping_margin
         self._enemy = enemy
         self.follow_and_cover = FollowAndCover(
-            self.robot,
+            robot,
             follow=self.enemy,
             cover=self.cover,
             distance=self.follow_distance,
             referential=self.enemy,
         )
         self.drive_to_object = DriveToObject(
-            self.robot,
+            robot,
             point=self.cover,
             lookpoint=self.enemy,
-            threshold=-(self.distance + self.robot.radius),
+            threshold=-(self.distance + robot.radius),
         )
+        # the following line is so that lambdas can use self.robot instead of robot and keep track of the robot
+        # even if it changes, although tactics are supposed to never change its robot we're trying to keep it
+        # flexible
+        self._robot = robot
         super(Defender, self).__init__(
-            [robot],
+            robot,
             deterministic=True,
             initial_state=self.drive_to_object,
             transitions=[
                 Transition(self.drive_to_object, self.follow_and_cover, condition=lambda: self.enemy.distance(self.robot.goal) < self.proximity - self.flapping_margin),
                 Transition(self.follow_and_cover, self.drive_to_object, condition=lambda: self.enemy.distance(self.robot.goal) > self.proximity + self.flapping_margin),
-        ])
+            ]
+        )
 
     @property
     def enemy(self):
