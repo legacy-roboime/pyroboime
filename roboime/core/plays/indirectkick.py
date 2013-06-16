@@ -116,8 +116,14 @@ class IndirectKick(Stop, StateMachine):
 
         elif self.current_state == self.states['touched']:
             robots_closest_to_ball = self.team.closest_robots_to_ball()
-            robots_closest_to_ball.remove(self.goalkeeper)
-            robots_closest_to_ball.remove(self.passer)
+            try:
+                robots_closest_to_ball.remove(self.goalkeeper)
+            except ValueError:
+                pass
+            try:
+                robots_closest_to_ball.remove(self.passer)
+            except ValueError:
+                pass
 
             attacker = robots_closest_to_ball[0]
             attacker.current_tactic = self.players[attacker.uid]['zickler']

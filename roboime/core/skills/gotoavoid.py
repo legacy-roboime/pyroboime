@@ -18,7 +18,7 @@ class GotoAvoid(Goto):
         super(GotoAvoid, self).__init__(robot, target, angle=angle, **kwargs)
         self.avoid = avoid
         self.should_avoid = True
-    
+
     @property
     def avoid_radius(self):
         return self.robot.radius + self.world.ball.radius + .02

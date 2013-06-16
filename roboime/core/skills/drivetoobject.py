@@ -2,9 +2,10 @@ from numpy.random import random
 from numpy import remainder
 
 from .driveto import DriveTo
+from .gotoavoid import GotoAvoid
 
 
-class DriveToObject(DriveTo):
+class DriveToObject(DriveTo, GotoAvoid):
     def __init__(self, robot, point, lookpoint, **kwargs):
         """
         Robot is positioned oposed to the lookpoint.
@@ -19,7 +20,18 @@ class DriveToObject(DriveTo):
         if not 'threshold' in kwargs:
             kwargs['threshold'] = robot.front_cut
         super(DriveToObject, self).__init__(robot, base_point=point, **kwargs)
-        self.lookpoint = lookpoint
+        self._lookpoint = lookpoint
+
+    @property
+    def lookpoint(self):
+        if callable(self._lookpoint):
+            return self._lookpoint()
+        else:
+            return self._lookpoint
+
+    @lookpoint.setter
+    def lookpoint(self, point):
+        self._lookpoint = point
 
     def _step(self):
         # the angle from the object to the lookpoint, thanks to shapely is this

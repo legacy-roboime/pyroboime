@@ -152,8 +152,8 @@ class Robot(geom.Point):
         # ideally robot should inherit from a class that has an angle
         # and some geometry framework can use that angle
         self.angle = None
-        self.speed = None
-        self.acceleration = None
+        self.speed = array((0.0, 0.0))
+        self.acceleration = array((0.0, 0.0))
         self.active = False
 
         # basic

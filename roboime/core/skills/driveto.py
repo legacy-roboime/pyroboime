@@ -2,12 +2,12 @@
 from numpy import array
 from numpy.linalg import norm
 
-from .gotoavoid import GotoAvoid
+from .goto import Goto
 from ...utils.mathutils import cos, sin
 from ...utils.geom import Point
 
 
-class DriveTo(GotoAvoid):
+class DriveTo(Goto):
     def __init__(self, robot, base_angle=0, base_point=Point([0, 0]), angle=0, threshold=0.005, max_error_d=0.2, max_error_a=10.0, **kwargs):
         """
                                 x <-- target (calculated by skill)
