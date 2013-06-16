@@ -136,15 +136,19 @@ class QtGraphicalClient(object):
         uid = self.ui.cmbRobotID.currentIndex()
         team = w.blue_team if self.ui.cmbRobotTeam.currentText() == 'Azul' else w.yellow_team
         robot = team[uid]
-        self.ui.txtRobotPosition.setText('x {: 6.2f}  y {: 6.2f}'.format(robot.x, robot.y))
+        self.ui.txtRobotPosition.setText('{: 6.2f}, {: 6.2f}'.format(robot.x, robot.y))
         if robot.angle is None:
-            self.ui.txtRobotAngle.setText('-')
+            self.ui.txtRobotAngle.setText('--')
         else:
             self.ui.txtRobotAngle.setText('{: 6.2f}'.format(robot.angle))
         if robot.speed is None:
-            self.ui.txtRobotSpeed.setText('x -  y -')
+            self.ui.txtRobotSpeed.setText('--')
         else:
-            self.ui.txtRobotSpeed.setText('x {: 6.2f}  y {: 6.2f}'.format(robot.speed[0], robot.speed[1]))
+            self.ui.txtRobotSpeed.setText('{: 6.2f}, {: 6.2f}'.format(*robot.speed))
+        if robot.acceleration is None:
+            self.ui.txtRobotAcceleration.setText('--')
+        else:
+            self.ui.txtRobotAcceleration.setText('{: 6.2f}, {: 6.2f}'.format(*robot.acceleration))
         self.ui.txtRobotCanKick.setText(str(robot.can_kick))
 
     # GUI Functions

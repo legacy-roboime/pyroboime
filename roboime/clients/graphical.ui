@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1201</width>
+    <width>1268</width>
     <height>715</height>
    </rect>
   </property>
@@ -21,16 +21,7 @@
     </sizepolicy>
    </property>
    <layout class="QGridLayout" name="gridLayout_3">
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>0</number>
     </property>
     <property name="spacing">
@@ -68,8 +59,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1201</width>
-     <height>21</height>
+     <width>1268</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuArquivo">
@@ -126,16 +117,7 @@
      <property name="sizeConstraint">
       <enum>QLayout::SetNoConstraint</enum>
      </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>0</number>
      </property>
      <item>
@@ -603,8 +585,8 @@
   <widget class="QDockWidget" name="dockRobot">
    <property name="minimumSize">
     <size>
-     <width>245</width>
-     <height>196</height>
+     <width>326</width>
+     <height>218</height>
     </size>
    </property>
    <property name="windowTitle">
@@ -615,16 +597,7 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QGridLayout" name="gridLayout_9">
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>0</number>
      </property>
      <property name="spacing">
@@ -632,6 +605,9 @@
      </property>
      <item row="1" column="0">
       <layout class="QGridLayout" name="gridLayout_7">
+       <property name="margin">
+        <number>12</number>
+       </property>
        <item row="0" column="0">
         <widget class="QGraphicsView" name="viewRobotView">
          <property name="sizePolicy">
@@ -656,21 +632,19 @@
        </item>
        <item row="0" column="1">
         <layout class="QGridLayout" name="gridLayout_8">
-         <property name="leftMargin">
-          <number>6</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>6</number>
-         </property>
-         <property name="bottomMargin">
+         <property name="margin">
           <number>6</number>
          </property>
          <property name="spacing">
           <number>6</number>
          </property>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_12">
+           <property name="text">
+            <string>Ângulo</string>
+           </property>
+          </widget>
+         </item>
          <item row="4" column="1">
           <widget class="QLabel" name="txtRobotSpeed">
            <property name="font">
@@ -679,7 +653,7 @@
             </font>
            </property>
            <property name="text">
-            <string>0</string>
+            <string>--</string>
            </property>
           </widget>
          </item>
@@ -691,7 +665,7 @@
             </font>
            </property>
            <property name="text">
-            <string>0</string>
+            <string>--</string>
            </property>
           </widget>
          </item>
@@ -702,7 +676,7 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
+         <item row="6" column="1">
           <widget class="QLabel" name="txtRobotCanKick">
            <property name="font">
             <font>
@@ -710,11 +684,11 @@
             </font>
            </property>
            <property name="text">
-            <string>True</string>
+            <string>--</string>
            </property>
           </widget>
          </item>
-         <item row="5" column="0">
+         <item row="6" column="0">
           <widget class="QLabel" name="label_18">
            <property name="text">
             <string>CanChute</string>
@@ -757,14 +731,7 @@
             </font>
            </property>
            <property name="text">
-            <string>0 0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_12">
-           <property name="text">
-            <string>Ângulo</string>
+            <string>--</string>
            </property>
           </widget>
          </item>
@@ -780,6 +747,26 @@
              <string>Amarelo</string>
             </property>
            </item>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_10">
+           <property name="text">
+            <string>Aceleração</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLabel" name="txtRobotAcceleration">
+           <property name="font">
+            <font>
+             <family>Courier</family>
+             <pointsize>13</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>--</string>
+           </property>
           </widget>
          </item>
         </layout>
