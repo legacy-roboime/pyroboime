@@ -35,3 +35,8 @@ def draw_arc(x, y, radius_in, radius_out, angle_init, angle_end, painter):
     path.closeSubpath()
 
     painter.drawPath(path)
+
+
+def draw_x(painter, x, y, m):
+    painter.drawLine(x - m, y - m, x + m, y + m)
+    painter.drawLine(x - m, y + m, x + m, y - m)

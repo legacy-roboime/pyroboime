@@ -76,17 +76,26 @@ class StageView(QGraphicsView):
 
             robots = w.robots
 
+            # bottom layer: the robots
             for r in robots:
                 # draw the robot
                 robot = worldviews.RobotView(r)
                 robot.position()
                 scene.addItem(robot)
 
+            # next layer: the robots ids
             for r in robots:
                 # draw the robot ids
                 robotid = worldviews.RobotIdView(r)
                 robotid.position()
                 scene.addItem(robotid)
+
+            # next: the ball
+            ball = worldviews.BallView(w.ball)
+            ball.position()
+            scene.addItem(ball)
+
+            # following layers: skills and tactics
 
             for r in robots:
                 # draw the skill
@@ -101,7 +110,3 @@ class StageView(QGraphicsView):
                 if tactic is not None:
                     tactic.position()
                     scene.addItem(tactic)
-
-            ball = worldviews.BallView(w.ball)
-            ball.position()
-            scene.addItem(ball)

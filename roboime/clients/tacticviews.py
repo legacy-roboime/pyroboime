@@ -3,6 +3,7 @@ from PyQt4.QtCore import QRectF
 from collections import OrderedDict
 
 from .qtutils import scale as s
+#from .qtutils import draw_x
 from .qtutils import RED, BLUE
 from ..core.tactics import blocker
 from ..core.tactics import zickler43
@@ -26,35 +27,34 @@ class TacticView(QGraphicsItem):
         self.tactic = tactic
         self.margin = 20
 
+    @property
+    def robot(self):
+        return self.tactic.robot
+
     def position(self):
-        x, y = s(self.tactic.robot)
+        x, y = s(self.robot)
         self.setPos(x, -y)
+
+    def relative_point(self, point):
+        x, y = s(self.robot)
+        fx, fy = s(point)
+        return fx - x, -(fy - y)
 
 
 @view_for(blocker.Blocker)
 class BlockerView(TacticView):
 
-    def relative_goto_point(self):
-        x, y = s(self.tactic.robot)
-        fx, fy = s(self.tactic.goto.final_target)
-        return fx - x, -(fy - y)
-
-    def relative_target_point(self):
-        x, y = s(self.tactic.robot)
-        fx, fy = s(self.tactic.blockpoint)
-        return fx - x, -(fy - y)
-
     def boundingRect(self):
         m = self.margin
-        x, y = self.relative_target_point()
+        x, y = self.relative_point(self.tactic.goto.final_target)
         return QRectF(-m, -m, x + m, y + m)
 
     def paint(self, painter, option, widget=None):
         # Save transformation:
         painter.save();
 
-        gx, gy = self.relative_goto_point()
-        bx, by = self.relative_target_point()
+        gx, gy = self.relative_point(self.tactic.goto.final_target)
+        bx, by = self.relative_point(self.tactic.blockpoint)
         #m = self.margin
 
         # draw a line from robot to its target
@@ -75,27 +75,18 @@ class BlockerView(TacticView):
 @view_for(zickler43.Zickler43)
 class Zickler43View(TacticView):
 
-    def relative_goto_point(self):
-        x, y = s(self.tactic.robot)
-        fx, fy = s(self.tactic.current_state.final_target)
-        return fx - x, -(fy - y)
-
-    def relative_target_point(self):
-        x, y = s(self.tactic.robot)
-        fx, fy = s(self.tactic.lookpoint)
-        return fx - x, -(fy - y)
-
     def boundingRect(self):
         m = self.margin
-        x, y = self.relative_target_point()
+        x, y = self.relative_point(self.tactic.current_state.final_target)
         return QRectF(-m, -m, x + m, y + m)
 
     def paint(self, painter, option, widget=None):
         # Save transformation:
         painter.save();
 
-        gx, gy = self.relative_goto_point()
-        bx, by = self.relative_target_point()
+        #gx, gy = self.relative_point(self.tactic.goto.final_target)
+        gx, gy = self.relative_point(self.robot.ball)
+        bx, by = self.relative_point(self.tactic.lookpoint)
         #m = self.margin
 
         # draw a line from robot to its target
