@@ -80,7 +80,7 @@ class GotoView(SkillView):
             painter.setPen(LIGHT_BLUE)
             force = self.skill.attraction_force()
             fx, fy = force
-            draw_arrow_line(painter, 0, 0, fx, -fy, m)
+            #draw_arrow_line(painter, 0, 0, fx, -fy, m)
 
         # Reset transformation
         painter.restore()
