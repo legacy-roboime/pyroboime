@@ -23,7 +23,8 @@ class Zickler43(Tactic):
     the tactic that will make goals. And it will!
     """
     def __init__(self, robot, deterministic=True):
-        self._lookpoint = robot.enemy_goal
+        self._lookpoint = None
+        self._robot = robot
         self.drive = DriveToBall(robot, lookpoint=self.lookpoint, deterministic=True)
         self.dribble = SampledDribble(robot, deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.0, maxpower=1.0)
         self.goal_kick = SampledKick(robot, deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.9, maxpower=1.0)
@@ -40,7 +41,7 @@ class Zickler43(Tactic):
 
     @property
     def lookpoint(self):
-        return self._lookpoint
+        return self._lookpoint or self.robot.enemy_goal
 
     @lookpoint.setter
     def lookpoint(self, point):

@@ -31,6 +31,7 @@ class Goto(Skill):
         self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
         #self.angle_controller = PidController(kp=1.324, ki=0, kd=0, integ_max=6.55, output_max=1000)
         self.angle = angle
+        self._target = target
         self.target = target
         # self.final_target = final_target if final_target is not None else self.target
         self.final_target = final_target

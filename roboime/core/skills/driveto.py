@@ -3,14 +3,15 @@ from numpy import array
 from numpy.linalg import norm
 
 from .goto import Goto
+from .gotoavoid import GotoAvoid
 from ...utils.mathutils import cos, sin
 from ...utils.geom import Point
+import pdb
 
-
-class DriveTo(Goto):
+class DriveTo(GotoAvoid):
     def __init__(self, robot, b_angle=0, b_point=Point([0, 0]), angle=0, threshold=0.005, max_error_d=0.2, max_error_a=10.0, **kwargs):
         """
-                         x <-- target (calculeted by skill)
+                         x <-- target (calculated by skill)
                         /
         threshold -->  /    b_angle
                       /\  L´
@@ -30,6 +31,7 @@ class DriveTo(Goto):
         """
 
         super(DriveTo, self).__init__(robot, angle=angle, **kwargs)
+        self.should_avoid = False
         self.robot = robot
         self.b_angle = b_angle
         self.b_point = b_point
@@ -42,7 +44,7 @@ class DriveTo(Goto):
         p1 = array(self.b_point)
         p2 = array([cos(self.b_angle), sin(self.b_angle)]) * self.threshold
 
-        # sum'em and let DriveTo do its thing
+        # sum'em and let Goto do its thing
         self.target = Point(p1 + p2)
         super(DriveTo, self)._step()
 

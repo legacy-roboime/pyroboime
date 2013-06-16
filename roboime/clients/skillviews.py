@@ -1,11 +1,12 @@
 from PyQt4.QtGui import QGraphicsItem
 from PyQt4.QtCore import QRectF
 from collections import OrderedDict
+from numpy import array
 
+from ..utils.mathutils import sin, cos
 from .qtutils import scale as s
-from .qtutils import BLACK, RED
-from ..core.skills import goto
-
+from .qtutils import BLACK, RED, BLUE, GREEN, TRANSPARENT
+from ..core.skills import goto, driveto
 
 view_table = OrderedDict()
 
@@ -28,6 +29,62 @@ class SkillView(QGraphicsItem):
     def position(self):
         x, y = s(self.skill.robot)
         self.setPos(x, -y)
+
+
+@view_for(driveto.DriveTo)
+class DriveToView(SkillView):
+    def __init__(self, *args, **kwargs):
+        self.target = [0, 0]
+        super(DriveToView, self).__init__(*args, **kwargs)
+    
+    def relative_point(self, point):
+        x, y = s(self.skill.robot)
+        fx, fy = s(point)
+        return fx - x, -(fy - y)
+
+    def boundingRect(self):
+        m = self.margin
+        x, y = self.relative_point(self.target)
+        return QRectF(-m, -m, x + m, y + m)
+
+    def paint(self, painter, option, widget=None):
+        # Save transformation:
+        painter.save();
+
+        p1 = array(self.skill.b_point)
+        p2 = array([cos(self.skill.b_angle), sin(self.skill.b_angle)]) * self.skill.threshold
+        self.target = p1 + p2
+        
+        x, y = self.relative_point(self.target)
+        m = self.margin
+
+        # draw a line from robot to its target
+        painter.setBrush(BLACK)
+        painter.setPen(BLACK)
+        painter.drawLine(0, 0, x, y)
+
+        # draw an X on the target
+        painter.setBrush(BLUE)
+        painter.setPen(BLUE)
+        painter.drawLine(x - m, y - m, x + m, y + m)
+        painter.drawLine(x - m, y + m, x + m, y - m)
+        
+        painter.setBrush(TRANSPARENT)
+        painter.setPen(GREEN)
+        x, y = self.relative_point(self.skill.world.ball)
+        avr = s(self.skill.avoid_radius)
+        painter.drawEllipse(x - avr, y - avr, 2 * avr, 2 * avr)
+
+        x, y = self.relative_point(self.skill.final_target)
+        
+        # draw an X on the target
+        painter.setBrush(RED)
+        painter.setPen(RED)
+        painter.drawLine(x - m, y - m, x + m, y + m)
+        painter.drawLine(x - m, y + m, x + m, y - m)
+        
+        # Reset transformation
+        painter.restore();
 
 
 @view_for(goto.Goto)

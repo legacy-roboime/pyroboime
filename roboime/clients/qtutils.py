@@ -18,6 +18,7 @@ BLACK = Qt.black
 WHITE = Qt.white
 LIGHT_GREY = QColor(0xcc, 0xcc, 0xcc)
 ORANGE = QColor(0xff, 0xbb, 0x00)
+TRANSPARENT = Qt.transparent
 
 
 def scale(*meters):

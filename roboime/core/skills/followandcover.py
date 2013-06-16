@@ -14,7 +14,7 @@ class FollowAndCover(Goto):
 
     def __init__(self, robot, follow, cover, distance=1.0, **kwargs):
         """
-        The argument names are pretty self explainable,
+        The argument names are pretty self explanatory,
         If not, here's a drawing:
 
             X <------- cover

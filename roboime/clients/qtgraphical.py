@@ -183,7 +183,7 @@ class QtGraphicalClient(object):
         raise NotImplementedError
 
     def changeSides(self):
-        raise NotImplementedError
+        self.intelligence.world.switch_sides()
 
     def setRobotKickAbility(self):
         '''

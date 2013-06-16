@@ -1,4 +1,5 @@
 from numpy.random import random
+from numpy import remainder
 
 from .driveto import DriveTo
 
@@ -32,5 +33,5 @@ class DriveToObject(DriveTo):
 
         # ultimately we should update our base angle to the oposite
         # of our target angle and let drive to object to its thing
-        self.b_angle = self.angle + 180
+        self.b_angle = remainder(self.angle + 180, 360)
         super(DriveToObject, self)._step()
