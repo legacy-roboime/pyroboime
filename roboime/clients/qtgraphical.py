@@ -113,9 +113,9 @@ class QtGraphicalClient(object):
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
         self.ui.actionFullscreen.triggered.connect(self.toggleFullScreen)
         self.ui.actionSetupDock.toggled.connect(self.toggleSetupDock)
-        self.ui.dockSetup.visibilityChanged.connect(self.toggleSetupDockAction)
+        #self.ui.dockSetup.visibilityChanged.connect(self.toggleSetupDockAction)
         self.ui.actionRobotDock.toggled.connect(self.toggleRobotDock)
-        self.ui.dockRobot.visibilityChanged.connect(self.toggleRobotDockAction)
+        #self.ui.dockRobot.visibilityChanged.connect(self.toggleRobotDockAction)
 
         for i in range(self.intelligence.count_robot):
             self.ui.cmbRobotID.addItem(str(i))
