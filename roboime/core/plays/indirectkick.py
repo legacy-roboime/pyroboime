@@ -17,8 +17,8 @@ class IndirectKick(Stop, StateMachine):
     a pass to it.
     """
 
-    def __init__(self, team, goalkeeper_uid, verbose=False, **kwargs):
-        Stop.__init__(self, team, goalkeeper_uid, **kwargs)
+    def __init__(self, team, verbose=False, **kwargs):
+        Stop.__init__(self, team, **kwargs)
 
         self.states = {
             'starting': State(True, name='Starting'),
@@ -38,7 +38,6 @@ class IndirectKick(Stop, StateMachine):
         ]
         StateMachine.__init__(self, deterministic=True, initial_state=self.states['starting'], transitions=transitions)
 
-        self.goalkeeper_uid = goalkeeper_uid
         self.players = {}
         self.team = team
         self.receiver = None
@@ -58,7 +57,7 @@ class IndirectKick(Stop, StateMachine):
 
     @property
     def goalkeeper(self):
-        l = [r for r in self.team if r.uid == self.goalkeeper_uid]
+        l = [r for r in self.team if r.uid == self.goalie]
         if l:
             return l[0]
         return None
@@ -74,7 +73,7 @@ class IndirectKick(Stop, StateMachine):
             robots_closest_to_bathtub = self.team.closest_robots_to_point(point=self.best_position)
 
             for robot in self.team:
-                if robot.uid == self.goalkeeper_uid:
+                if robot.uid == self.goalie:
                     robots_closest_to_ball.remove(robot)
                     robots_closest_to_bathtub.remove(robot)
                     break

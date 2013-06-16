@@ -18,9 +18,8 @@ class PenaltyDefend(Play):
     # error0: "assertion 'bNormalizationResult' failed in ..\..\include\ode/odemath.h"
     # error1: "assertion 'context->isStructureValid()' failed in ..\..\ode\src\util.cpp:665"
 
-    def __init__(self, team, goalkeeper_uid, **kwargs):
+    def __init__(self, team, **kwargs):
         super(PenaltyDefend, self).__init__(team, **kwargs)
-        self.goalkeeper_uid = goalkeeper_uid
         self.players = {}
         self.tactics_factory = lambda robot: {
             'goalkeeper': Goalkeeper(robot, aggressive=False, angle=0),
@@ -29,7 +28,7 @@ class PenaltyDefend(Play):
         }
 
     def step(self):
-        gk_id = self.goalkeeper_uid
+        gk_id = self.goalie
 
         # dynamically create a set of tactics for new robots
         for robot in self.team:

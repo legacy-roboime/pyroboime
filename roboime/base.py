@@ -299,7 +299,8 @@ class Team(keydefaultdict):
         self.yellow_card_times = None
         self.timeouts = None
         self.timeout_time = None
-        self.goalie = None
+        self._default_goalie = 0
+        self._goalie = None
 
         # last play stepped on this team
         self.play = None
@@ -307,6 +308,22 @@ class Team(keydefaultdict):
         # update robots' team
         for r in self.itervalues():
             r.team = self
+
+    @property
+    def goalie(self):
+        return self._goalie or self._default_goalie
+
+    @goalie.setter
+    def goalie(self, goalie):
+        self._goalie = goalie
+
+    @property
+    def default_goalie(self):
+        return self._default_goalie
+
+    @default_goalie.setter
+    def default_goalie(self, goalie):
+        self.default_goalie = goalie
 
     @classmethod
     def blue(cls, *args, **kwargs):

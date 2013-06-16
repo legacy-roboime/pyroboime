@@ -25,14 +25,14 @@ class ObeyReferee(Play):
     """
 
     # TODO: Implement this as a state machine variant (states as input, transitions as output).
-    def __init__(self, play, goalkeeper_uid, verbose=True):
+    def __init__(self, play, verbose=True):
         super(ObeyReferee, self).__init__(play.team)
         self.play = play
-        self.stop = Stop(self.team, goalkeeper_uid)
+        self.stop = Stop(self.team)
         self.halt = Halt(self.team)
-        self.penalty_us = Penalty(self.team, goalkeeper_uid)
-        self.penalty_them = PenaltyDefend(self.team, goalkeeper_uid)
-        self.indirect_kick = IndirectKick(self.team, goalkeeper_uid)
+        self.penalty_us = Penalty(self.team)
+        self.penalty_them = PenaltyDefend(self.team)
+        self.indirect_kick = IndirectKick(self.team)
         self.referee = self.world.referee
         self.command = self.referee.command
         self.last_command = Command.Halt
