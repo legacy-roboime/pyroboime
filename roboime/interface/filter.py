@@ -92,7 +92,7 @@ class UpdateLog(Filter):
     def __init__(self, filename):
         import datetime as dt
         try:
-            self.file = open(filename, 'a')
+            self.file = open(filename, 'w')
             self.file.writelines(["Communications log file opened: %s\n" % (filename), "At %s\n" % (dt.datetime.now().isoformat(' '))])
         except:
             self.file = None
@@ -112,7 +112,7 @@ class CommandUpdateLog(UpdateLog):
     def filter_commands(self, commands):
         if self.file != None:
             for c in commands:
-                self.file.write(str(c)+"\n")
+                self.file.write("Cmd:" + str(c)+"\n")
                 
 
 class PositionLog(Filter):

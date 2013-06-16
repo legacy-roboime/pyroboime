@@ -135,9 +135,11 @@ class SimulationInterface(Interface):
             commanders=[commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)],
             filters=filters + [filter.Speed(),
                                filter.Scale(),
-                               filter.PositionLog(options.position_log_filename),
+                               filter.CommandUpdateLog(options.cmdupd_filename),
+                               filter.PositionLog(options.position_log_noise_filename),
                                filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
-                               filter.PositionLog(options.position_log_noise_filename)],
+                               filter.PositionLog(options.position_log_filename),
+                              ],
             **kwargs
         )
 
