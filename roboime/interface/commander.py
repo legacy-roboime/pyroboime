@@ -43,7 +43,7 @@ class Tx2012Commander(Commander):
     VisionUpdater, a dict mapping the UIDs to the firmware IDs should be provided. If it is not provided,
     we shall use the trivial mapping: x => x.
 
-    This commander uses a transmission protocol compatible with the RoboIME MK-2012 architecture. 
+    This commander uses a transmission protocol compatible with the RoboIME MK-2012 architecture.
     This might be deprecated soon. Or not.
     '''
     def __init__(self, team, mapping_dict=None, ipaddr='192.168.91.105', port=9050, verbose=False, **kwargs):
