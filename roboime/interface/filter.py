@@ -1,8 +1,10 @@
 from numpy import array
+from numpy import remainder
 from math import degrees
 from collections import defaultdict
 
 from roboime.interface.updater import RobotUpdate, BallUpdate, GeometryUpdate
+
 
 class Filter(object):
     """The filter class is the base for all filters.
@@ -106,14 +108,14 @@ class LowPass(Filter):
     def filter_updates(self, updates):
         for u in updates:
             #print 'coe'
-            if isinstance(update, RobotUpdate) or isinstance(update, BallUpdate):
+            if isinstance(u, RobotUpdate) or isinstance(u, BallUpdate):
                 ux = self.ux[u.uid()]
                 uy = self.uy[u.uid()]
                 vx = self.vx[u.uid()]
                 vy = self.vy[u.uid()]
                 uo = self.uo[u.uid()]
                 vo = self.vo[u.uid()]
-        
+
                 ux[0] = ux[1]
                 ux[1] = ux[2]
                 ux[2] = ux[3]
@@ -135,15 +137,15 @@ class LowPass(Filter):
                 u.data['x'], u.data['y'] = vx[3], vy[3]
 
             # TODO: Angle filtering.
-            if isinstance(update, RobotUpdate):
+            if isinstance(u, RobotUpdate):
                 theta = u.data['orientation']
 
-                if self.last_theta == None:
+                if self.last_theta is None:
                     self.last_theta = theta
                 last_theta = self.last_theta
 
                 d_theta = theta - last_theta
-                d_theta = remainder(d_theta, 2*pi)
+                d_theta = remainder(d_theta, 360)
 
                 uo[0] = uo[1]
                 uo[1] = uo[2]
@@ -154,7 +156,7 @@ class LowPass(Filter):
                 vo[2] = vo[3]
                 vo[3] = (uo[0] + uo[3]) + self.coef[0] * (uo[1] + uo[2]) + (self.coef[1] * vo[0]) + (self.coef[2] * vo[1]) + self.coef[3] * vo[2]
 
-                vo[3]= remainder(vo[3], 2*pi)
-                
+                vo[3] = remainder(vo[3], 360)
+
                 self.last_theta = theta + vo[3]
                 u.data['orientation'] = vo[3] + theta
