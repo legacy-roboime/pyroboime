@@ -13,7 +13,6 @@ _view_table = {}
 
 
 def view_for(mapped_skill):
-    # TODO: make this resolve dependencies
     def _view_for(view_class):
         _view_table[mapped_skill] = view_class
         return view_class
@@ -129,7 +128,7 @@ class GotoAvoidView(GotoView):
 
 
 @view_for(driveto.DriveTo)
-def DriveToView(GotoAvoidView):
+class DriveToView(GotoAvoidView):
 
     def __init__(self, *args, **kwargs):
         super(DriveToView, self).__init__(*args, **kwargs)
