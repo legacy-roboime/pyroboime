@@ -1,16 +1,11 @@
 from PyQt4.QtGui import QGraphicsItem
-from PyQt4.QtCore import QRectF, Qt
+from PyQt4.QtCore import QRectF
 from collections import OrderedDict
 
 from .qtutils import scale as s
+from .qtutils import RED, BLUE
 from ..core.tactics import blocker
 from ..core.tactics import zickler43
-
-
-BLACK = Qt.black
-GREEN = Qt.green
-RED = Qt.red
-BLUE = Qt.blue
 
 
 view_table = OrderedDict()
