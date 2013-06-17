@@ -30,7 +30,6 @@ class FishingRod(Goto):
         t = self.threshold
 
         self.angle = self.t_angle if self.t_angle is not None else b_a
-	print self.angle
 
         unreachable = array([r.x + t * cos(b_a), r.y + t * sin(b_a)])
         self.target = Point(unreachable)

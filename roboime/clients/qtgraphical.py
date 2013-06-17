@@ -289,7 +289,7 @@ class Intelligence(QtCore.QThread):
             ('Goalkeeper', goalkeeper.Goalkeeper(robot, angle=30, aggressive=True)),
             ('Zickler43', zickler43.Zickler43(robot)),
             ('Defender', defender.Defender(robot, enemy=self.world.ball)),
-	    ('Joystick', joystick.Joystick(robot)),
+            ('Joystick', joystick.Joystick(robot)),
         ])
         self.plays = lambda team: OrderedDict([
             ('(none)', Dummy()),

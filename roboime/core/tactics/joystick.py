@@ -1,12 +1,8 @@
-from numpy.linalg import norm
-from numpy import array
 import pygame
 pygame.init()
 
 from .. import Tactic
 from ..skills.fishingrod import FishingRod
-from ...utils.geom import Point
-from ...utils.mathutils import atan2
 
 
 class Joystick(Tactic):
@@ -23,10 +19,10 @@ class Joystick(Tactic):
         if pygame.joystick.get_count() == 0:
             # raise RuntimeError('No joysticks found.')
             print 'WARNING: No joysticks found.'
-        else:    
+        else:
             self.joystick = pygame.joystick.Joystick(0)
             self.joystick.init()
-            self.fishingrod = FishingRod(robot, b_angle = 0)
+            self.fishingrod = FishingRod(robot, b_angle=0)
 
             self.chipkick_button = 3
             self.kick_button = 0
@@ -36,11 +32,10 @@ class Joystick(Tactic):
             self.normal_axis = 1
             self.aux_axis = 0
             self.power_axis = 2
-        
 
     def _step(self):
-        # EVENT PROCESSING STEP
-        for event in pygame.event.get(): # User did something
+        # User did something
+        for event in pygame.event.get():
             pass
             ## Possible joystick actions: JOYAXISMOTION JOYBALLMOTION JOYBUTTONDOWN JOYBUTTONUP JOYHATMOTION
             #if event.type == pygame.JOYBUTTONDOWN:
@@ -54,7 +49,7 @@ class Joystick(Tactic):
             x = self.joystick.get_axis(self.aux_axis)
             y = -self.joystick.get_axis(self.normal_axis)
             power = (1 - self.joystick.get_axis(self.power_axis)) / 2
-     
+
             if self.joystick.get_button(self.kick_button):
                 self.robot.action.kick = power
             elif self.joystick.get_button(self.chipkick_button):
@@ -66,7 +61,7 @@ class Joystick(Tactic):
                 self.robot.action.speeds = y * self.speed_ratio, -x * self.speed_ratio, 0.0
             else:
                 self.robot.action.speeds = y * self.speed_ratio, 0.0, -x * self.angle_ratio
-        
+
             #angle = atan2(y, x)
             #rod = array((x, y))
 
