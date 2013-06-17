@@ -13,7 +13,7 @@ class Goto(Skill):
     regard to the position of any other objects on the field.
     """
 
-    attraction_factor = 100.0
+    attraction_factor = 50.0
     repulsion_factor = 10.0
     magnetic_factor = 8.0
     delta_speed_factor = 0.1
