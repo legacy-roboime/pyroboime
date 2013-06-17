@@ -48,7 +48,7 @@ class RobotUpdate(Update):
         self.i = i
 
     def uid(self):
-        return (0x100 if self.team_color is base.Blue else 0x200) + self.i
+        return (0x100 if self.team_color == base.Blue else 0x200) + self.i
 
     def apply(self, world):
 
