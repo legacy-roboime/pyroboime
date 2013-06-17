@@ -34,7 +34,7 @@ class SampledKick(DriveToBall):
 
         All other options from DriveToBall apply here.
         """
-        super(SampledKick, self).__init__(robot, **kwargs)
+        super(SampledKick, self).__init__(robot, avoid_collisions=False, **kwargs)
         self.receiver = receiver
         self.minpower = minpower
         self.maxpower = maxpower

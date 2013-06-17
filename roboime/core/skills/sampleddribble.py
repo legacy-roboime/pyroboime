@@ -16,7 +16,7 @@ class SampledDribble(DriveToBall):
 
         All other options from DriveToBall apply here.
         """
-        super(SampledDribble, self).__init__(robot, **kwargs)
+        super(SampledDribble, self).__init__(robot, avoid_collisions=False, **kwargs)
         self.minpower = minpower
         self.maxpower = maxpower
 

@@ -118,7 +118,7 @@ class Goto(Skill):
         #ref = self.referential if self.referential is not None else f_t
         # TODO: Check if target is within the boundaries of the field (augmented of the robot's radius).
 
-        # check wether the point we want to go to will make the robot be in the defense area
+        # check whether the point we want to go to will make the robot be in the defense area
         # if so then we'll go to the nearest point that meets that constraint
         if not self.robot.is_goalie and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
             t = self.point_away_from_defense_area
