@@ -1,5 +1,4 @@
 import pygame
-pygame.init()
 
 from .. import Skill
 from ..skills.fishingrod import FishingRod
@@ -16,13 +15,17 @@ class Joystick(Skill):
 
     def __init__(self, robot, **kwargs):
         super(Joystick, self).__init__(robot, deterministic=True, **kwargs)
+        pygame.init()
+        pygame.joystick.init()
         if pygame.joystick.get_count() == 0:
             self.joystick_found = False
             # raise RuntimeError('No joysticks found.')
             print 'WARNING: No joysticks found.'
+            pygame.joystick.quit()
+            pygame.quit()
         else:
-            self.joystick = pygame.joystick.Joystick(0)
             self.joystick.init()
+            self.joystick = pygame.joystick.Joystick(0)
             self.fishingrod = FishingRod(robot, b_angle=0)
 
             self.chipkick_button = 3
