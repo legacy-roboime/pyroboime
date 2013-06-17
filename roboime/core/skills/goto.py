@@ -124,10 +124,13 @@ class Goto(Skill):
             t = self.point_away_from_defense_area
 
         # angle control using PID controller
-        self.angle_controller.input = (180 + self.angle - self.robot.angle) % 360 - 180
-        self.angle_controller.feedback = 0.0
-        self.angle_controller.step()
-        va = self.angle_controller.output
+        if self.angle is not None:
+            self.angle_controller.input = (180 + self.angle - self.robot.angle) % 360 - 180
+            self.angle_controller.feedback = 0.0
+            self.angle_controller.step()
+            va = self.angle_controller.output
+        else:
+            va = 0.0
 
         # the error vector from the robot to the target point
         error = array(t) - array(r)

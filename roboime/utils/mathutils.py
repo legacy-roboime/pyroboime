@@ -9,6 +9,8 @@ for fun in dir(math):
         pass
     elif fun in _trigonom_:
         exec '{0} = lambda x: math.{0}(math.radians(x))'.format(fun) in globals()
+    elif fun == 'atan2':
+        exec '{0} = lambda y, x: math.degrees(math.{0}(y, x))'.format(fun) in globals()
     elif fun in _invtrigonom_:
         exec '{0} = lambda x: math.degrees(math.{0}(x))'.format(fun) in globals()
     else:
