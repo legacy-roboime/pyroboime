@@ -18,11 +18,11 @@ from ..core.skills import sampleddribble
 from ..core.skills import sampledkick
 from ..core.skills import followandcover
 from ..core.skills import sampledchipkick
+from ..core.skills import joystick
 from ..core.tactics import blocker
 from ..core.tactics import defender
 from ..core.tactics import goalkeeper
 from ..core.tactics import zickler43
-from ..core.tactics import joystick
 from ..core.plays import autoretaliate
 from ..core.plays import indirectkick
 from ..core.plays import stop

@@ -1,11 +1,11 @@
 import pygame
 pygame.init()
 
-from .. import Tactic
+from .. import Skill
 from ..skills.fishingrod import FishingRod
 
 
-class Joystick(Tactic):
+class Joystick(Skill):
     """
     This tactic enables joystick control for a robot.
     It uses the library 'pygame'.
@@ -17,6 +17,7 @@ class Joystick(Tactic):
     def __init__(self, robot, **kwargs):
         super(Joystick, self).__init__(robot, deterministic=True, **kwargs)
         if pygame.joystick.get_count() == 0:
+            self.joystick_found = False
             # raise RuntimeError('No joysticks found.')
             print 'WARNING: No joysticks found.'
         else:
@@ -34,18 +35,15 @@ class Joystick(Tactic):
             self.power_axis = 2
 
     def _step(self):
-        # User did something
-        for event in pygame.event.get():
-            pass
-            ## Possible joystick actions: JOYAXISMOTION JOYBALLMOTION JOYBUTTONDOWN JOYBUTTONUP JOYHATMOTION
-            #if event.type == pygame.JOYBUTTONDOWN:
-            #    print("Joystick button pressed.")
-            #if event.type == pygame.JOYBUTTONUP:
-            #    print("Joystick button released.")
-        if pygame.joystick.get_count() == 0:
-            print 'WARNING: No joysticks found.'
-            self.robot.action.speeds = 0.0, 0.0, 90 * self.speed_ratio
-        else:
+        if self.joystick_found:
+            # User did something
+            for event in pygame.event.get():
+                pass
+                ## Possible joystick actions: JOYAXISMOTION JOYBALLMOTION JOYBUTTONDOWN JOYBUTTONUP JOYHATMOTION
+                #if event.type == pygame.JOYBUTTONDOWN:
+                #    print("Joystick button pressed.")
+                #if event.type == pygame.JOYBUTTONUP:
+                #    print("Joystick button released.")
             x = self.joystick.get_axis(self.aux_axis)
             y = -self.joystick.get_axis(self.normal_axis)
             power = (1 - self.joystick.get_axis(self.power_axis)) / 2
@@ -61,12 +59,3 @@ class Joystick(Tactic):
                 self.robot.action.speeds = y * self.speed_ratio, -x * self.speed_ratio, 0.0
             else:
                 self.robot.action.speeds = y * self.speed_ratio, 0.0, -x * self.angle_ratio
-
-            #angle = atan2(y, x)
-            #rod = array((x, y))
-
-            #self.fishingrod.threshold = norm(rod) * self.speed_ratio
-            #self.fishingrod.b_angle = angle
-            #self.fishingrod.t_angle = angle
-            #self.fishingrod.angle = angle
-            #self.fishingrod.step()
