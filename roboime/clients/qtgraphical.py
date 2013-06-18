@@ -18,7 +18,10 @@ from ..core.skills import sampleddribble
 from ..core.skills import sampledkick
 from ..core.skills import followandcover
 from ..core.skills import sampledchipkick
-from ..core.skills import joystick
+try:
+    from ..core.skills import joystick
+except ImportError:
+    joystick = None
 from ..core.tactics import blocker
 from ..core.tactics import defender
 from ..core.tactics import goalkeeper
@@ -275,8 +278,9 @@ class Intelligence(QtCore.QThread):
         self.skill = None
         self.interface = SimulationInterface(self.world)
         self.tx_interface = TxInterface(self.world, filters=[], transmission_ipaddr='192.168.91.105', transmission_port=9050)
+        dummy = ('(none)', Dummy())
         self.individual = lambda robot: OrderedDict([
-            ('(none)', Dummy()),
+            dummy,
             ('Go To', goto.Goto(robot, target=Point(0, 0))),
             ('Go To Avoid', gotoavoid.GotoAvoid(robot, target=Point(0, 0), avoid=self.world.ball)),
             ('Drive To Object', drivetoobject.DriveToObject(robot, lookpoint=robot.enemy_goal, point=self.world.ball)),
@@ -289,10 +293,10 @@ class Intelligence(QtCore.QThread):
             ('Goalkeeper', goalkeeper.Goalkeeper(robot, angle=30, aggressive=True)),
             ('Zickler43', zickler43.Zickler43(robot)),
             ('Defender', defender.Defender(robot, enemy=self.world.ball)),
-            ('Joystick', joystick.Joystick(robot)),
+            ('Joystick', joystick.Joystick(robot)) if joystick is not None else dummy,
         ])
         self.plays = lambda team: OrderedDict([
-            ('(none)', Dummy()),
+            dummy,
             ('Auto Retaliate', autoretaliate.AutoRetaliate(team)),
             ('Stop', stop.Stop(team)),
             ('Indirect Kick', indirectkick.IndirectKick(team)),
