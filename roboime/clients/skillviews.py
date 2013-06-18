@@ -24,7 +24,7 @@ class SkillView(QGraphicsItem):
     def __init__(self, skill):
         super(SkillView, self).__init__()
         self.skill = skill
-        self.margin = 20
+        self.margin = 5
 
     @property
     def robot(self):
@@ -70,9 +70,23 @@ class GotoView(SkillView):
         draw_x(painter, x, y, m)
 
         if self.draw_forces:
+            forces = list(self.skill.other_forces())
+
+            # draw an arrow for every delta speed force
+            painter.setPen(BLACK)
+            for (_, _, force) in forces:
+                fx, fy = force
+                draw_arrow_line(painter, 0, 0, fx, -fy, m)
+
             # draw an arrow for every repulsion force
             painter.setPen(PINK)
-            for force in self.skill.other_forces():
+            for (force, _, _) in forces:
+                fx, fy = force
+                draw_arrow_line(painter, 0, 0, fx, -fy, m)
+
+            # draw an arrow for every magnetic force
+            painter.setPen(RED)
+            for (_, force, _) in forces:
                 fx, fy = force
                 draw_arrow_line(painter, 0, 0, fx, -fy, m)
 
