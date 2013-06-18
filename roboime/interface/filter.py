@@ -1,5 +1,6 @@
 from numpy import array
-from numpy import remainder, normal
+from numpy import remainder
+from numpy.random import normal
 from math import degrees, sqrt
 from collections import defaultdict
 
