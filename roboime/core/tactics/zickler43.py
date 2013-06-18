@@ -15,19 +15,22 @@ class Zickler43(Tactic):
     For more details see page 43 of the Zickler thesis.
 
     Ok, actually, no. This tactic is far from the original however
-    the purpose is basically the same. This is an attacker.
+    the purpose is basically the same. This is an attacker. Main
+    differences from zickler thesis are that this tactic is deterministic,
+    and that the minikick skill doesn't appear here.
 
-    Somebody has to make goals, so, this is it, this will is
+    Somebody has to make goals, so, this is it, this will be
     the tactic that will make goals. And it will!
     """
     def __init__(self, robot, deterministic=True):
-        self._lookpoint = robot.enemy_goal
-        self.drive = DriveToBall(robot, lookpoint=self.lookpoint, deterministic=True)
+        self._lookpoint = None
+        self._robot = robot
+        self.drive = DriveToBall(robot, lookpoint=self.lookpoint, deterministic=True, avoid_collisions=True)
         self.dribble = SampledDribble(robot, deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.0, maxpower=1.0)
         self.goal_kick = SampledKick(robot, deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.9, maxpower=1.0)
         self.wait = Halt(robot)
 
-        super(Zickler43, self).__init__([robot], deterministic=deterministic, initial_state=self.drive, transitions=[
+        super(Zickler43, self).__init__(robot, deterministic=deterministic, initial_state=self.drive, transitions=[
             Transition(self.drive, self.dribble, condition=lambda: self.drive.close_enough()),
             Transition(self.dribble, self.drive, condition=lambda: not self.dribble.close_enough()),
             Transition(self.dribble, self.goal_kick, condition=lambda: self.dribble.close_enough()),
@@ -38,7 +41,7 @@ class Zickler43(Tactic):
 
     @property
     def lookpoint(self):
-        return self._lookpoint
+        return self._lookpoint or self.robot.enemy_goal
 
     @lookpoint.setter
     def lookpoint(self, point):
@@ -46,11 +49,11 @@ class Zickler43(Tactic):
         for state in [self.drive, self.dribble, self.goal_kick]:
             state.lookpoint = point
 
-    def step(self):
+    def _step(self):
         lookpoint = self.point_to_kick()
         if lookpoint is not None:
             self.lookpoint = lookpoint
-        super(Zickler43, self).step()
+        super(Zickler43, self)._step()
 
     def point_to_kick(self):
         enemy_goal = self.robot.enemy_goal

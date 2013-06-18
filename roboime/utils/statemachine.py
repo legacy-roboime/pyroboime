@@ -37,7 +37,7 @@ class Machine(object):
         self.transitions = transitions
 
     def execute(self):
-        possible_transitions = [t for t in self.transitions if t.from_state is self.current_state and t.condition() ]
+        possible_transitions = [t for t in self.transitions if t.from_state is self.current_state and t.condition()]
         if self.deterministic:
             if possible_transitions:
                 self.current_state = possible_transitions[0].to_state

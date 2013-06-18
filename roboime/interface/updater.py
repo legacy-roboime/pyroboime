@@ -48,7 +48,12 @@ class RobotUpdate(Update):
         self.i = i
 
     def uid(self):
-        return (0x100 if self.team_color == base.Blue else 0x200) + self.i
+        if self.team_color == base.Blue:
+            return 0x100 + self.i
+        elif self.team_color == base.Yellow:
+            return 0x200 + self.i
+        else:
+            raise Exception('Wrong color "{}"'.format(self.team_color))
 
     def apply(self, world):
 
@@ -108,6 +113,7 @@ class TeamUpdate(Update):
 
     def uid(self):
         return 0x7e488
+
 
 class Updater(Process):
 

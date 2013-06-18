@@ -19,6 +19,7 @@ from ..core.tactics import blocker
 from ..core.plays import stop
 #from ..utils.geom import Point
 
+
 class Simple(object):
     """
     This is a simple example with no graphical interface.

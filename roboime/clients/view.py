@@ -9,7 +9,7 @@ from ..interface import SimulationInterface
 #from ..core.skills import drivetoobject
 #from ..core.skills import drivetoball
 #from ..core.skills import sampleddribble
-from ..core.skills import sampledkick
+#from ..core.skills import sampledkick
 #from ..core.skills import followandcover
 from ..core.skills import sampledchipkick
 #from ..utils.geom import Point
@@ -50,7 +50,6 @@ class FieldCanvas(Canvas):
         self.balls = {}
 
         self.fps = self.create_text(50, 20, fill=BLACK)
-
 
     def _cx(self, x):
         'Convert internal x coord to canvas x coord'

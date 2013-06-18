@@ -32,19 +32,25 @@ class Skill(State):
     def ball(self):
         return self.world.ball
 
+    def _step(self):
+        """This method must be implemented to add some logic."""
+        raise NotImplementedError
+
     def step(self):
-        pass
+        """One should not override this method, this is the public api, which wraps around _step"""
+        self._step()
+        self.robot.skill = self
 
 
 class Tactic(Machine):
 
-    def __init__(self, robots, deterministic, **kwargs):
+    def __init__(self, robot, deterministic, **kwargs):
         super(Tactic, self).__init__(deterministic, **kwargs)
-        self.robots = robots
+        self._robot = robot
 
     @property
     def robot(self):
-        return self.robots[0]
+        return self._robot
 
     @property
     def world(self):
@@ -66,23 +72,29 @@ class Tactic(Machine):
     def ball(self):
         return self.world.ball
 
-    def step(self):
+    def _step(self):
+        """If not overriden this method will call self.execute() from MachineState."""
         if self.current_state is not None:
             self.current_state.step()
         self.execute()
+
+    def step(self):
+        """One should not override this method, this is the public api, which wraps around _step"""
+        self._step()
+        self.robot.tactic = self
 
 
 class Play(object):
 
     def __init__(self, team):
-        '''
+        """
         When constructing a derived play, keep in mind tactics_factory is a dictionary
-        of lambda expressions that generate a steppable for a given robot. 
-        
+        of lambda expressions that generate a steppable for a given robot.
+
         DO NOT overwrite the tactics_factory of your base play under any circumstances,
         under penalty of breaking the base play. Use tactics_factory.update(new_factory)
         instead. Remember to not use any keys already in your base factory.
-        '''
+        """
 
         self.team = team
         self.tactics_factory = {}
@@ -101,6 +113,10 @@ class Play(object):
         return self.team.goal
 
     @property
+    def goalie(self):
+        return self.team.goalie
+
+    @property
     def ball(self):
         return self.world.ball
 
@@ -114,18 +130,22 @@ class Play(object):
                     self.players[r_id][key] = expression(robot)
 
     def setup_tactics(self):
-        '''
+        """
         When overloading this method, remember to set each robot's current_tactic to a
         steppable. If a robot doesn't have a current_tactic at the end of the step, shit
         WILL happen. You have been warned.
-        '''
+        """
         raise NotImplementedError
-   
+
     def execute_step(self):
         for robot in self.team:
             robot.current_tactic.step()
 
-    def step(self):
+    def _step(self):
         self.check_new_robots()
         self.setup_tactics()
         self.execute_step()
+
+    def step(self):
+        self._step()
+        self.team.play = self

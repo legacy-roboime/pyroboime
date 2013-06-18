@@ -8,21 +8,21 @@ from ...utils.geom import Point
 
 
 class DriveTo(Goto):
-    def __init__(self, robot, b_angle=0, b_point=Point([0, 0]), angle=0, threshold=0.005, max_error_d=0.2, max_error_a=10.0, **kwargs):
+    def __init__(self, robot, base_angle=0, base_point=Point([0, 0]), angle=0, threshold=0.005, max_error_d=0.2, max_error_a=10.0, **kwargs):
         """
-                         x <-- target (calculeted by skill)
-                        /
-        threshold -->  /    b_angle
-                      /\  L´
-                     /__|______ (x-axis)
-        b_point --> O
+                                x <-- target (calculated by skill)
+                               /
+               threshold -->  /    base_angle
+                             /\  L´
+                            /__|______ (x-axis)
+            base_point --> O
 
         The base is the point from where we calculate a distance in order to find our target.
         The parameters are:
 
           threshold: distance to keep away from the base point
-            b_angle: base angle, direction from base to target point
-            b_point: base point, the base coords
+         base_angle: base angle, direction from base to target point
+         base_point: base point, the base coords
             t_angle: target angle, robot facing angle
              target: target point
         max_error_d: limit distance to consider the robot has reached its target
@@ -30,21 +30,44 @@ class DriveTo(Goto):
         """
 
         super(DriveTo, self).__init__(robot, angle=angle, **kwargs)
+        self.should_avoid = False
         self.robot = robot
-        self.b_angle = b_angle
-        self.b_point = b_point
+        self._base_angle = base_angle
+        self._base_point = base_point
         self.threshold = threshold
         self.max_error_d = max_error_d
         self.max_error_a = max_error_a
 
-    def step(self):
-        # make numpy arrays out of b_point and threshold with b_angle direction so we can sum them
-        p1 = array(self.b_point)
-        p2 = array([cos(self.b_angle), sin(self.b_angle)]) * self.threshold
+    @property
+    def base_angle(self):
+        if callable(self._base_angle):
+            return self._base_angle()
+        else:
+            return self._base_angle
 
-        # sum'em and let DriveTo do its thing
+    @base_angle.setter
+    def base_angle(self, angle):
+        self._base_angle = angle
+
+    @property
+    def base_point(self):
+        if callable(self._base_point):
+            return self._base_point()
+        else:
+            return self._base_point
+
+    @base_point.setter
+    def base_point(self, point):
+        self._base_point = point
+
+    def _step(self):
+        # make numpy arrays out of base_point and threshold with base_angle direction so we can sum them
+        p1 = array(self.base_point)
+        p2 = array([cos(self.base_angle), sin(self.base_angle)]) * self.threshold
+
+        # sum'em and let Goto do its thing
         self.target = Point(p1 + p2)
-        super(DriveTo, self).step()
+        super(DriveTo, self)._step()
 
     def close_enough(self):
         if self.target is None:

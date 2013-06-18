@@ -5,7 +5,6 @@ from .. import Skill
 from ...utils.mathutils import exp
 from ...utils.geom import Point
 from ...utils.pidcontroller import PidController
-#import sys
 
 
 class Goto(Skill):
@@ -13,7 +12,15 @@ class Goto(Skill):
     Sends the robot to a specified point with a specified orientation with no
     regard to the position of any other objects on the field.
     """
-    def __init__(self, robot, target=None, angle=None, final_target=None, is_goalkeeper=False, referential=None, deterministic=True, **kwargs):
+
+    attraction_factor = 50.0
+    repulsion_factor = 10.0
+    magnetic_factor = 8.0
+    delta_speed_factor = 0.1
+    min_distance = 1e-2
+    power = 1.3
+
+    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
         """
         final_target: the ultimate position the robot should attain
         target: the intermediate position you're ACTUALLY sending the robot to
@@ -26,19 +33,34 @@ class Goto(Skill):
         be switching in) should be specified in your own class.
         """
         super(Goto, self).__init__(robot, deterministic=deterministic, **kwargs)
-        self.is_goalkeeper = is_goalkeeper
         #TODO: find the right parameters
         self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
         #self.angle_controller = PidController(kp=1.324, ki=0, kd=0, integ_max=6.55, output_max=1000)
-        self.angle = angle
+        self._angle = angle
+        self._target = target
         self.target = target
         # self.final_target = final_target if final_target is not None else self.target
         self.final_target = final_target
         self.referential = referential
+        self.avoid_collisions = avoid_collisions
+
+    @property
+    def angle(self):
+        if callable(self._angle):
+            return self._angle()
+        else:
+            return self._angle or self.robot.angle
+
+    @angle.setter
+    def angle(self, angle):
+        self._angle = angle
 
     @property
     def target(self):
-        return self._target if self._target is not None else self.robot
+        if callable(self._target):
+            return self._target()
+        else:
+            return self._target or self.robot
 
     @target.setter
     def target(self, target):
@@ -46,22 +68,59 @@ class Goto(Skill):
 
     @property
     def final_target(self):
-        return self._final_target if self._final_target is not None else self.target
+        if callable(self._final_target):
+            return self._final_target()
+        else:
+            return self._final_target or self.target
 
     @final_target.setter
     def final_target(self, target):
         self._final_target = target
 
-    def step(self):
+    def attraction_force(self):
+        # the error vector from the robot to the target point
+        delta = array(self.target) - array(self.robot)
+
+        # attractive force
+        dist = max(self.robot.distance(self.final_target), self.min_distance)
+        attraction_force = delta * (1 + 1 / (dist / self.attraction_factor) ** self.power)
+
+        return attraction_force
+
+    def other_forces(self):
+        robot = self.robot
+        for other in filter(lambda other: other is not robot, self.world.iterrobots()):
+            # difference of position
+            delta = array(robot) - array(other)
+            # considered distance
+            dist = norm(delta) + robot.radius + other.radius
+            # cap the distance to a minimum of 1mm
+            dist = max(dist, self.min_distance)
+            # normalize the delta
+            delta /= norm(delta)
+            # perpendicular delta
+            pdelta = array(delta[1], -delta[0])
+            # normalized difference of speeds of the robots
+            sdelta = other.speed - robot.speed
+            sdelta /= max(norm(sdelta), self.min_distance)
+
+            # calculating each force
+            repulsion_force = delta / (dist / self.repulsion_factor) ** self.power
+            magnetic_force = pdelta / (dist / self.magnetic_factor) ** self.power
+            delta_speed_force = sdelta / (dist / self.delta_speed_factor) ** self.power
+            force = sum((repulsion_force, magnetic_force, delta_speed_force))
+            yield force
+
+    def _step(self):
         r = self.robot
         t = self.target
         f_t = self.final_target
         #ref = self.referential if self.referential is not None else f_t
         # TODO: Check if target is within the boundaries of the field (augmented of the robot's radius).
 
-        # check wether the point we want to go to will make the robot be in the defense area
+        # check whether the point we want to go to will make the robot be in the defense area
         # if so then we'll go to the nearest point that meets that constraint
-        if not self.is_goalkeeper and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
+        if not self.robot.is_goalie and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
             t = self.point_away_from_defense_area
 
         # angle control using PID controller
@@ -71,10 +130,13 @@ class Goto(Skill):
             self.angle_controller.step()
             va = self.angle_controller.output
         else:
-            va = 0
+            va = 0.0
 
         # the error vector from the robot to the target point
-        error = array(t.coords[0]) - array(r.coords[0])
+        error = array(t) - array(r)
+
+        # the gradient of the field
+        gradient = self.attraction_force() + sum(self.other_forces())
 
         # some crazy equation that makes the robot converge to the target point
         g = 9.80665
@@ -84,7 +146,10 @@ class Goto(Skill):
         cte = (4 * a_max / (v_max * v_max))
         out = v_max * (1 - exp(-cte * r.distance(f_t)))
         # v is the speed vector resulting from that equation
-        v = out * error / norm(error)
+        if self.avoid_collisions:
+            v = out * gradient / norm(gradient)
+        else:
+            v = out * error / norm(error)
 
         # increase by referential speed
         # not working, must think about it
@@ -93,9 +158,6 @@ class Goto(Skill):
 
         # at last set the action accordingly
         r.action.absolute_speeds = v[0], v[1], va
-
-        # register skill on the robot
-        r.skill = self
 
     @property
     def point_away_from_defense_area(self):

@@ -16,11 +16,11 @@ class SampledDribble(DriveToBall):
 
         All other options from DriveToBall apply here.
         """
-        super(SampledDribble, self).__init__(robot, **kwargs)
+        super(SampledDribble, self).__init__(robot, avoid_collisions=False, **kwargs)
         self.minpower = minpower
         self.maxpower = maxpower
 
-    def step(self):
+    def _step(self):
         # put some dribbling in action
         if self.deterministic:
             self.robot.action.dribble = self.maxpower
@@ -30,6 +30,6 @@ class SampledDribble(DriveToBall):
         # temporarily decrease the threshold, does it has to be temporary?
         _threshold, self.threshold = self.threshold, 0.001
         # let DriveToBall do its thing
-        super(SampledDribble, self).step()
+        super(SampledDribble, self)._step()
         # and restore the threshold
         self.threshold = _threshold

@@ -42,6 +42,8 @@ class Point(geometry.Point):
         ang_rad = arctan2(deltaY, deltaX) * 180 / pi
         if(ang_rad < 0):
             return ang_rad + 360
+        #if(deltaY < 0 and deltaX < 0):
+        #    return ang_rad + 180
         return ang_rad
 
     @classmethod
@@ -57,6 +59,16 @@ class Point(geometry.Point):
         """Will return the closest object to self from iterable."""
         d, i = min((self.distance(i), i) for i in iterable)
         return i
+
+# Reference: http://stackoverflow.com/questions/11949808/what-is-the-difference-between-a-function-an-unbound-method-and-a-bound-methodo
+
+# This is so that we can access the methods we defined in our Point class from shapely's Point class.
+# we use im_func to acquire the function from the unbound methods so that when an instance of
+# shapely.geometry.Point is created, these methods will bind to them.
+geometry.Point.distance_to_line = Point.distance_to_line.im_func
+geometry.Point.update = Point.update.im_func
+geometry.Point.angle_to_point = Point.angle_to_point.im_func
+geometry.Point.closest_to = Point.closest_to.im_func
 
 
 class Circle(geometry.Polygon):

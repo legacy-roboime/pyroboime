@@ -14,7 +14,7 @@ class FollowAndCover(Goto):
 
     def __init__(self, robot, follow, cover, distance=1.0, **kwargs):
         """
-        The argument names are pretty self explainable,
+        The argument names are pretty self explanatory,
         If not, here's a drawing:
 
             X <------- cover
@@ -32,7 +32,7 @@ class FollowAndCover(Goto):
         self.cover = cover
         self.distance = distance
 
-    def step(self):
+    def _step(self):
         # vector from follow to cover:
         f2c = array(self.cover) - array(self.follow)
         # normalized:
@@ -41,4 +41,4 @@ class FollowAndCover(Goto):
         self.target = Point(array(self.follow) + vec * self.distance)
 
         # let Goto do its thing
-        super(FollowAndCover, self).step()
+        super(FollowAndCover, self)._step()

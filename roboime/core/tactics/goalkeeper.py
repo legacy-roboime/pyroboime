@@ -27,11 +27,11 @@ class Goalkeeper(Tactic):
         aggressive: this sets the aggressive mode, which means that the goalkeeper
           will also act as an attacker when it is the closer robot to the ball
         """
-        super(Goalkeeper, self).__init__(robots=[robot], deterministic=True)
+        super(Goalkeeper, self).__init__(robot, deterministic=True)
         self.aggressive = aggressive
-        self.goto = GotoLooking(robot, target=robot.goal, is_goalkeeper=True, lookpoint=robot.world.ball)
-        self.kick = SampledKick(robot, lookpoint=robot.enemy_goal)
-        self.chip = SampledChipKick(robot, lookpoint=robot.enemy_goal)
+        self.goto = GotoLooking(robot, target=lambda: robot.goal, lookpoint=robot.world.ball)
+        self.kick = SampledKick(robot, lookpoint=lambda: robot.enemy_goal)
+        self.chip = SampledChipKick(robot, lookpoint=lambda: robot.enemy_goal)
         self.angle = angle
         # should parametrize these
         # time in seconds to predict future ball position
@@ -39,7 +39,7 @@ class Goalkeeper(Tactic):
         self.domination_radius = 0.135
         self.safety_ratio = 0.9
 
-    def step(self):
+    def _step(self):
         #TODO: if ball is inside area and is slow, kick/pass it far far away
 
         # Build the home line

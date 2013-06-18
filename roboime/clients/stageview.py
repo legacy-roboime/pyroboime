@@ -1,13 +1,11 @@
-from PyQt4.QtGui import QGraphicsItem, QGraphicsView, QColor, QBrush, QGraphicsScene, QPainterPath, QFont
-from PyQt4.QtCore import QRectF, Qt, QString
+from PyQt4.QtGui import QGraphicsView, QColor, QBrush, QGraphicsScene
+from PyQt4.QtCore import Qt
 
 from .qtutils import scale as s
-from ..utils.mathutils import sin, cos, acos
+from . import worldviews
 from . import skillviews
+from . import tacticviews
 
-# some known uuids
-BALL = 0xba11
-FIELD = 0xf1e1d
 
 # colors
 FIELD_GREEN = Qt.darkGreen
@@ -20,215 +18,12 @@ LIGHT_GREY = QColor(0xcc, 0xcc, 0xcc)
 ORANGE = QColor(0xff, 0xbb, 0x00)
 
 
-class RobotItem(QGraphicsItem):
-    def __init__(self, robot):
-        super(RobotItem, self).__init__()
-        self.robot = robot
-        self.outline = QPainterPath()
-        self.setFlags(QGraphicsItem.ItemIsSelectable)
-
-    @property
-    def uuid(self):
-        return self.robot.uuid
-
-    @property
-    def color(self):
-        if self.isSelected():
-            return GREEN
-        elif self.robot.is_blue:
-            return BLUE
-        elif self.robot.is_yellow:
-            return YELLOW
-        else:
-            return BLACK
-
-    def position(self):
-        x, y, width, height = s(self.robot.x, self.robot.y, self.robot.world.length, self.robot.world.width)
-        radius = s(self.robot.radius)
-
-        self.cut_angle = acos(self.robot.front_cut / self.robot.radius)
-
-        self.outline.moveTo(radius, 0)
-        self.outline.arcTo(-radius, -radius, 2 * radius, 2 * radius, 0, 360 - 2 * self.cut_angle)
-        self.outline.closeSubpath()
-
-        self.setPos(x, -y)
-
-    def boundingRect(self):
-        radius = s(self.robot.radius)
-        return QRectF(-radius, -radius, 2 * radius, 2 * radius)
-
-    def paint(self, painter, option, widget=None):
-        # Save transformation:
-        painter.save();
-
-        color = self.color
-
-        # Change position
-        painter.setBrush(color)
-        painter.setPen(color)
-        
-        robot_rotation = self.robot.angle
-        if robot_rotation is None: robot_rotation = 0
-        # Draw robot shape
-        painter.rotate(-self.cut_angle - robot_rotation)
-        painter.drawPath(self.outline)
-        painter.rotate(self.cut_angle + robot_rotation)
-
-        # Draw id
-        robot_id = QString('?')
-        robot_id.setNum(self.robot.uid)
-        painter.setBrush(BLACK)
-        painter.setPen(BLACK)
-        painter.setFont(QFont('Courier', 132, 2, False))
-        painter.drawText(-90, -210, 1000, 1000, 0, robot_id)
-
-        # Reset transformation
-        painter.restore();
-
-
-def draw_arc(x, y, radius_in, radius_out, angle_init, angle_end, painter):
-    path = QPainterPath()
-
-    path.moveTo(x + radius_in * cos(angle_init), y + radius_in * sin(angle_init))
-    path.arcTo(x - radius_out, y - radius_out, 2 * radius_out, 2 * radius_out, angle_init, angle_end - angle_init)
-    path.arcTo(x - radius_in, y - radius_in, 2 * radius_in, 2 * radius_in, angle_end, angle_init - angle_end)
-    path.closeSubpath()
-
-    painter.drawPath(path)
-
-
-class FieldItem(QGraphicsItem):
-
-    def __init__(self, world):
-        super(FieldItem, self).__init__()
-        self.world = world
-
-    @property
-    def uuid(self):
-        return FIELD
-
-    def boundingRect(self):
-        width, height = s(self.world.length), s(self.world.width)
-        boundary = s(self.world.boundary_width + self.world.referee_width)
-        return QRectF(-width / 2.0 - boundary, -height / 2.0 - boundary, width + 2 * boundary, height + 2 * boundary);
-
-    def position(self):
-        self.setPos(0, 0)
-
-    def paint(self, painter, option, widget):
-        width, height = s(self.world.length), s(self.world.width)
-        line = s(self.world.line_width)
-
-        # Save transformation:
-        painter.save();
-
-        # Change position
-        painter.translate(-width / 2, -height / 2)
-
-        # Boundaries
-        painter.setBrush(LIGHT_GREY)
-        painter.setPen(LIGHT_GREY)
-        boundary = s(self.world.boundary_width + self.world.referee_width)
-        painter.drawRect(-boundary, -boundary, 2 * line, height + 2 * boundary)
-        painter.drawRect(width + boundary - 2 * line, -boundary, 2 * line, height + 2 * boundary)
-        painter.drawRect(-boundary, -boundary, width + 2 * boundary, 2 * line)
-        painter.drawRect(-boundary, boundary + height - 2 * line, width + 2 * boundary, 2 * line)
-
-        painter.setBrush(WHITE)
-        painter.setPen(WHITE)
-
-        # Center
-        draw_arc(width / 2, height / 2, 0, 1.5 * line, 0, 360, painter)
-
-        # Sides
-        painter.drawRect(0.0, 0.0, line, height)
-        painter.drawRect(width - line, 0.0, line, height)
-        painter.drawRect(0.0, 0.0, width, line)
-        painter.drawRect(0.0, height - line, width, line)
-
-        # Central lines
-        radius = s(self.world.center_radius)
-        painter.fillRect((width - line) / 2, 0, line, height, WHITE)
-        draw_arc(width / 2, height / 2, radius - line, radius, 0, 360, painter)
-
-        # Defense lines
-        dradius = s(self.world.defense_radius)
-        dstretch = s(self.world.defense_stretch)
-
-        painter.drawRect(dradius - line, (height - dstretch) / 2, line, dstretch)
-        draw_arc(0, (height - dstretch) / 2, dradius - line, dradius, 0, 90, painter)
-        draw_arc(0, (height + dstretch) / 2, dradius - line, dradius, 270, 360, painter)
-
-        painter.drawRect(width - dradius, (height - dstretch) / 2, line, dstretch)
-        draw_arc(width, (height - dstretch) / 2, dradius - line, dradius, 90, 180, painter)
-        draw_arc(width, (height + dstretch) / 2, dradius - line, dradius, 180, 270, painter)
-
-        # Penalty
-        penalty_spot = s(self.world.penalty_spot_distance)
-        draw_arc(penalty_spot, height / 2, 0, line, 0, 360, painter)
-        draw_arc(width - penalty_spot, height / 2, 0, line, 0, 360, painter)
-
-        # Goals
-        gwidth = s(self.world.goal_width)
-        gdepth = s(self.world.goal_depth)
-        gline = s(self.world.goal_wall_width)
-
-        painter.drawRect(-gdepth - gline, (height - gwidth) / 2 - gline, gdepth + gline, gline)
-        painter.drawRect(-gdepth - gline, (height - gwidth) / 2, gline, gwidth)
-        painter.drawRect(-gdepth - gline, (height + gwidth) / 2, gdepth + gline, gline)
-
-        painter.drawRect(width, (height - gwidth) / 2 - gline, gdepth + gline, gline)
-        painter.drawRect(width + gdepth, (height - gwidth) / 2, gline, gwidth)
-        painter.drawRect(width, (height + gwidth) / 2, gdepth + gline, gline)
-
-        # Reset transformation
-        painter.restore();
-
-
-class BallItem(QGraphicsItem):
-
-    def __init__(self, ball):
-        super(BallItem, self).__init__()
-        self.ball = ball
-
-    @property
-    def uuid(self):
-        return BALL
-
-    def boundingRect(self):
-        radius = s(self.ball.radius)
-        return QRectF(-2 * radius, -2 * radius, 4 * radius, 4 * radius)
-
-    def position(self):
-        x, y, width, height = s(self.ball.x, self.ball.y, self.ball.world.length, self.ball.world.width)
-        self.setPos(x, -y)
-
-    def paint(self, painter, option, widget=None):
-
-        # Save transformation:
-        painter.save();
-
-        painter.setBrush(ORANGE)
-        painter.setPen(ORANGE)
-        radius = s(self.ball.radius)
-        painter.drawEllipse(-radius, -radius, 2 * radius, 2 * radius)
-
-        # Reset transformation
-        painter.restore();
-
-
 class StageView(QGraphicsView):
     def __init__(self, parent=None):
         super(StageView, self).__init__(parent)
-
-        # All commented lines here are already loaded on GraphicsIntelligence.ui
-
         self.setBackgroundBrush(QBrush(FIELD_GREEN))
         self.setScene(QGraphicsScene(0, 0, 0, 0))
         self._world = None
-
-        # Set the zoom so the view doesn't starts all zoomed
         self.scale(1.0 / 15, 1.0 / 15)
 
     @property
@@ -252,11 +47,13 @@ class StageView(QGraphicsView):
     # Resize the view to fit the screen
     def fit(self):
         boundary = self._world.boundary_width + self._world.referee_width
-        self.fitInView(-s(self._world.length / 2 + boundary),
+        self.fitInView(
+            -s(self._world.length / 2 + boundary),
             -s(self._world.width / 2 + boundary),
             s(self._world.length + 2 * boundary),
             s(self._world.width + 2 * boundary),
-            Qt.KeepAspectRatio)
+            Qt.KeepAspectRatio
+        )
 
     # Handle key events
     def keyPressEvent(self, event):
@@ -275,23 +72,43 @@ class StageView(QGraphicsView):
         scene.clear()
 
         with self.world as w:
-            field = FieldItem(w)
+            field = worldviews.FieldView(w)
             field.position()
             scene.addItem(field)
 
-            for r in w.iterrobots():
+            robots = w.robots
+
+            # bottom layer: the robots
+            for r in robots:
                 # draw the robot
-                robot = RobotItem(r)
+                robot = worldviews.RobotView(r)
                 robot.position()
                 scene.addItem(robot)
 
-            for r in w.iterrobots():
+            # next layer: the robots ids
+            for r in robots:
+                # draw the robot ids
+                robotid = worldviews.RobotIdView(r)
+                robotid.position()
+                scene.addItem(robotid)
+
+            # next: the ball
+            ball = worldviews.BallView(w.ball)
+            ball.position()
+            scene.addItem(ball)
+
+            # following layers: skills and tactics
+
+            for r in robots:
                 # draw the skill
                 skill = skillviews.view_selector(r.skill)
                 if skill is not None:
                     skill.position()
                     scene.addItem(skill)
 
-            ball = BallItem(w.ball)
-            ball.position()
-            scene.addItem(ball)
+            for r in robots:
+                # draw the tactic
+                tactic = tacticviews.view_selector(r.tactic)
+                if tactic is not None:
+                    tactic.position()
+                    scene.addItem(tactic)

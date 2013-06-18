@@ -29,17 +29,17 @@ class SampledKick(DriveToBall):
     def __init__(self, robot, receiver=None, minpower=0.0, maxpower=1.0, **kwargs):
         """
         minpower and maxpower are in respect to the kicking power.
-        receiver must be a point like, if specified the kick will have
-        it's power calculated in a manner to arrive with speed zero at that point.
+        Receiver must be a point. If receiver is specified the kick will have
+        its power calculated in a manner to arrive with speed zero at that point.
 
         All other options from DriveToBall apply here.
         """
-        super(SampledKick, self).__init__(robot, **kwargs)
+        super(SampledKick, self).__init__(robot, avoid_collisions=False, **kwargs)
         self.receiver = receiver
         self.minpower = minpower
         self.maxpower = maxpower
 
-    def step(self):
+    def _step(self):
         if self.close_enough():
             # put some kicking in action
             if self.receiver is not None:
@@ -57,6 +57,6 @@ class SampledKick(DriveToBall):
         # temporarily decrease the threshold, does it has to be temporary?
         _threshold, self.threshold = self.threshold, 0.05
         # let DriveToBall do its thing
-        super(SampledKick, self).step()
+        super(SampledKick, self)._step()
         # and restore the threshold
         self.threshold = _threshold

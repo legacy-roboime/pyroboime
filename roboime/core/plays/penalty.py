@@ -18,14 +18,13 @@ class Penalty(Play):
     # error0: "assertion 'bNormalizationResult' failed in ..\..\include\ode/odemath.h"
     # error1: "assertion 'context->isStructureValid()' failed in ..\..\ode\src\util.cpp:665"
 
-    def __init__(self, team, goalkeeper_uid, **kwargs):
+    def __init__(self, team, **kwargs):
         super(Penalty, self).__init__(team, **kwargs)
-        self.goalkeeper_uid = goalkeeper_uid
         self.players = {}
         self.tactics_factory = lambda robot: {
             'goalkeeper': Goalkeeper(robot, aggressive=False, angle=0),
             'attacker': Zickler43(robot),
-            'blocker': Blocker(robot, arc=0, distance=self.team[0].radius+2*self.world.ball.radius),
+            'blocker': Blocker(robot, arc=0, distance=self.team[0].radius + 2 * self.world.ball.radius),
             'goto': Goto(robot),
         }
         self.ready = False
@@ -36,7 +35,7 @@ class Penalty(Play):
         closest_robots = [r.uid for r in self.team.closest_robots_to_ball(can_kick=True)]
 
         # make sure we do not account for the goalkeeper on that list
-        gk_id = self.goalkeeper_uid
+        gk_id = self.goalie
         if gk_id in closest_robots:
             closest_robots.remove(gk_id)
 
@@ -54,10 +53,10 @@ class Penalty(Play):
                 self.players[r_id]['goalkeeper'].step()
             elif r_id == atk_id:
                 self.attacker = robot
-                if self.ready: 
+                if self.ready:
                     self.players[r_id]['attacker'].step()
                 else:
                     self.players[r_id]['blocker'].step()
             else:
-                self.players[r_id]['goto'].target =  Point(array(self.goal.penalty_line)[0] * (-1) - array((robot.radius * -1 * sign(self.goal.x), robot.radius * 3 * (1 + r_id))))
+                self.players[r_id]['goto'].target = Point(array(self.goal.penalty_line)[0] * (-1) - array((robot.radius * -1 * sign(self.goal.x), robot.radius * 3 * (1 + r_id))))
                 self.players[r_id]['goto'].step()

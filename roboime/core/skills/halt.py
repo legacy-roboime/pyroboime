@@ -10,6 +10,6 @@ class Halt(Skill):
     def __init__(self, robot, deterministic=True, **kwargs):
         super(Halt, self).__init__(robot, deterministic=deterministic, **kwargs)
 
-    def step(self):
+    def _step(self):
         self.robot.action.absolute_speeds = (0, 0, 0)
         self.robot.skill = self

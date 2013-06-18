@@ -18,11 +18,17 @@ libgeos
     # not sure of the command bellow
     apt-get install libgeos-c
     # under fedora, the packages are labled as following: the -devel package is needed by shapely
-    rpm install geos geos-devel 
+    rpm install geos geos-devel
 
 PyQt4 (optional)
     # windows users are advised to get the binaries from Riverbank, as pip install of pyqt is bugged as of now.
+    # mac os users should install it via ports or homebrew
     pip install PyQt
+
+pygame (optional)
+    # windows users are advised to get the binaries from pygame official site
+    # mac os users should install it via ports or homebrew
+    pip install pygame
 
 #TODO:
     create smart dependencies file so one can

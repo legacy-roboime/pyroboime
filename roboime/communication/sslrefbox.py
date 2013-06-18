@@ -3,7 +3,6 @@ from struct import unpack
 
 from .network.multicast import MulticastReceiver
 from .protos.referee_pb2 import SSL_Referee
-from ..base import Referee
 
 
 class RefboxReceiver(MulticastReceiver):

@@ -12,7 +12,8 @@ def kick_power(distance, initial_speed=0.0, final_speed=0.0):
     # TODO, redo this completely
     chip_angle = 45
     g = 9.81
-    return sqrt(g * distance / sin (2 * chip_angle))
+    return sqrt(g * distance / sin(2 * chip_angle))
+
 
 class SampledChipKick(DriveToBall):
     """
@@ -33,14 +34,14 @@ class SampledChipKick(DriveToBall):
 
         All other options from DriveToBall apply here.
         """
-        super(SampledChipKick, self).__init__(robot, **kwargs)
+        super(SampledChipKick, self).__init__(robot, avoid_collisions=False, **kwargs)
         self.receiver = receiver
         self.minpower = minpower
         self.maxpower = maxpower
 
-    def step(self):
+    def _step(self):
         if self.close_enough():
-            # XXX: This doesn't work. Setting a receiver far enough away makes the robot kick the ball into spaaaaaaaaaaaaaaaaaaaace 
+            # XXX: This doesn't work. Setting a receiver far enough away makes the robot kick the ball into spaaaaaaaaaaaaaaaaaaaace
             if self.receiver is not None:
                 power = kick_power(self.ball.distance(self.receiver))
             else:
@@ -56,6 +57,6 @@ class SampledChipKick(DriveToBall):
         # temporarily decrease the threshold, does it has to be temporary?
         _threshold, self.threshold = self.threshold, 0.05
         # let DriveToBall do its thing
-        super(SampledChipKick, self).step()
+        super(SampledChipKick, self)._step()
         # and restore the threshold
         self.threshold = _threshold
