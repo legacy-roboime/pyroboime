@@ -133,12 +133,13 @@ class SimulationInterface(Interface):
             world,
             updaters=[updater.SimVisionUpdater(), updater.RefereeUpdater()],
             commanders=[commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)],
-            filters=filters + [filter.Speed(),
-                               filter.Scale(),
+            filters=filters + [
+                               filter.PositionLog(options.position_log_filename), #should be last, to have all data available
+                               #filter.Speed(),
                                filter.CommandUpdateLog(options.cmdupd_filename),
-                               filter.PositionLog(options.position_log_noise_filename),
+                               filter.Kalman(),
                                filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
-                               filter.PositionLog(options.position_log_filename),
+                               filter.Scale(),
                               ],
             **kwargs
         )
