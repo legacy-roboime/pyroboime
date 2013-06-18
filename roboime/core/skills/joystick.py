@@ -50,7 +50,7 @@ class Joystick(Skill):
             print 'WARNING: No joysticks found.'
             print 'Setting keyboard as main controller.'
             pygame.joystick.quit()
-            
+
             key_control = pygame.display.set_mode((150, 150))
             pygame.display.set_caption('Keyboard Controller')
 
