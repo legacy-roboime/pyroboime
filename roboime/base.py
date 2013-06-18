@@ -121,7 +121,7 @@ class Action(object):
 
     @property
     def absolute_speeds(self):
-        vx, vy, va = self._speeds
+        vx, vy, va = self.speeds
         ra = self.robot.angle
         return (vx * cos(ra) - vy * sin(ra), vy * cos(ra) + vx * sin(ra), va)
 
