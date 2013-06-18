@@ -18,6 +18,10 @@ from ..core.skills import sampleddribble
 from ..core.skills import sampledkick
 from ..core.skills import followandcover
 from ..core.skills import sampledchipkick
+try:
+    from ..core.skills import joystick
+except ImportError:
+    joystick = None
 from ..core.tactics import blocker
 from ..core.tactics import defender
 from ..core.tactics import goalkeeper
@@ -262,7 +266,7 @@ class QtGraphicalClient(object):
 
 class Intelligence(QtCore.QThread):
 
-    def __init__(self, world, count_robot=6, use_joystick=True):
+    def __init__(self, world, count_robot=6):
         super(Intelligence, self).__init__()
 
         class Dummy(object):
@@ -270,7 +274,6 @@ class Intelligence(QtCore.QThread):
                 pass
         self.stop = False
         self.world = world
-        self.use_joystick = use_joystick
         self.count_robot = count_robot
         self.skill = None
         self.interface = SimulationInterface(self.world)
@@ -290,7 +293,7 @@ class Intelligence(QtCore.QThread):
             ('Goalkeeper', goalkeeper.Goalkeeper(robot, angle=30, aggressive=True)),
             ('Zickler43', zickler43.Zickler43(robot)),
             ('Defender', defender.Defender(robot, enemy=self.world.ball)),
-            ('Joystick', joystick.Joystick(robot)) if self.use_joystick else dummy,
+            ('Joystick', joystick.Joystick(robot)) if joystick is not None else dummy,
         ])
         self.plays = lambda team: OrderedDict([
             dummy,
@@ -342,14 +345,10 @@ class App(QtGui.QApplication):
 
     def __init__(self, argv):
         super(App, self).__init__(argv)
-        
-        joystick = False if '--nojoystick' in argv else True
-        
-        if joystick: 
-            try:
-                import pygame
-            except ImportError:
-                joystick = False
 
-        self.window = QtGraphicalClient(use_joystick=joystick)
+        global joystick
+        if '--nojoystick' in argv:
+            joystick = None
+
+        self.window = QtGraphicalClient()
         self.aboutToQuit.connect(self.window.teardown)

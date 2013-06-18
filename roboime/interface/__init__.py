@@ -157,7 +157,7 @@ class SimulationInterface(Interface):
                 filter.Acceleration(),
                 filter.Speed(),
                 filter.CommandUpdateLog(options.cmdupd_filename),
-                filter.Kalman(),
+                #filter.Kalman(),
                 #filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
                 filter.Scale(),
             ],
