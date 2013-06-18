@@ -48,8 +48,12 @@ class Joystick(Skill):
             self.joystick_found = False
             # raise RuntimeError('No joysticks found.')
             print 'WARNING: No joysticks found.'
+            print 'Setting keyboard as main controller.'
             pygame.joystick.quit()
-            pygame.quit()
+            
+            key_control = pygame.display.set_mode((150, 150))
+            pygame.display.set_caption('Keyboard Controller')
+
         else:
             if index < pygame.joystick.get_count():
                 # Available joysticks: ADD NEW JOYSTICK TEMPLATES HERE!
@@ -178,3 +182,53 @@ class Joystick(Skill):
                     self.robot.action.chipkick = power
                 elif self.joystick.get_button(self.dribble_button):
                     self.robot.action.dribble = 1
+        else:
+            speed = 0.6
+            power = 0.8
+            pressed = pygame.key.get_pressed()
+
+            # Displacement through asdw
+            if pressed[pygame.K_w] and pressed[pygame.K_a]:    # '\
+                self.robot.action.speeds = speed, speed, 0
+            elif pressed[pygame.K_s] and pressed[pygame.K_a]:  # ./
+                self.robot.action.speeds = -speed, speed, 0
+            elif pressed[pygame.K_s] and pressed[pygame.K_d]:  #    \.
+                self.robot.action.speeds = -speed, -speed, 0
+            elif pressed[pygame.K_w] and pressed[pygame.K_d]:  #    /'
+                self.robot.action.speeds = speed, -speed, 0
+            elif pressed[pygame.K_s]:              #   v
+                self.robot.action.speeds = -speed, 0, 0
+            elif pressed[pygame.K_a]:              # <-o
+                self.robot.action.speeds = 0, speed, 0
+            elif pressed[pygame.K_w]:              #   ^
+                self.robot.action.speeds = speed, 0, 0
+            elif pressed[pygame.K_d]:              #   o->
+                self.robot.action.speeds = 0, -speed, 0
+            else:
+                self.robot.action.speeds = 0, 0, 0
+
+            # Orientation through <- and ->
+            if pressed[pygame.K_LEFT]:
+                self.robot.action.speeds = self.robot.action.speeds[:-1] + (self.angle_ratio,)
+            elif pressed[pygame.K_RIGHT]:
+                self.robot.action.speeds = self.robot.action.speeds[:-1] + (-self.angle_ratio,)
+            else:
+                self.robot.action.speeds = self.robot.action.speeds[:-1] + (0,)
+
+            # Chipkicking, kicking and dribbling
+            if pressed[pygame.K_SPACE] and pressed[pygame.K_LCTRL]:
+                self.robot.action.chipkick = power
+            elif pressed[pygame.K_SPACE]:
+                self.robot.action.kick = power
+            else:
+                self.robot.action.chipkick = 0
+                self.robot.action.kick = 0
+            if pressed[pygame.K_LSHIFT]:
+                self.robot.action.dribble = 1
+            else:
+                self.robot.action.dribble = 0
+
+            # TODO: 'Esc' to quit! 
+            # if pressed[pygame.K_ESCAPE]:
+               # self.robot.action.speeds = 0, 0, 0
+               # pygame.quit()
