@@ -129,7 +129,10 @@ class PositionLog(Filter):
     def __init__(self, filename):
         try:
             self.file = open(filename, 'w') #TODO: change to 'a' if want to append logs
-            self.file.write("#Time\tUID\tx\ty\tangle\n")
+            self.file.write("#Time\tUID\tx\ty\tangle" +
+                            "\tinput_x\tinput_y\tinput_angle" +
+                            "\tnoise_x\tnoise_y\tnoise_angle" +
+                            "\n")
         except:
             self.file = None
             if filename != None:
@@ -140,24 +143,33 @@ class PositionLog(Filter):
         if self.file != None:
             for u in updates:
                 if u.uid() < 0x400 or u.uid() == 0xba11:
-                    self.file.write("%f\t%s\t%f\t%f\t%f\n" % (u.data['timestamp'], \
-                                                              int(u.uid()), \
-                                                              u.data.get('x',0), \
-                                                              u.data.get('y',0), \
-                                                              u.data.get('angle',0)))
+                    self.file.write("\n%f\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f" % 
+                     (u.data['timestamp'],
+                      u.uid(),
+                      u.data.get('x',0),
+                      u.data.get('y',0),
+                      u.data.get('angle',0),
+                      u.data.get('input_x',0),
+                      u.data.get('input_y',0),
+                      u.data.get('input_angle',0),
+                      u.data.get('noise_x',0),
+                      u.data.get('noise_y',0),
+                      u.data.get('noise_angle',0),
+                     ))
                                                               
 
 class Noise(Filter):
     """
-    This filter adds a variance to the input x, y and angle variables. This is
-    used to evaluate filter performance. Despite having this feature on grSim,
-    using a filter inside the client allows storage of the data before the
-    addition of noise. This allows easier performance comparison when 
+    This filter adds gaussian noise to the input x, y and angle variables. This
+    is used to evaluate filter performance. Despite having this feature on
+    grSim, using a filter inside the client allows storage of the data before
+    the addition of noise. This allows easier performance comparison when 
     PositionLog filters are added both before and after noise addition.
     
     Variances for x, y and angle data is defined on filter instantiation.
     """
     def __init__(self, variance_x, variance_y, variance_angle):
+        # Standard deviation is the square root of the variance
         self.std_dev_x = sqrt(variance_x)
         self.std_dev_y = sqrt(variance_y)
         self.std_dev_a = sqrt(variance_angle)
@@ -165,8 +177,14 @@ class Noise(Filter):
     def filter_updates(self, updates):
         for u in updates:
             if u.uid() < 0x400 or u.uid() == 0xba11:
+                u.data['input_x'] = u.data['x']
+                u.data['input_y'] = u.data['y']
                 u.data['x'] = normal(u.data['x'], self.std_dev_x)
                 u.data['y'] = normal(u.data['y'], self.std_dev_y)
+                u.data['noise_x'] = u.data['x']
+                u.data['noise_y'] = u.data['y']
             if u.uid() < 0x400:
+                u.data['input_angle'] = u.data['angle']
                 u.data['angle'] = normal(u.data['angle'], self.std_dev_a)
+                u.data['noise_angle'] = u.data['angle']
             
