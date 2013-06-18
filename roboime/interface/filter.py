@@ -2,6 +2,7 @@ from numpy import array
 from numpy.random import normal
 from math import degrees, sqrt
 from roboime.interface.updater import RobotUpdate, BallUpdate, GeometryUpdate
+from model import Model
 
 
 class Filter(object):
@@ -187,4 +188,33 @@ class Noise(Filter):
                 u.data['input_angle'] = u.data['angle']
                 u.data['angle'] = normal(u.data['angle'], self.std_dev_a)
                 u.data['noise_angle'] = u.data['angle']
+            
+            
+class Kalman(Filter):
+    """
+    This filter implements a Kalman Filter (KF) on the position measurements.
+    
+    The KF is applied independently on each measurement (x, y and angle), due
+    to the complexity of modelling the whole robot (unfeasible in the current
+    time schedule).
+    """
+    def __init__(self):
+        self.models = {}
+        
+    def get_model(self, uid):
+        model = self.models.get(uid,None)
+        if model == None:
+            model=Model(uid)
+        self.models[uid] = model
+        return model
+        
+    def filter_commands(self, commands):
+        for c in commands:
+            if c.uid < 0x400 or c.uid == 0xba11:
+                self.get_model(c.uid).new_speed(c.absolute_speeds)
+        
+    def filter_updates(self, updates):
+        for u in updates:
+            if u.uid() < 0x400 or u.uid() == 0xba11:
+                self.get_model(u.uid()).update(u.data)
             
