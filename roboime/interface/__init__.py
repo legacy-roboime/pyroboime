@@ -9,6 +9,7 @@ from . import commander
 from . import filter
 from .. import options
 
+
 def _update_loop(queue, updater):
     while True:
         queue.put(updater.receive())
@@ -152,14 +153,14 @@ class SimulationInterface(Interface):
             updaters=[updater.SimVisionUpdater(), updater.RefereeUpdater()],
             commanders=[commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)],
             filters=filters + [
-                               #filter.PositionLog(options.position_log_filename), #should be last, to have all data available
-                               filter.Acceleration(),
-                               filter.Speed(),
-                               filter.CommandUpdateLog(options.cmdupd_filename),
-                               filter.Kalman(),
-                               #filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
-                               filter.Scale(),
-                              ],
+                #filter.PositionLog(options.position_log_filename), #should be last, to have all data available
+                filter.Acceleration(),
+                filter.Speed(),
+                filter.CommandUpdateLog(options.cmdupd_filename),
+                filter.Kalman(),
+                #filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
+                filter.Scale(),
+            ],
             **kwargs
         )
 

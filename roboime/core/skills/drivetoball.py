@@ -11,6 +11,7 @@ class DriveToBall(DriveToObject):
 
     attraction_factor = 70
     #magnetic_factor = 0.1
+
     def __init__(self, robot, **kwargs):
         # TODO: magic parameters
         super(DriveToBall, self).__init__(robot, point=robot.world.ball, **kwargs)

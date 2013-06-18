@@ -2,7 +2,6 @@ import pygame
 from numpy import abs
 
 from .. import Skill
-from ..skills.fishingrod import FishingRod
 
 
 class Joystick(Skill):
@@ -40,10 +39,7 @@ class Joystick(Skill):
             # self.aux_axis = 0
             # self.power_axis = 2
 
-            
             #nr eixos, nr hats, nr botoes
-    
-        
 
     def check_joysticks(self, index=0):
         if pygame.joystick.get_count() == 0:
@@ -71,7 +67,7 @@ class Joystick(Skill):
 
                 # Acquires the actual template of the joystick
                 this_joystick = (self.joystick.get_numaxes(), self.joystick.get_numhats(), self.joystick.get_numbuttons())
-                
+
                 # Available joysticks: ADD NEW JOYSTICK KEYMAPS HERE!
                 if this_joystick == available_templates.get('xbox'):
                     # XBOX Template:
@@ -98,11 +94,11 @@ class Joystick(Skill):
                     self.dribble_button = 3
                     # if there's no need for a straffe, we set it as -1
                     self.straffe_button = -1
-                    self.normal_axis = 1  # y
-                    self.aux_axis = 0     # x
-                    self.power_axis = 2   # power
-                    self.straffe_axis = 5 # s
-                    self.angle_axis = 4   # a
+                    self.normal_axis = 1   # y
+                    self.aux_axis = 0      # x
+                    self.power_axis = 2    # power
+                    self.straffe_axis = 5  # s
+                    self.angle_axis = 4    # a
                 elif this_joystick == available_templates.get('attack3'):
                     self.chipkick_button = 3
                     self.kick_button = 0

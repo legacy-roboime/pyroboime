@@ -133,9 +133,10 @@ class Action(object):
         vx, vy, va = speeds
         ra = self.robot.angle
         self._speeds = (vx * cos(ra) + vy * sin(ra), vy * cos(ra) - vx * sin(ra), va)
-        
+
     def __str__(self):
-        return "Action: "+str(type(self.robot))+ str(self.speeds)#{'x': self.x, 'y': self.y, 'angle':self.angle})
+        #return "Action: "+str(type(self.robot))+ str(self.speeds)#{'x': self.x, 'y': self.y, 'angle':self.angle})
+        return "Action: {}{}".format(type(self.robot), str(self.speeds))
 
 
 class Robot(geom.Point):

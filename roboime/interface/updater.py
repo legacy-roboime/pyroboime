@@ -20,10 +20,10 @@ class Update(object):
 
     def apply(self):
         raise NotImplemented
-    
+
     def __str__(self):
         return "Updated: %s UID=%s data=%s" % (type(self), hex(self.uid()), str(self.data))
-        
+
 
 class BallUpdate(Update):
 
