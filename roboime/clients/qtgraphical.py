@@ -178,7 +178,7 @@ class QtGraphicalClient(object):
         except:
             if uid in self.intelligence.mapping_yellow:
                 self.intelligence.mapping_yellow.pop(uid)
-        print self.intelligence.mapping_yellow
+        #print self.intelligence.mapping_yellow
 
     def selectFirmwareFromUidBlue(self):
         uid = int(self.ui.cmbSelectUidBlue.currentText())
@@ -194,7 +194,7 @@ class QtGraphicalClient(object):
         except:
             if uid in self.intelligence.mapping_blue:
                 self.intelligence.mapping_blue.pop(uid)
-        print self.intelligence.mapping_blue
+        #print self.intelligence.mapping_blue
 
     def setDefaultMappingBlue(self):
         self.intelligence.mapping_yellow.clear()
