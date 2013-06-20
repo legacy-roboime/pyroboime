@@ -1,6 +1,7 @@
 from PyQt4.QtGui import QGraphicsItem, QFont
 from PyQt4.QtCore import QRectF
 from collections import OrderedDict
+from numpy.linalg import norm
 from numpy import array
 
 from ..utils.mathutils import sin, cos
@@ -65,6 +66,7 @@ class SkillView(QGraphicsItem):
 class GotoView(SkillView):
 
     draw_forces = False
+    #draw_forces = True
 
     def __init__(self, skill, **kwargs):
         super(GotoView, self).__init__(skill, **kwargs)
@@ -96,31 +98,41 @@ class GotoView(SkillView):
         if self.draw_forces:
             forces = list(self.skill.other_forces())
             #scale = 0.07
-            scale = 0.5
+            scale = 0.01
 
-            # draw an arrow for every delta speed force
-            painter.setPen(BLACK)
-            for (_, _, force) in forces:
+            attraction_force = self.skill.attraction_force()
+            if norm(attraction_force) < self.skill.min_force_to_ignore_others:
+                # draw an arrow for every delta speed force
+                painter.setPen(BLACK)
+                for (_, _, force) in forces:
+                    fx, fy = force * scale
+                    if (fx ** 2 + fy ** 2) > 2 * m ** 2:
+                        draw_arrow_line(painter, 0, 0, fx, -fy, m)
+
+                # draw an arrow for every repulsion force
+                painter.setPen(PINK)
+                for (force, _, _) in forces:
+                    fx, fy = force * scale
+                    if (fx ** 2 + fy ** 2) > 2 * m ** 2:
+                        draw_arrow_line(painter, 0, 0, fx, -fy, m)
+
+                # draw an arrow for every magnetic force
+                painter.setPen(RED)
+                for (_, force, _) in forces:
+                    fx, fy = force * scale
+                    if (fx ** 2 + fy ** 2) > 2 * m ** 2:
+                        draw_arrow_line(painter, 0, 0, fx, -fy, m)
+
+                # draw an arrow for attraction force
+                painter.setPen(LIGHT_BLUE)
+                force = attraction_force
                 fx, fy = force * scale
                 draw_arrow_line(painter, 0, 0, fx, -fy, m)
 
-            # draw an arrow for every repulsion force
-            painter.setPen(PINK)
-            for (force, _, _) in forces:
-                fx, fy = force * scale
-                draw_arrow_line(painter, 0, 0, fx, -fy, m)
-
-            # draw an arrow for every magnetic force
-            painter.setPen(RED)
-            for (_, force, _) in forces:
-                fx, fy = force * scale
-                draw_arrow_line(painter, 0, 0, fx, -fy, m)
-
-            # draw an arrow for attraction force
-            painter.setPen(LIGHT_BLUE)
-            force = self.skill.attraction_force()
-            fx, fy = force * scale
-            draw_arrow_line(painter, 0, 0, fx, -fy, m)
+            else:
+                # draw an X for attraction force
+                painter.setPen(LIGHT_BLUE)
+                draw_x(painter, 0, 0, s(self.robot.radius))
 
         # Reset transformation
         painter.restore()

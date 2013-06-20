@@ -10,7 +10,7 @@ from ..utils.geom import Point
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface, TxInterface
-from ..core import Steppable as Dummy
+from ..core import Dummy
 from ..core.skills import goto
 from ..core.skills import gotoavoid
 from ..core.skills import drivetoobject
@@ -202,7 +202,8 @@ class QtGraphicalClient(object):
         for r in self.intelligence.world.blue_team:
             self.intelligence.mapping_blue[r.uid] = r.uid
         uid = int(self.ui.cmbSelectUidBlue.currentText())
-        self.ui.cmbSelectFirmwareIdBlue.setCurrentIndex(self.intelligence.mapping_blue[uid]+1)
+        if uid in self.intelligence.mapping_blue:
+            self.ui.cmbSelectFirmwareIdBlue.setCurrentIndex(self.intelligence.mapping_blue[uid]+1)
         self.ui.cmbSelectFirmwareIdYellow.setCurrentIndex(0)
 
     def setDefaultMappingYellow(self):
@@ -211,7 +212,8 @@ class QtGraphicalClient(object):
         for r in self.intelligence.world.yellow_team:
             self.intelligence.mapping_yellow[r.uid] = r.uid
         uid = int(self.ui.cmbSelectUidYellow.currentText())
-        self.ui.cmbSelectFirmwareIdYellow.setCurrentIndex(self.intelligence.mapping_yellow[uid]+1)
+        if uid in self.intelligence.mapping_yellow:
+            self.ui.cmbSelectFirmwareIdYellow.setCurrentIndex(self.intelligence.mapping_yellow[uid]+1)
         self.ui.cmbSelectFirmwareIdBlue.setCurrentIndex(0)
 
     def setPenaltyKicker(self):
