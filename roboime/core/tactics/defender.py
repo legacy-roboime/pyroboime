@@ -31,6 +31,7 @@ class Defender(Tactic):
         self._enemy = enemy
         self.follow_and_cover = FollowAndCover(
             robot,
+            name='Get the enemy!',
             follow=self.enemy,
             cover=self.cover,
             distance=self.follow_distance,
@@ -38,6 +39,7 @@ class Defender(Tactic):
         )
         self.drive_to_object = DriveToObject(
             robot,
+            name='Cover the goal.',
             point=self.cover,
             lookpoint=self.enemy,
             threshold=-(self.distance + robot.radius),

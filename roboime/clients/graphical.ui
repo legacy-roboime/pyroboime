@@ -21,7 +21,16 @@
     </sizepolicy>
    </property>
    <layout class="QGridLayout" name="gridLayout_3">
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <property name="spacing">
@@ -60,7 +69,7 @@
      <x>0</x>
      <y>0</y>
      <width>1268</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuArquivo">
@@ -117,7 +126,16 @@
      <property name="sizeConstraint">
       <enum>QLayout::SetNoConstraint</enum>
      </property>
-     <property name="margin">
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
       <number>0</number>
      </property>
      <item>
@@ -135,7 +153,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="tab">
         <property name="sizePolicy">
@@ -381,20 +399,6 @@
          </property>
          <item>
           <layout class="QGridLayout" name="gridLayout_5">
-           <item row="1" column="0">
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <item>
-              <widget class="QCheckBox" name="chkUpdate">
-               <property name="text">
-                <string>Update</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
            <item row="1" column="1">
             <spacer name="horizontalSpacer_2">
              <property name="orientation">
@@ -411,18 +415,19 @@
              </property>
             </spacer>
            </item>
-           <item row="1" column="2">
-            <widget class="QLabel" name="label_5">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Time controlado</string>
-             </property>
-            </widget>
+           <item row="1" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QCheckBox" name="chkUpdate">
+               <property name="text">
+                <string>Update</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item row="1" column="3">
             <widget class="QComboBox" name="cmbOurTeam">
@@ -438,10 +443,39 @@
              </item>
             </widget>
            </item>
+           <item row="0" column="1">
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>50</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
            <item row="0" column="0">
             <widget class="QPushButton" name="btnChangeSides">
              <property name="text">
               <string>Trocar de lados</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLabel" name="label_5">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Time controlado</string>
              </property>
             </widget>
            </item>
@@ -460,22 +494,6 @@
               <string>Tipo de transmissão</string>
              </property>
             </widget>
-           </item>
-           <item row="0" column="1">
-            <spacer name="horizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Fixed</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>50</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
            </item>
            <item row="0" column="3">
             <widget class="QComboBox" name="cmbSelectOutput">
@@ -575,7 +593,280 @@
         <attribute name="title">
          <string>Transmissão</string>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout_4"/>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout_10">
+           <item row="0" column="1">
+            <widget class="QLabel" name="label_16">
+             <property name="text">
+              <string>Id do Padrão</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QComboBox" name="cmbSelectFirmwareIdYellow">
+             <item>
+              <property name="text">
+               <string/>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>2</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>3</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>4</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>5</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>6</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>7</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>9</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLabel" name="label_17">
+             <property name="text">
+              <string>Id do Firmware</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>Mapeamento do time amarelo</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="cmbSelectUidBlue">
+             <item>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>2</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>3</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>4</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>5</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>6</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>7</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>9</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QComboBox" name="cmbSelectFirmwareIdBlue">
+             <item>
+              <property name="text">
+               <string/>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>2</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>3</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>4</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>5</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>6</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>7</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>9</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_13">
+             <property name="text">
+              <string>Mapeamento do time azul</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QComboBox" name="cmbSelectUidYellow">
+             <item>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>2</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>3</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>4</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>5</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>6</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>7</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>9</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QPushButton" name="btnDefaultBlue">
+             <property name="text">
+              <string>Colocar padrão azul</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QPushButton" name="btnDefaultYellow">
+             <property name="text">
+              <string>Colocar padrão amarelo</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </widget>
       </widget>
      </item>
@@ -597,7 +888,16 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QGridLayout" name="gridLayout_9">
-     <property name="margin">
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
       <number>0</number>
      </property>
      <property name="spacing">
@@ -605,7 +905,16 @@
      </property>
      <item row="1" column="0">
       <layout class="QGridLayout" name="gridLayout_7">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>12</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
         <number>12</number>
        </property>
        <item row="0" column="0">
@@ -632,7 +941,16 @@
        </item>
        <item row="0" column="1">
         <layout class="QGridLayout" name="gridLayout_8">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>6</number>
+         </property>
+         <property name="topMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>6</number>
+         </property>
+         <property name="bottomMargin">
           <number>6</number>
          </property>
          <property name="spacing">
