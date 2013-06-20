@@ -26,10 +26,14 @@ class Steppable(object):
         return self.name or self.__class__.__name__
 
     def step(self):
-        """
-        Although this method should be overriden it is not enforced, the reason
-        for that is so that this class can be used for making stub objects.
-        """
+        """This method must be implemented to add some logic."""
+        raise NotImplementedError
+
+
+class Dummy(Steppable):
+    """Use this class if you want a Steppable that does nothing."""
+
+    def step(self):
         pass
 
 
