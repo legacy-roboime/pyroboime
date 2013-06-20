@@ -51,7 +51,8 @@ class Joystick(Skill):
             print 'Setting keyboard as main controller.'
             pygame.joystick.quit()
 
-            key_control = pygame.display.set_mode((150, 150))
+            #key_control = pygame.display.set_mode((150, 150))
+            pygame.display.set_mode((150, 150))
             pygame.display.set_caption('Keyboard Controller')
 
         else:
@@ -192,17 +193,17 @@ class Joystick(Skill):
                 self.robot.action.speeds = speed, speed, 0
             elif pressed[pygame.K_s] and pressed[pygame.K_a]:  # ./
                 self.robot.action.speeds = -speed, speed, 0
-            elif pressed[pygame.K_s] and pressed[pygame.K_d]:  #    \.
+            elif pressed[pygame.K_s] and pressed[pygame.K_d]:  # \.
                 self.robot.action.speeds = -speed, -speed, 0
-            elif pressed[pygame.K_w] and pressed[pygame.K_d]:  #    /'
+            elif pressed[pygame.K_w] and pressed[pygame.K_d]:  # /'
                 self.robot.action.speeds = speed, -speed, 0
-            elif pressed[pygame.K_s]:              #   v
+            elif pressed[pygame.K_s]:              # v
                 self.robot.action.speeds = -speed, 0, 0
             elif pressed[pygame.K_a]:              # <-o
                 self.robot.action.speeds = 0, speed, 0
-            elif pressed[pygame.K_w]:              #   ^
+            elif pressed[pygame.K_w]:              # ^
                 self.robot.action.speeds = speed, 0, 0
-            elif pressed[pygame.K_d]:              #   o->
+            elif pressed[pygame.K_d]:              # o->
                 self.robot.action.speeds = 0, -speed, 0
             else:
                 self.robot.action.speeds = 0, 0, 0
@@ -228,7 +229,7 @@ class Joystick(Skill):
             else:
                 self.robot.action.dribble = 0
 
-            # TODO: 'Esc' to quit! 
+            # TODO: 'Esc' to quit!
             # if pressed[pygame.K_ESCAPE]:
                # self.robot.action.speeds = 0, 0, 0
                # pygame.quit()
