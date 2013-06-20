@@ -33,7 +33,7 @@ class RobotIdView(QGraphicsItem):
         painter.setBrush(BLACK)
         painter.setPen(BLACK)
         painter.setFont(QFont('Courier', 132, 2))
-        painter.drawText(-90, -140, robot_id)
+        painter.drawText(-90, -90, robot_id)
         painter.restore()
 
 

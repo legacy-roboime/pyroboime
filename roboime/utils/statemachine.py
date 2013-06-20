@@ -2,12 +2,11 @@ from random import random
 
 
 class State(object):
-    def __init__(self, deterministic, name="State"):
+    def __init__(self, deterministic, name=None):
+        #super(State, self).__init__(name=name)
+        if name is not None:
+            self.name = name
         self.deterministic = deterministic
-        self.name = name
-
-    def __repr__(self):
-        return self.name
 
 
 class Transition(object):

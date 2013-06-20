@@ -10,8 +10,8 @@ from ..interface import SimulationInterface
 #from ..core.skills import sampleddribble
 #from ..core.skills import followandcover
 #from ..core.skills import sampledchipkick
-from ..core.tactics import goalkeeper
-from ..core.tactics import blocker
+#from ..core.tactics import goalkeeper
+#from ..core.tactics import blocker
 #from ..core.tactics import defender
 #from ..core.tactics import zickler43 as zickler
 #from ..core.plays import autoretaliate
@@ -52,17 +52,17 @@ class Simple(object):
         #if 1 in self.world.blue_team:
         #    r = self.world.blue_team[1]
         #    r.action.speeds = (1.0, 0.0, 0.0)
-        t0 = time()
-        if 2 in self.world.blue_team:
-            r = self.world.blue_team[2]
-            r.max_speed = 3.0
-            if 'gk' not in self.tactics:
-                self.tactics['gk'] = goalkeeper.Goalkeeper(r, angle=30, aggressive=True)
-        if 1 in self.world.blue_team:
-            r = self.world.blue_team[1]
-            r.max_speed = 2.0
-            if 'bk' not in self.tactics:
-                self.tactics['bk'] = blocker.Blocker(r, arc=0)
+        #t0 = time()
+        #if 2 in self.world.blue_team:
+        #    r = self.world.blue_team[2]
+        #    r.max_speed = 3.0
+        #    if 'gk' not in self.tactics:
+        #        self.tactics['gk'] = goalkeeper.Goalkeeper(r, angle=30, aggressive=True)
+        #if 1 in self.world.blue_team:
+        #    r = self.world.blue_team[1]
+        #    r.max_speed = 2.0
+        #    if 'bk' not in self.tactics:
+        #        self.tactics['bk'] = blocker.Blocker(r, arc=0)
                 #self.skill = sampledchipkick.SampledChipKick(r, lookpoint=self.world.left_goal)
                 #self.skill = followandcover.FollowAndCover(r, follow=self.world.ball, cover=self.world.blue_team[3])
                 #self.skill = sampledkick.SampledKick(r, lookpoint=self.world.left_goal)
@@ -86,8 +86,10 @@ class Simple(object):
         #    self.plays['retaliate'] = autoretaliate.AutoRetaliate(self.world.yellow_team, 0)
         #if 'halt' not in self.plays:
         #    self.plays['halt'] = halt.Halt(self.world.yellow_team)
-        if 'stop' not in self.plays:
-            self.plays['stop'] = stop.Stop(self.world.yellow_team, 0)
+        if 'stop1' not in self.plays:
+            self.plays['stop1'] = stop.Stop(self.world.blue_team)
+        if 'stop2' not in self.plays:
+            self.plays['stop2'] = stop.Stop(self.world.yellow_team)
 
         for p in self.plays.itervalues():
             p.step()
@@ -96,9 +98,9 @@ class Simple(object):
         for s in self.skills.itervalues():
             s.step()
 
-        t1 = time()
-        if self.show_perf:
-            print 'heuristic time:', t1 - t0
+        #t1 = time()
+        #if self.show_perf:
+        #    print 'heuristic time:', t1 - t0
 
         #try:
         #    self.interface.step()
@@ -113,13 +115,13 @@ class Simple(object):
         #t1 = time()
         #print 'inter time:', t1 - t0
 
-        t_diff = t0 - self.prev_t
-        if self.show_fps and t_diff >= 1.0:
-            frames, self.frames = self.frames / t_diff, 0
-            print "fps: {:.02f}".format(frames)
-            self.prev_t = t0
-        else:
-            self.frames += 1
+        #t_diff = t0 - self.prev_t
+        #if self.show_fps and t_diff >= 1.0:
+        #    frames, self.frames = self.frames / t_diff, 0
+        #    print "fps: {:.02f}".format(frames)
+        #    self.prev_t = t0
+        #else:
+        #    self.frames += 1
 
     def mainloop(self):
         self.interface.start()

@@ -10,6 +10,7 @@ from ..utils.geom import Point
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface, TxInterface
+from ..core import Steppable as Dummy
 from ..core.skills import goto
 from ..core.skills import gotoavoid
 from ..core.skills import drivetoobject
@@ -189,7 +190,7 @@ class QtGraphicalClient(object):
         self.intelligence.world.switch_sides()
 
     def setRobotKickAbility(self):
-        '''
+        """
         us, they = (self.world.blue_team, self.world.yellow_team) if self.ui.cmbOurTeam.currentText == 'Azul' else (self.world.yellow_team, self.world.blue_team)
         for i in range(self.intelligence.count_robot):
             us[i].can_kick = True if getattr(self.ui, 'kickAbilityU' + str(i)).value > 0.00 else False
@@ -200,7 +201,7 @@ class QtGraphicalClient(object):
         for r in self.world.robots:
             if r.can_kick == False:
                 print 'Robot', r.pattern, 'cannot kick!'
-        '''
+        """
         pass
 
     def resetPatterns(self):
@@ -269,9 +270,6 @@ class Intelligence(QtCore.QThread):
     def __init__(self, world, count_robot=6):
         super(Intelligence, self).__init__()
 
-        class Dummy(object):
-            def step(self):
-                pass
         self.stop = False
         self.world = world
         self.count_robot = count_robot

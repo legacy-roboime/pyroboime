@@ -12,9 +12,9 @@ from ..core.skills import goto, gotoavoid, driveto
 _view_table = {}
 
 
-def view_for(mapped_skill):
+def view_for(mapped_model):
     def _view_for(view_class):
-        _view_table[mapped_skill] = view_class
+        _view_table[mapped_model] = view_class
         return view_class
     return _view_for
 
@@ -39,6 +39,9 @@ class SkillView(QGraphicsItem):
         fx, fy = s(point)
         return fx - x, -(fy - y)
 
+    def paint(self, painter, option, widget=None):
+        pass
+
 
 @view_for(goto.Goto)
 class GotoView(SkillView):
@@ -53,6 +56,8 @@ class GotoView(SkillView):
         return QRectF(-m, -m, x + m, y + m)
 
     def paint(self, painter, option, widget=None):
+        super(GotoView, self).paint(painter, option, widget)
+
         # Save transformation:
         painter.save()
 
@@ -71,29 +76,31 @@ class GotoView(SkillView):
 
         if self.draw_forces:
             forces = list(self.skill.other_forces())
+            #scale = 0.07
+            scale = 0.5
 
             # draw an arrow for every delta speed force
             painter.setPen(BLACK)
             for (_, _, force) in forces:
-                fx, fy = force
+                fx, fy = force * scale
                 draw_arrow_line(painter, 0, 0, fx, -fy, m)
 
             # draw an arrow for every repulsion force
             painter.setPen(PINK)
             for (force, _, _) in forces:
-                fx, fy = force
+                fx, fy = force * scale
                 draw_arrow_line(painter, 0, 0, fx, -fy, m)
 
             # draw an arrow for every magnetic force
             painter.setPen(RED)
             for (_, force, _) in forces:
-                fx, fy = force
+                fx, fy = force * scale
                 draw_arrow_line(painter, 0, 0, fx, -fy, m)
 
             # draw an arrow for attraction force
             painter.setPen(LIGHT_BLUE)
             force = self.skill.attraction_force()
-            fx, fy = force
+            fx, fy = force * scale
             draw_arrow_line(painter, 0, 0, fx, -fy, m)
 
         # Reset transformation
@@ -176,25 +183,25 @@ class DriveToView(GotoAvoidView):
 
 
 _weighted_view_table = []
-for skill, view in _view_table.iteritems():
+for model, view in _view_table.iteritems():
     weight = 0
-    for _skill in _view_table.iterkeys():
-        if issubclass(skill, _skill):
+    for _model in _view_table.iterkeys():
+        if issubclass(model, _model):
             weight += 1
-    _weighted_view_table.append((weight, skill, view))
+    _weighted_view_table.append((weight, model, view))
 _weighted_view_table.sort(reverse=True)
-view_table = OrderedDict((skill, view) for (_, skill, view) in _weighted_view_table)
+view_table = OrderedDict((model, view) for (_, model, view) in _weighted_view_table)
 
 
-def view_selector(skill, use_fallback=True):
+def view_selector(model, use_fallback=True):
     """Will return an instance of the propert view."""
-    # try to use the view directly associated with this skill
-    direct_view = view_table.get(skill)
+    # try to use the view directly associated with this model
+    direct_view = view_table.get(model)
     if direct_view is not None:
-        return direct_view(skill)
+        return direct_view(model)
     # if none is found and a fallback is desired, search the view_table
     # for a compatible view
     elif use_fallback:
         for s, view in view_table.iteritems():
-            if isinstance(skill, s):
-                return view(skill)
+            if isinstance(model, s):
+                return view(model)

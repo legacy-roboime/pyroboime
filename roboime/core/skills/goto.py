@@ -13,16 +13,17 @@ class Goto(Skill):
     regard to the position of any other objects on the field.
     """
 
-    attraction_factor = 70.0
+    attraction_factor = 300.0
     attraction_power = 1.2
-    attraction_floor = 1.3
-    repulsion_factor = 10.0
-    repulsion_power = 1.7
-    magnetic_factor = 12.0
-    magnetic_power = 1.3
+    #attraction_floor = 2.3
+    attraction_floor = 5.0
+    repulsion_factor = 7.0
+    repulsion_power = 2.3
+    magnetic_factor = 8.0
+    magnetic_power = 1.9
     delta_speed_factor = 2.0
     delta_speed_power = 1.4
-    min_distance = 1e-2
+    min_distance = 1e-3
 
     def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
         """

@@ -1,25 +1,25 @@
-from PyQt4.QtGui import QGraphicsItem
+from PyQt4.QtGui import QGraphicsItem, QFont
 from PyQt4.QtCore import QRectF
 from collections import OrderedDict
 
 from .qtutils import scale as s
 #from .qtutils import draw_x
-from .qtutils import RED, BLUE
-from ..core.tactics import blocker
-from ..core.tactics import zickler43
+from .qtutils import RED, BLUE, BLACK
+from ..core import Tactic
+from ..core.tactics.blocker import Blocker
+from ..core.tactics.zickler43 import Zickler43
+
+_view_table = {}
 
 
-view_table = OrderedDict()
-
-
-def view_for(mapped_tactic):
-    # TODO: make this resolve dependencies
+def view_for(mapped_model):
     def _view_for(view_class):
-        view_table[mapped_tactic] = view_class
+        _view_table[mapped_model] = view_class
         return view_class
     return _view_for
 
 
+@view_for(Tactic)
 class TacticView(QGraphicsItem):
 
     def __init__(self, tactic):
@@ -40,8 +40,27 @@ class TacticView(QGraphicsItem):
         fx, fy = s(point)
         return fx - x, -(fy - y)
 
+    def boundingRect(self):
+        return QRectF(-10, -140, 200, 0)
 
-@view_for(blocker.Blocker)
+    def paint(self, painter, option, widget=None):
+        # Save transformation:
+        painter.save()
+
+        painter.setBrush(BLACK)
+        painter.setPen(BLACK)
+        painter.setFont(QFont('Courier', 72, 2))
+
+        tactic = str(self.tactic)
+        state = str(self.tactic.current_state)
+        painter.drawText(-10, -140, tactic)
+        painter.drawText(-10, -90, state)
+
+        # Reset transformation
+        painter.restore()
+
+
+@view_for(Blocker)
 class BlockerView(TacticView):
 
     def boundingRect(self):
@@ -50,6 +69,8 @@ class BlockerView(TacticView):
         return QRectF(-m, -m, x + m, y + m)
 
     def paint(self, painter, option, widget=None):
+        super(BlockerView, self).paint(painter, option, widget)
+
         # Save transformation:
         painter.save()
 
@@ -72,7 +93,7 @@ class BlockerView(TacticView):
         painter.restore()
 
 
-@view_for(zickler43.Zickler43)
+@view_for(Zickler43)
 class Zickler43View(TacticView):
 
     def boundingRect(self):
@@ -81,6 +102,8 @@ class Zickler43View(TacticView):
         return QRectF(-m, -m, x + m, y + m)
 
     def paint(self, painter, option, widget=None):
+        super(Zickler43View, self).paint(painter, option, widget)
+
         # Save transformation:
         painter.save()
 
@@ -104,8 +127,26 @@ class Zickler43View(TacticView):
         painter.restore()
 
 
-def view_selector(tactic):
+_weighted_view_table = []
+for model, view in _view_table.iteritems():
+    weight = 0
+    for _model in _view_table.iterkeys():
+        if issubclass(model, _model):
+            weight += 1
+    _weighted_view_table.append((weight, model, view))
+_weighted_view_table.sort(reverse=True)
+view_table = OrderedDict((model, view) for (_, model, view) in _weighted_view_table)
+
+
+def view_selector(model, use_fallback=True):
     """Will return an instance of the propert view."""
-    for t, view in view_table.iteritems():
-        if isinstance(tactic, t):
-            return view(tactic)
+    # try to use the view directly associated with this model
+    direct_view = view_table.get(model)
+    if direct_view is not None:
+        return direct_view(model)
+    # if none is found and a fallback is desired, search the view_table
+    # for a compatible view
+    elif use_fallback:
+        for s, view in view_table.iteritems():
+            if isinstance(model, s):
+                return view(model)
