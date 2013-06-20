@@ -9,7 +9,7 @@ class DriveToBall(DriveToObject):
     and that some parameters are optimized for getting on the ball.
     """
 
-    attraction_factor = 70
+    #attraction_factor = 70
     #magnetic_factor = 0.1
 
     def __init__(self, robot, **kwargs):

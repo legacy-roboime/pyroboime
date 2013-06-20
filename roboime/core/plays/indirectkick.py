@@ -18,7 +18,8 @@ class IndirectKick(Stop, StateMachine):
     """
 
     def __init__(self, team, verbose=False, **kwargs):
-        Stop.__init__(self, team, **kwargs)
+        super(IndirectKick, self).__init__(team, **kwargs)
+        #Stop.__init__(self, team, **kwargs)
 
         self.states = {
             'starting': State(True, name='Starting'),

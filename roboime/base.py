@@ -608,22 +608,24 @@ class Referee(object):
 
 class World(object):
 
+    # default metric constants, may be overriden at
+    # runtime, per instance or globally
+    width = 4.0
+    length = 6.0
+    line_width = 0.01
+    boundary_width = 0.25
+    referee_width = 0.425
+    center_radius = 0.5
+    defense_radius = 0.5
+    defense_stretch = 0.35
+    free_kick_distance = 0.7
+    penalty_spot_distance = 0.45
+    penalty_line_distance = 0.35
+    goal_width = 0.7
+    goal_depth = 0.18
+    goal_wall_width = 0.02
+
     def __init__(self, right_team=None, left_team=None):
-        # metric constants
-        self.width = 0.0
-        self.length = 0.0
-        self.line_width = 0.0
-        self.boundary_width = 0.0
-        self.referee_width = 0.0
-        self.center_radius = 0.0
-        self.defense_radius = 0.0
-        self.defense_stretch = 0.0
-        self.free_kick_distance = 0.0
-        self.penalty_spot_distance = 0.0
-        self.penalty_line_distance = 0.0
-        self.goal_width = 0.0
-        self.goal_depth = 0.0
-        self.goal_wall_width = 0.0
         self.inited = False
 
         # objects
