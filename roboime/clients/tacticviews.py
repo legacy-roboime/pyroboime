@@ -52,9 +52,10 @@ class TacticView(QGraphicsItem):
         painter.setFont(QFont('Courier', 72, 2))
 
         tactic = str(self.tactic)
-        state = str(self.tactic.current_state)
         painter.drawText(-10, -140, tactic)
-        painter.drawText(-10, -90, state)
+
+        #state = str(self.tactic.current_state)
+        #painter.drawText(-10, -90, state)
 
         # Reset transformation
         painter.restore()

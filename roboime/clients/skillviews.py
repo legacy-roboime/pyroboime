@@ -1,4 +1,4 @@
-from PyQt4.QtGui import QGraphicsItem
+from PyQt4.QtGui import QGraphicsItem, QFont
 from PyQt4.QtCore import QRectF
 from collections import OrderedDict
 from numpy import array
@@ -7,6 +7,7 @@ from ..utils.mathutils import sin, cos
 from .qtutils import scale as s
 from .qtutils import draw_x, draw_arrow_line
 from .qtutils import BLACK, RED, BLUE, GREEN, TRANSPARENT, PINK, LIGHT_BLUE
+from ..core import Skill
 from ..core.skills import goto, gotoavoid, driveto
 
 _view_table = {}
@@ -19,6 +20,7 @@ def view_for(mapped_model):
     return _view_for
 
 
+@view_for(Skill)
 class SkillView(QGraphicsItem):
 
     def __init__(self, skill):
@@ -39,8 +41,24 @@ class SkillView(QGraphicsItem):
         fx, fy = s(point)
         return fx - x, -(fy - y)
 
+    def boundingRect(self):
+        return QRectF(-10, -140, 200, 0)
+
     def paint(self, painter, option, widget=None):
-        pass
+        # Save transformation:
+        painter.save()
+
+        painter.setBrush(BLACK)
+        painter.setPen(BLACK)
+        painter.setFont(QFont('Courier', 72, 2))
+
+        #tactic = str(self.tactic)
+        #painter.drawText(-10, -140, tactic)
+        skill = str(self.skill)
+        painter.drawText(-10, -90, skill)
+
+        # Reset transformation
+        painter.restore()
 
 
 @view_for(goto.Goto)
