@@ -46,9 +46,10 @@ class SkillView(QGraphicsItem):
 @view_for(goto.Goto)
 class GotoView(SkillView):
 
-    def __init__(self, skill, draw_forces=True, **kwargs):
+    draw_forces = False
+
+    def __init__(self, skill, **kwargs):
         super(GotoView, self).__init__(skill, **kwargs)
-        self.draw_forces = draw_forces
 
     def boundingRect(self):
         m = self.margin
