@@ -244,6 +244,7 @@ class PositionLog(Filter):
             self.file.write("#Time\tUID\tx\ty\tangle" +
                             "\tinput_x\tinput_y\tinput_angle" +
                             "\tnoise_x\tnoise_y\tnoise_angle" +
+                            "\tspeed_vx\tspeed_vy\tspeed_vz" +
                             "\n")
         except:
             self.file = None
@@ -255,7 +256,9 @@ class PositionLog(Filter):
         if self.file is not None:
             for u in updates:
                 if u.uid() < 0x400 or u.uid() == 0xba11:
-                    self.file.write("\n%f\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f" % (
+                    vx, vy, w = u.data.get('speeds_cmd', (0,0,0))
+                    self.file.write(("\n%f\t%s\t%f\t%f\t%f\t%f\t%f\t%f" +
+                        "\t%f\t%f\t%f\t%f\t%f\t%f") % (
                         u.data['timestamp'],
                         u.uid(),
                         u.data.get('x', 0),
@@ -267,6 +270,9 @@ class PositionLog(Filter):
                         u.data.get('noise_x', 0),
                         u.data.get('noise_y', 0),
                         u.data.get('noise_angle', 0),
+                        vx,
+                        vy,
+                        w,
                     ))
 
 
