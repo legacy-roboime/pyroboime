@@ -11,25 +11,31 @@ class Steppable(object):
     name = None
 
     def __init__(self, *args, **kwargs):
-        try:
-            super(Steppable, self).__init__(*args, **kwargs)
-        except TypeError:
-            pass
         # the following is not the same as doing
         # >>> self.name = kwargs.get('name')
         # because the above will turn name into an instance
         # property, and overwrite it if defined as a class member
         if 'name' in kwargs and kwargs['name'] is not None:
-            self.name = kwargs['name']
+            self.name = kwargs.pop('name')
+        # continue the chain of inheritance init
+        super(Steppable, self).__init__(*args, **kwargs)
+        #try:
+        #    super(Steppable, self).__init__(*args, **kwargs)
+        #except TypeError:
+        #    pass
 
     def __str__(self):
         return self.name or self.__class__.__name__
 
     def step(self):
-        """
-        Although this method should be overriden it is not enforced, the reason
-        for that is so that this class can be used for making stub objects.
-        """
+        """This method must be implemented to add some logic."""
+        raise NotImplementedError
+
+
+class Dummy(Steppable):
+    """Use this class if you want a Steppable that does nothing."""
+
+    def step(self):
         pass
 
 

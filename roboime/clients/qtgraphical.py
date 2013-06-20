@@ -10,7 +10,7 @@ from ..utils.geom import Point
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface, TxInterface
-from ..core import Steppable as Dummy
+from ..core import Dummy
 from ..core.skills import goto
 from ..core.skills import gotoavoid
 from ..core.skills import drivetoobject

@@ -7,23 +7,38 @@ from ...utils.geom import Point
 from ...utils.pidcontroller import PidController
 
 
+def force_equation(direction, distance, floor, factor, power):
+    return direction * (floor + factor / distance) ** power
+
+
 class Goto(Skill):
     """
     Sends the robot to a specified point with a specified orientation with no
     regard to the position of any other objects on the field.
     """
 
-    attraction_factor = 300.0
-    attraction_power = 1.2
-    #attraction_floor = 2.3
-    attraction_floor = 5.0
-    repulsion_factor = 7.0
-    repulsion_power = 2.3
-    magnetic_factor = 8.0
-    magnetic_power = 1.9
+    # attraction coefificients
+    attraction_factor = 6.0
+    attraction_power = 2.3
+    attraction_floor = 80.0
+    # repulsion coefificients
+    repulsion_factor = 8.0
+    repulsion_power = 3.3
+    repulsion_floor = 0.0
+    # magnetic coefificients
+    magnetic_factor = 9.0
+    magnetic_power = 3.1
+    magnetic_floor = 0.0
+    # delta_speed coefificients
     delta_speed_factor = 2.0
     delta_speed_power = 1.4
-    min_distance = 1e-3
+    delta_speed_floor = 0.0
+    # minimum distance to use on the equation
+    # anything smaller is capped to this
+    min_distance = 1e-5
+    # ignore other forces if attraction
+    # force is as least this high:
+    min_force_to_ignore_others = 100000
 
     def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
         """
@@ -88,8 +103,13 @@ class Goto(Skill):
 
         # attractive force
         dist = max(self.robot.distance(self.final_target), self.min_distance)
+
+        # normalize delta
+        delta /= dist
+
         #attraction_force = delta * (1 + 1 / (dist / self.attraction_factor) ** self.attraction_power)
-        attraction_force = delta * (self.attraction_floor + 1 / (dist / self.attraction_factor) ** self.attraction_power)
+        #attraction_force = delta * (self.attraction_floor + (self.attraction_factor / dist) ** self.attraction_power)
+        attraction_force = force_equation(delta, dist, self.attraction_floor, self.attraction_factor, self.attraction_power)
 
         return attraction_force
 
@@ -98,22 +118,30 @@ class Goto(Skill):
         for other in filter(lambda other: other is not robot, self.world.iterrobots()):
             # difference of position
             delta = array(robot) - array(other)
+
             # considered distance
             dist = norm(delta) + robot.radius + other.radius
+
             # cap the distance to a minimum of 1mm
             dist = max(dist, self.min_distance)
+
             # normalize the delta
             delta /= norm(delta)
+
             # perpendicular delta
             pdelta = array((delta[1], -delta[0]))
+
             # normalized difference of speeds of the robots
             sdelta = other.speed - robot.speed
             sdelta /= max(norm(sdelta), self.min_distance)
 
             # calculating each force
-            repulsion_force = delta / (dist / self.repulsion_factor) ** self.repulsion_power
-            magnetic_force = pdelta / (dist / self.magnetic_factor) ** self.magnetic_power
-            delta_speed_force = sdelta / (dist / self.delta_speed_factor) ** self.delta_speed_power
+            #repulsion_force = delta * (self.repulsion_factor / dist) ** self.repulsion_power
+            repulsion_force = force_equation(delta, dist, 0, self.repulsion_factor, self.repulsion_power)
+            #magnetic_force = pdelta * (self.magnetic_factor / dist) ** self.magnetic_power
+            magnetic_force = force_equation(pdelta, dist, 0, self.magnetic_factor, self.magnetic_power)
+            #delta_speed_force = sdelta * (self.delta_speed_factor / dist) ** self.delta_speed_power
+            delta_speed_force = force_equation(sdelta, dist, 0, self.delta_speed_factor, self.delta_speed_power)
             yield (repulsion_force, magnetic_force, delta_speed_force)
 
     def _step(self):
@@ -141,7 +169,9 @@ class Goto(Skill):
         error = array(t) - array(r)
 
         # the gradient of the field
-        gradient = self.attraction_force() + sum(map(sum, self.other_forces()))
+        gradient = self.attraction_force()
+        if norm(gradient) < self.min_force_to_ignore_others:
+            gradient += sum(map(sum, self.other_forces()))
 
         # some crazy equation that makes the robot converge to the target point
         g = 9.80665
