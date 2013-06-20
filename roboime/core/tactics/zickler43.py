@@ -25,9 +25,9 @@ class Zickler43(Tactic):
     def __init__(self, robot, deterministic=True):
         self._lookpoint = None
         self._robot = robot
-        self.drive = DriveToBall(robot, lookpoint=self.lookpoint, deterministic=True, avoid_collisions=True)
-        self.dribble = SampledDribble(robot, deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.0, maxpower=1.0)
-        self.goal_kick = SampledKick(robot, deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.9, maxpower=1.0)
+        self.drive = DriveToBall(robot, name='Get the Ball', lookpoint=self.lookpoint, deterministic=True, avoid_collisions=True)
+        self.dribble = SampledDribble(robot, name='Drag the Ball', deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.0, maxpower=1.0)
+        self.goal_kick = SampledKick(robot, name='KICK IT!!!', deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.9, maxpower=1.0)
         self.wait = Halt(robot)
 
         super(Zickler43, self).__init__(robot, deterministic=deterministic, initial_state=self.drive, transitions=[
