@@ -101,22 +101,7 @@ class Action(object):
 
     @property
     def speeds(self):
-        if self._speeds is not None:
-            return tuple(self._speeds)
-        else:
-            # This is deprecated and can be removed at any time. Use goto instead.
-            s = self.robot.max_speed
-            #TODO: implement some PID, should this be really here?
-            if not self:
-                return (0.0, 0.0, 0.0)
-            x, y, a = self.target
-            r = self.robot
-            #import pudb; pudb.set_trace()
-            ra = r.angle
-            va = 0.2 * (a - ra)
-            vx, vy = x - r.x, y - r.y
-            vx, vy = vx * cos(ra) + vy * sin(ra), vy * cos(ra) - vx * sin(ra)
-            return tuple(map(lambda t: s * t, (vx, vy, va)))
+        return self._speeds or (0.0, 0.0, 0.0)
 
     @speeds.setter
     def speeds(self, speeds):

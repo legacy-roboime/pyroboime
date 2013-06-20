@@ -13,12 +13,16 @@ class Goto(Skill):
     regard to the position of any other objects on the field.
     """
 
-    attraction_factor = 50.0
+    attraction_factor = 70.0
+    attraction_power = 1.2
+    attraction_floor = 1.3
     repulsion_factor = 10.0
-    magnetic_factor = 8.0
-    delta_speed_factor = 0.1
+    repulsion_power = 1.7
+    magnetic_factor = 12.0
+    magnetic_power = 1.3
+    delta_speed_factor = 2.0
+    delta_speed_power = 1.4
     min_distance = 1e-2
-    power = 1.3
 
     def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
         """
@@ -83,7 +87,8 @@ class Goto(Skill):
 
         # attractive force
         dist = max(self.robot.distance(self.final_target), self.min_distance)
-        attraction_force = delta * (1 + 1 / (dist / self.attraction_factor) ** self.power)
+        #attraction_force = delta * (1 + 1 / (dist / self.attraction_factor) ** self.attraction_power)
+        attraction_force = delta * (self.attraction_floor + 1 / (dist / self.attraction_factor) ** self.attraction_power)
 
         return attraction_force
 
@@ -99,17 +104,16 @@ class Goto(Skill):
             # normalize the delta
             delta /= norm(delta)
             # perpendicular delta
-            pdelta = array(delta[1], -delta[0])
+            pdelta = array((delta[1], -delta[0]))
             # normalized difference of speeds of the robots
             sdelta = other.speed - robot.speed
             sdelta /= max(norm(sdelta), self.min_distance)
 
             # calculating each force
-            repulsion_force = delta / (dist / self.repulsion_factor) ** self.power
-            magnetic_force = pdelta / (dist / self.magnetic_factor) ** self.power
-            delta_speed_force = sdelta / (dist / self.delta_speed_factor) ** self.power
-            force = sum((repulsion_force, magnetic_force, delta_speed_force))
-            yield force
+            repulsion_force = delta / (dist / self.repulsion_factor) ** self.repulsion_power
+            magnetic_force = pdelta / (dist / self.magnetic_factor) ** self.magnetic_power
+            delta_speed_force = sdelta / (dist / self.delta_speed_factor) ** self.delta_speed_power
+            yield (repulsion_force, magnetic_force, delta_speed_force)
 
     def _step(self):
         r = self.robot
@@ -136,7 +140,7 @@ class Goto(Skill):
         error = array(t) - array(r)
 
         # the gradient of the field
-        gradient = self.attraction_force() + sum(self.other_forces())
+        gradient = self.attraction_force() + sum(map(sum, self.other_forces()))
 
         # some crazy equation that makes the robot converge to the target point
         g = 9.80665
