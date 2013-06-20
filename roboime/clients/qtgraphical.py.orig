@@ -10,7 +10,6 @@ from ..utils.geom import Point
 from ..base import World
 #from ..interface.updater import SimVisionUpdater
 from ..interface import SimulationInterface, TxInterface
-from ..core import Steppable as Dummy
 from ..core.skills import goto
 from ..core.skills import gotoavoid
 from ..core.skills import drivetoobject
@@ -19,10 +18,13 @@ from ..core.skills import sampleddribble
 from ..core.skills import sampledkick
 from ..core.skills import followandcover
 from ..core.skills import sampledchipkick
+<<<<<<< Updated upstream
 try:
     from ..core.skills import joystick
 except ImportError:
     joystick = None
+=======
+>>>>>>> Stashed changes
 from ..core.tactics import blocker
 from ..core.tactics import defender
 from ..core.tactics import goalkeeper
@@ -120,14 +122,6 @@ class QtGraphicalClient(object):
         #self.ui.dockSetup.visibilityChanged.connect(self.toggleSetupDockAction)
         self.ui.actionRobotDock.toggled.connect(self.toggleRobotDock)
         #self.ui.dockRobot.visibilityChanged.connect(self.toggleRobotDockAction)
-        
-        # Mappings
-        self.ui.cmbSelectUidYellow.currentIndexChanged.connect(self.selectFirmwareFromUidYellow)
-        self.ui.cmbSelectUidBlue.currentIndexChanged.connect(self.selectFirmwareFromUidBlue)
-        self.ui.cmbSelectFirmwareIdYellow.currentIndexChanged.connect(self.setFirmwareIdYellow)
-        self.ui.cmbSelectFirmwareIdBlue.currentIndexChanged.connect(self.setFirmwareIdBlue)
-        self.ui.btnDefaultBlue.clicked.connect(self.setDefaultMappingBlue)
-        self.ui.btnDefaultYellow.clicked.connect(self.setDefaultMappingYellow)
 
         for i in range(self.intelligence.count_robot):
             self.ui.cmbRobotID.addItem(str(i))
@@ -164,56 +158,6 @@ class QtGraphicalClient(object):
         self.ui.txtRobotCanKick.setText(str(robot.can_kick))
 
     # GUI Functions
-    def selectFirmwareFromUidYellow(self):
-        uid = int(self.ui.cmbSelectUidYellow.currentText())
-        if uid in self.intelligence.mapping_yellow:
-            self.ui.cmbSelectFirmwareIdYellow.setCurrentIndex(self.intelligence.mapping_yellow[uid]+1)
-        else:
-            self.ui.cmbSelectFirmwareIdYellow.setCurrentIndex(0)
-
-    def setFirmwareIdYellow(self):
-        try:
-            uid = int(self.ui.cmbSelectUidYellow.currentText())
-            self.intelligence.mapping_yellow[uid] = int(self.ui.cmbSelectFirmwareIdYellow.currentText())
-        except:
-            if uid in self.intelligence.mapping_yellow:
-                self.intelligence.mapping_yellow.pop(uid)
-        print self.intelligence.mapping_yellow
-
-    def selectFirmwareFromUidBlue(self):
-        uid = int(self.ui.cmbSelectUidBlue.currentText())
-        if uid in self.intelligence.mapping_blue:
-            self.ui.cmbSelectFirmwareIdBlue.setCurrentIndex(self.intelligence.mapping_blue[uid]+1)
-        else:
-            self.ui.cmbSelectFirmwareIdBlue.setCurrentIndex(0)
-
-    def setFirmwareIdBlue(self):
-        try:
-            uid = int(self.ui.cmbSelectUidBlue.currentText())
-            self.intelligence.mapping_blue[uid] = int(self.ui.cmbSelectFirmwareIdBlue.currentText())
-        except:
-            if uid in self.intelligence.mapping_blue:
-                self.intelligence.mapping_blue.pop(uid)
-        print self.intelligence.mapping_blue
-
-    def setDefaultMappingBlue(self):
-        self.intelligence.mapping_yellow.clear()
-        self.intelligence.mapping_blue.clear()
-        for r in self.intelligence.world.blue_team:
-            self.intelligence.mapping_blue[r.uid] = r.uid
-        uid = int(self.ui.cmbSelectUidBlue.currentText())
-        self.ui.cmbSelectFirmwareIdBlue.setCurrentIndex(self.intelligence.mapping_blue[uid]+1)
-        self.ui.cmbSelectFirmwareIdYellow.setCurrentIndex(0)
-
-    def setDefaultMappingYellow(self):
-        self.intelligence.mapping_yellow.clear()
-        self.intelligence.mapping_blue.clear()
-        for r in self.intelligence.world.yellow_team:
-            self.intelligence.mapping_yellow[r.uid] = r.uid
-        uid = int(self.ui.cmbSelectUidYellow.currentText())
-        self.ui.cmbSelectFirmwareIdYellow.setCurrentIndex(self.intelligence.mapping_yellow[uid]+1)
-        self.ui.cmbSelectFirmwareIdBlue.setCurrentIndex(0)
-
     def setPenaltyKicker(self):
         raise NotImplementedError
 
@@ -248,7 +192,7 @@ class QtGraphicalClient(object):
         self.intelligence.world.switch_sides()
 
     def setRobotKickAbility(self):
-        """
+        '''
         us, they = (self.world.blue_team, self.world.yellow_team) if self.ui.cmbOurTeam.currentText == 'Azul' else (self.world.yellow_team, self.world.blue_team)
         for i in range(self.intelligence.count_robot):
             us[i].can_kick = True if getattr(self.ui, 'kickAbilityU' + str(i)).value > 0.00 else False
@@ -259,7 +203,7 @@ class QtGraphicalClient(object):
         for r in self.world.robots:
             if r.can_kick == False:
                 print 'Robot', r.pattern, 'cannot kick!'
-        """
+        '''
         pass
 
     def resetPatterns(self):
@@ -325,20 +269,19 @@ class QtGraphicalClient(object):
 
 class Intelligence(QtCore.QThread):
 
-    def __init__(self, world, count_robot=6):
+    def __init__(self, world, count_robot=6, use_joystick=True):
         super(Intelligence, self).__init__()
 
+        class Dummy(object):
+            def step(self):
+                pass
         self.stop = False
         self.world = world
+        self.use_joystick = use_joystick
         self.count_robot = count_robot
         self.skill = None
         self.interface = SimulationInterface(self.world)
-
-        self.mapping_blue = {}
-        self.mapping_yellow = {}
-
-        self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue, transmission_ipaddr='192.168.91.105', transmission_port=9050)
-
+        self.tx_interface = TxInterface(self.world, filters=[], transmission_ipaddr='192.168.91.105', transmission_port=9050)
         dummy = ('(none)', Dummy())
         self.individual = lambda robot: OrderedDict([
             dummy,
@@ -354,7 +297,11 @@ class Intelligence(QtCore.QThread):
             ('Goalkeeper', goalkeeper.Goalkeeper(robot, angle=30, aggressive=True)),
             ('Zickler43', zickler43.Zickler43(robot)),
             ('Defender', defender.Defender(robot, enemy=self.world.ball)),
+<<<<<<< Updated upstream
             ('Joystick', joystick.Joystick(robot)) if joystick is not None else dummy,
+=======
+#            ('Joystick', joystick.Joystick(robot)),
+>>>>>>> Stashed changes
         ])
         self.plays = lambda team: OrderedDict([
             dummy,
@@ -367,6 +314,18 @@ class Intelligence(QtCore.QThread):
 
         self.individuals_blue = dict((i, self.individual(self.world.blue_team[i])) for i in range(count_robot))
         self.individuals_yellow = dict((i, self.individual(self.world.yellow_team[i])) for i in range(count_robot))
+        
+        if self.use_joystick:
+            from ..core.skills import joystick
+            for i in self.individuals_blue:
+                self.individuals_blue[i]['Joystick'] = joystick.Joystick(self.world.blue_team[i])
+            for i in self.individuals_yellow:
+                self.individuals_yellow[i]['Joystick'] = joystick.Joystick(self.world.yellow_team[i])
+        else:
+            for i in self.individuals_blue:
+                self.individuals_blue[i]['Joystick'] = Dummy()
+            for i in self.individuals_yellow:
+                self.individuals_yellow[i]['Joystick'] = Dummy()
 
         self.plays_blue = self.plays(self.world.blue_team)
         self.plays_yellow = self.plays(self.world.yellow_team)
@@ -406,10 +365,14 @@ class App(QtGui.QApplication):
 
     def __init__(self, argv):
         super(App, self).__init__(argv)
+        
+        joystick = False if '--nojoystick' in argv else True
+        
+        if joystick: 
+            try:
+                import pygame
+            except ImportError:
+                joystick = False
 
-        global joystick
-        if '--nojoystick' in argv:
-            joystick = None
-
-        self.window = QtGraphicalClient()
+        self.window = QtGraphicalClient(use_joystick=joystick)
         self.aboutToQuit.connect(self.window.teardown)
