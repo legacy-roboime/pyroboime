@@ -81,6 +81,8 @@ class Speed(Filter):
                 px, py, pt, = pu.data['x'], pu.data['y'], pu.data['timestamp']
                 x, y, t = u.data['x'], u.data['y'], u.data['timestamp']
                 u.data['speed'] = array((x - px, y - py)) / (t - pt)
+            else:
+                u.data['speed'] = array((0.,0.))
         self.remember_updates(updates)
 
 
@@ -333,6 +335,7 @@ class Kalman(Filter):
     time schedule).
     """
     def __init__(self):
+        super(Kalman, self).__init__()
         self.models = {}
 
     def get_model(self, uid):

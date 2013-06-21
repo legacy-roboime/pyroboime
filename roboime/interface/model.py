@@ -58,7 +58,8 @@ class Model(object):
         # Per-step variable vectors
         B = numpy.eye(3) * timedelta  # control matrix B
         # control vector u_n
-        data['speeds_cmd'] = self.speeds
+#        data['speeds_cmd'] = self.speeds # FIXME: use commands when available
+        #self.speeds = data['speed']
         control_vector = numpy.matrix(self.speeds).transpose()  # Helps predict based on model
         # measurement vector z_n
         measurement_vector = numpy.matrix([[data['x']], [data['y']], [data.get('angle', 0.)]])
