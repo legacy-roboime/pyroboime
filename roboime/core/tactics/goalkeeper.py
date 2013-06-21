@@ -2,6 +2,8 @@ from numpy import array
 #from numpy import cross
 #from numpy import dot
 from numpy import sign
+from numpy import linspace
+from itertools import groupby
 
 from ...utils.mathutils import sin, cos
 from ...utils.geom import Line, Point
@@ -27,6 +29,7 @@ class Goalkeeper(Tactic):
         aggressive: this sets the aggressive mode, which means that the goalkeeper
           will also act as an attacker when it is the closer robot to the ball
         """
+
         super(Goalkeeper, self).__init__(robot, deterministic=True)
         self.aggressive = aggressive
         self.goto = GotoLooking(robot, target=lambda: robot.goal, lookpoint=robot.world.ball)
@@ -61,7 +64,7 @@ class Goalkeeper(Tactic):
 
         # Aaaand the home line
         home_line = Line(p1, p2)
-
+        
         ### Find out where in the homeline should we stay ###
 
         if self.aggressive:
@@ -105,7 +108,7 @@ class Goalkeeper(Tactic):
                 return self.goto.step()
             else:
                 self.goto.target = p1 if future_point.y > 0 else p2
-
+        # else:
         # Otherwise, try to close the largest gap
         #Point blBestPoint = pointToKeep(), hlBestPoint;
         #Line ballToBlBestPoint(ball, blBestPoint);
@@ -125,5 +128,31 @@ class Goalkeeper(Tactic):
         #  }
         #}
 
+        # middle of the largest gap:
+        self.goto.target = self.point_to_defend()
+
         # continue stepping the last strategy
         self.goto.step()
+
+    def point_to_defend(self):
+        """
+        This method comes from Zickler.
+        
+        The main difference is that it transfers the point to defend from the goal line to the base line.
+        """
+        our_goal = self.team.goal
+        max_hole = []
+
+        possible_points = [(y, self.world.has_clear_shot(Point(our_goal.x, y))) for y in linspace(our_goal.p2.y, our_goal.p1.y, 5)]
+
+        for has_clear_shot, group in groupby(possible_points, lambda (point, has): has):
+            if has_clear_shot:
+                hole = list(group)
+                if len(hole) >  len(max_hole):
+                    max_hole = hole
+
+        if len(max_hole) != 0:
+            y = (max_hole[0][0] + max_hole[-1][0]) / 2
+            # return Point(our_goal.x, y)
+            # The following calculation transports the point from the goal line to the base line
+            return Point(our_goal.x - sign(our_goal.x) * self.robot.radius, (our_goal.x - sign(our_goal.x) * self.robot.radius) * y / our_goal.x)
