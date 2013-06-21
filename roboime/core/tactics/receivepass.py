@@ -8,12 +8,13 @@ from ..skills.sampledkick import SampledKick
 from ..skills.sampleddribble import SampledDribble
 from ..skills.halt import Halt
 from ...utils.geom import Point
+from ..skills.gotolooking import GotoLooking
 
 class ReceivePass(Tactic):
     '''
     This tactic has the objective of receiving the ball from 
     another robot in the field. This side is a bit more complicated:
-    discretize the positions in a circle around the robot, see which
+    discretize the positions in a circlegaround the robot, see which
     one has the best clear shot (ordered by closeness to the target 
     goal) and move to that position with the ball as a lookpoint.
 
@@ -22,17 +23,32 @@ class ReceivePass(Tactic):
     so that one tactic can signal to the other when it is ready,
     while obscuring details such as which robot is doing what.
     '''
+    
+    class CompanionCube(object):
+        def __init__(self, robot):
+            self._robot = robot.team[0]
 
-    #point_to_kick = Zickler43.point_to_kick.im_func
+        @property
+        def robot(self):
+            return self._robot
 
-    def __init__(self, robot, companion_tactic, deterministic=True):
-        self._lookpoint = None
+        @property
+        def ready(self):
+            return True
+
+    def __init__(self, robot, point=None, companion=None, deterministic=True):
         self._robot = robot
-        self.companion_tactic = companion_tactic
-        #self.drive_to_position = DriveTo(robot, lookpoint=self.lookpoint, deterministic=True, avoid_collisions=True)
-        self.wait = Halt(robot)
+        self._point = point or self.robot
+        self.companion = companion or self.CompanionCube(self.robot)
         
-        super(ExecutePass, self).__init__(robot, deterministic, initial_state=self.drive, transitions=[
+        self.goto = GotoLooking(self.robot, target=self.point, lookpoint=self.companion.robot)
 
-        ])
+        super(ReceivePass, self).__init__(robot, deterministic, initial_state=self.goto, transitions=[])
 
+    @property
+    def point(self):
+        return self._point
+
+    def ready(self):
+        print self.robot.distance(self.point) < 0.2
+        return self.robot.distance(self.point) < 0.2

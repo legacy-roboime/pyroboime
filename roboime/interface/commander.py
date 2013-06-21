@@ -2,6 +2,7 @@ from math import pi
 
 from ..communication.network import unicast
 from ..communication import grsim
+from collections import defaultdict
 from time import time
 
 from ..utils.mathutils import sin, cos
@@ -85,9 +86,10 @@ class Tx2012Commander(Commander):
         return speeds
 
     def send(self, actions):
-        string_list = []
+        actions_dict = defaultdict(lambda:['0','0','0','0','0','0','0'])
         if len(actions) > 0:
             for a in actions:
+                string_list = []
                 if not a:
                     continue
                 vx, vy, va = a.speeds
@@ -96,7 +98,6 @@ class Tx2012Commander(Commander):
                 else:
                     continue
 
-                string_list.append(str((a.robot.angle or 0.0)))
                 string_list.extend([str(i) for i in self.omniwheel_speeds(a.robot.angle, vx, vy, va)])
                 string_list.append(str((a.dribble or 0.0)))
                 if a.kick > 0:
@@ -105,7 +106,15 @@ class Tx2012Commander(Commander):
                 else:
                     string_list.append('0')
                     string_list.append(str((a.chipkick or 0.0)))
+
+                actions_dict[self.mapping_dict[a.uid]] = string_list
                 a.reset()
+
+            string_list = []
+            for i in xrange(6):
+                string_list.extend(actions_dict[i])
+
+            print string_list
 
             packet = ' '.join(string_list)
             if self.verbose:

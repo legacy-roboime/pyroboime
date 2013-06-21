@@ -4,7 +4,8 @@ from itertools import groupby
 from .. import Tactic
 from ...utils.statemachine import Transition
 from ..skills.drivetoball import DriveToBall
-from ..skills.sampledkick import SampledKick
+#from ..skills.sampledkick import SampledKick
+from ..skills.kickto import KickTo
 from ..skills.sampleddribble import SampledDribble
 from ..skills.halt import Halt
 from ...utils.geom import Point
@@ -27,14 +28,16 @@ class Zickler43(Tactic):
         self._robot = robot
         self.drive = DriveToBall(robot, name='Get the Ball', lookpoint=self.lookpoint, deterministic=True, avoid_collisions=True)
         self.dribble = SampledDribble(robot, name='Drag the Ball', deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.0, maxpower=1.0)
-        self.goal_kick = SampledKick(robot, name='KICK IT!!!', deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.9, maxpower=1.0)
+        self.goal_kick = KickTo(robot, name='KICK IT!!!', lookpoint=self.lookpoint, minpower=0.9, maxpower=1.0)
         self.wait = Halt(robot)
 
         super(Zickler43, self).__init__(robot, deterministic=deterministic, initial_state=self.drive, transitions=[
-            Transition(self.drive, self.dribble, condition=lambda: self.drive.close_enough()),
+            #Transition(self.drive, self.dribble, condition=lambda: self.drive.close_enough()),
+            Transition(self.drive, self.dribble, condition=lambda: self.goal_kick.good_position()),
             Transition(self.dribble, self.drive, condition=lambda: not self.dribble.close_enough()),
             Transition(self.dribble, self.goal_kick, condition=lambda: self.dribble.close_enough()),
-            Transition(self.goal_kick, self.drive, condition=lambda: not self.goal_kick.close_enough()),
+            #Transition(self.goal_kick, self.drive, condition=lambda: not self.goal_kick.close_enough()),
+            Transition(self.goal_kick, self.drive, condition=lambda: not self.goal_kick.good_position()),
         ])
 
         self.max_hole_size = -1

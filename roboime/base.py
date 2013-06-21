@@ -179,11 +179,20 @@ class Robot(geom.Point):
 
         self.current_tactic = Steppable()
 
+    def __eq__(self, r):
+        return self.uuid == r.uuid
+
+    def __ne__(self, r):
+        return self.uuid != r.uuid
+
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
         super(Robot, self).update(*args, **kwargs)
         # TODO generate the actual body shape instead of a circle
         self._body = geom.Circle(self, self._radius)
+        if self.angle is not None:
+            d = array((cos(self.angle), sin(self.angle)))
+            self.kicker = geom.Point(array(self) + d * self.front_cut)
 
     @property
     def ball(self):
@@ -654,6 +663,13 @@ class World(object):
         shot_line = geom.Line(self.ball, point_to_kick)
         for robot in self.iterrobots():
             if shot_line.crosses(robot.body):
+                return False
+        return True
+
+    def has_clear_pass(self, receiver):
+        shot_line = geom.Line(self.ball, receiver)
+        for robot in self.iterrobots():
+            if shot_line.crosses(robot.body) and robot != receiver:
                 return False
         return True
 
