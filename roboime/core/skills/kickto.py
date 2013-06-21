@@ -22,7 +22,10 @@ class KickTo(Skill):
     This class is an alternative to SampledKick.
     Meanwhile it's experimental, depending on the results it'll stay or not.
     """
-    tolerance = 2.0
+    angle_error_tolerance = 0.5
+    angle_tolerance = 0.5
+    distance_tolerance = 0.11
+    walkspeed = 0.1
 
     def __init__(self, robot, lookpoint=None, minpower=0.0, maxpower=1.0, **kwargs):
         """
@@ -34,12 +37,24 @@ class KickTo(Skill):
         self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
         self.distance_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
 
+    @property
+    def final_target(self):
+        return self.lookpoint
+
+    def good_position(self):
+        good_distance = self.robot.kicker.distance(self.ball) <= self.distance_tolerance
+        good_angle = abs(self.delta_angle()) < self.angle_tolerance
+        return good_distance and good_angle
+
+    def delta_angle(self):
+        delta =  self.robot.angle - self.ball.angle_to_point(self.lookpoint)
+        return (180 + delta) % 360 - 180
+
     def _step(self):
-        self.robot.action.dribble = 1.0
+        #print 'blasdbflas'
+        delta_angle = self.delta_angle()
 
-        delta_angle =  self.robot.angle - self.ball.angle_to_point(self.lookpoint)
-
-        self.angle_controller.input = (180 + delta_angle) % 360 - 180
+        self.angle_controller.input = delta_angle
         self.angle_controller.feedback = 0.0
         self.angle_controller.step()
 
@@ -54,10 +69,12 @@ class KickTo(Skill):
         v = pi * w * d / 180.0
         z = 0.0
 
-        if abs(delta_angle) < self.tolerance:
-            self.robot.action.kick = kick_power(self.lookpoint.distance(self.robot))
-            self.robot.action.dribble = None
-            z = 0.03
+        if abs(delta_angle) < self.angle_error_tolerance:
+            kp = kick_power(self.lookpoint.distance(self.robot))
+            kp = min(max(kp, self.minpower), self.maxpower)
+            self.robot.action.kick = kp
+            z = self.walkspeed
+        else:
+            self.robot.action.dribble = 1.0
 
-        #print (w * d, 0.0, w)
         self.robot.action.speeds = (z, v, -w)
