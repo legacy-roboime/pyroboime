@@ -28,6 +28,7 @@ from ..core.tactics import blocker
 from ..core.tactics import defender
 from ..core.tactics import goalkeeper
 from ..core.tactics import zickler43
+from ..core.tactics import executepass
 from ..core.plays import autoretaliate
 from ..core.plays import indirectkick
 from ..core.plays import stop
@@ -121,6 +122,9 @@ class QtGraphicalClient(object):
         #self.ui.dockSetup.visibilityChanged.connect(self.toggleSetupDockAction)
         self.ui.actionRobotDock.toggled.connect(self.toggleRobotDock)
         #self.ui.dockRobot.visibilityChanged.connect(self.toggleRobotDockAction)
+
+        self.ui.rbtSimulation.toggled.connect(self.toggleSimulation)
+        self.ui.rbtTransmission.toggled.connect(self.toggleSimulation)
         
         # Mappings
         self.ui.cmbSelectUidYellow.currentIndexChanged.connect(self.selectFirmwareFromUidYellow)
@@ -277,6 +281,13 @@ class QtGraphicalClient(object):
             for i, r in enumerate(self.world.yellow_team):
                 r.pattern = getattr(self.ui, 'cmbAdversary_' + str(i)).currentIndex()
 
+    def toggleSimulation(self):
+        if self.ui.rbtSimulation.isChecked():
+            self.intelligence.is_simulation = True
+        else:
+            self.intelligence.is_simulation = False
+
+
     def toggleFullScreen(self):
         if self.ui.windowState() & QtCore.Qt.WindowFullScreen:
             self.ui.showNormal()
@@ -358,6 +369,7 @@ class Intelligence(QtCore.QThread):
             ('Goalkeeper', goalkeeper.Goalkeeper(robot, angle=30, aggressive=True)),
             ('Zickler43', zickler43.Zickler43(robot)),
             ('Defender', defender.Defender(robot, enemy=self.world.ball)),
+            ('Dummy Execute Pass', executepass.ExecutePass(robot)),
             ('Joystick', joystick.Joystick(robot)) if joystick is not None else dummy,
         ])
         self.plays = lambda team: OrderedDict([
@@ -381,6 +393,8 @@ class Intelligence(QtCore.QThread):
         self.current_individual_blue = Dummy()
         self.current_individual_yellow = Dummy()
 
+        self.is_simulation = True
+
     def _loop(self):
         self.current_play_blue.step()
         self.current_play_yellow.step()
@@ -389,7 +403,10 @@ class Intelligence(QtCore.QThread):
         self.current_individual_yellow.step()
 
         with self.world:
-            self.interface.step()
+            if self.is_simulation:
+                self.interface.step()
+            else:
+                self.tx_interface.step()
 
     def run(self):
         self.interface.start()

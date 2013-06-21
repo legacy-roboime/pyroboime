@@ -36,3 +36,5 @@ class ReceivePass(Tactic):
 
         ])
 
+    def ready(self):
+        return True
