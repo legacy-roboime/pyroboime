@@ -42,6 +42,7 @@ class RobotView(QGraphicsItem):
         super(RobotView, self).__init__()
         self.robot = robot
         self.outline = QPainterPath()
+        self.cut_angle = 0.0
         self.setFlags(QGraphicsItem.ItemIsSelectable)
 
     @property
@@ -65,6 +66,7 @@ class RobotView(QGraphicsItem):
 
         self.cut_angle = acos(self.robot.front_cut / self.robot.radius)
 
+        self.outline = QPainterPath()
         self.outline.moveTo(radius, 0)
         self.outline.arcTo(-radius, -radius, 2 * radius, 2 * radius, 0, 360 - 2 * self.cut_angle)
         self.outline.closeSubpath()
@@ -195,7 +197,7 @@ class BallView(QGraphicsItem):
 
     def boundingRect(self):
         radius = s(self.ball.radius)
-        return QRectF(-2 * radius, -2 * radius, 4 * radius, 4 * radius)
+        return QRectF(-radius, -radius, 2 * radius, 2 * radius)
 
     def position(self):
         x, y, width, height = s(self.ball.x, self.ball.y, self.ball.world.length, self.ball.world.width)

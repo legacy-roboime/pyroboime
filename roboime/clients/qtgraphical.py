@@ -83,6 +83,8 @@ class QtGraphicalClient(object):
         # Start redraw timer (once every 25ms)
         self.timer.start(25)
 
+        self.dockSetupActive = True
+        self.dockRobotActive = True
         self.ui.statusBar.hide()
 
     def setupUI(self):
@@ -116,9 +118,9 @@ class QtGraphicalClient(object):
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
         self.ui.actionFullscreen.triggered.connect(self.toggleFullScreen)
         self.ui.actionSetupDock.toggled.connect(self.toggleSetupDock)
-        #self.ui.dockSetup.visibilityChanged.connect(self.toggleSetupDockAction)
+        self.ui.dockSetup.visibilityChanged.connect(self.toggleSetupDockAction)
         self.ui.actionRobotDock.toggled.connect(self.toggleRobotDock)
-        #self.ui.dockRobot.visibilityChanged.connect(self.toggleRobotDockAction)
+        self.ui.dockRobot.visibilityChanged.connect(self.toggleRobotDockAction)
 
         for i in range(self.intelligence.count_robot):
             self.ui.cmbRobotID.addItem(str(i))
@@ -218,8 +220,8 @@ class QtGraphicalClient(object):
     def toggleFullScreen(self):
         if self.ui.windowState() & QtCore.Qt.WindowFullScreen:
             self.ui.showNormal()
-            self.ui.dockSetup.show()
-            self.ui.dockRobot.show()
+            if self.dockSetupActive: self.ui.dockSetup.show()
+            if self.dockRobotActive: self.ui.dockRobot.show()
             self.ui.menuBar.show()
             #self.ui.statusBar.show()
         else:
@@ -236,6 +238,7 @@ class QtGraphicalClient(object):
             self.ui.dockSetup.show()
         else:
             self.ui.dockSetup.hide()
+        self.dockSetupActive = activate
 
     def toggleSetupDockAction(self, activate):
         self.ui.actionSetupDock.setChecked(activate)
@@ -245,6 +248,7 @@ class QtGraphicalClient(object):
             self.ui.dockRobot.show()
         else:
             self.ui.dockRobot.hide()
+        self.dockRobotActive = activate
 
     def toggleRobotDockAction(self, activate):
         self.ui.actionRobotDock.setChecked(activate)
