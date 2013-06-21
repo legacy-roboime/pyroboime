@@ -28,6 +28,7 @@ from ..core.tactics import defender
 from ..core.tactics import goalkeeper
 from ..core.tactics import zickler43
 from ..core.tactics import executepass
+from ..core.tactics import receivepass
 from ..core.plays import autoretaliate
 from ..core.plays import indirectkick
 from ..core.plays import stop
@@ -367,7 +368,7 @@ class Intelligence(QtCore.QThread):
             ('Goalkeeper', goalkeeper.Goalkeeper(robot, angle=30, aggressive=True)),
             ('Zickler43', zickler43.Zickler43(robot)),
             ('Defender', defender.Defender(robot, enemy=self.world.ball)),
-            ('Dummy Execute Pass', executepass.ExecutePass(robot)),
+            ('Dummy Receive Pass', receivepass.ReceivePass(robot, Point(0,0))),
             ('Joystick', joystick.Joystick(robot)) if joystick is not None else dummy,
         ])
         self.plays = lambda team: OrderedDict([
