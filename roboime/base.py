@@ -101,22 +101,7 @@ class Action(object):
 
     @property
     def speeds(self):
-        if self._speeds is not None:
-            return tuple(self._speeds)
-        else:
-            # This is deprecated and can be removed at any time. Use goto instead.
-            s = self.robot.max_speed
-            #TODO: implement some PID, should this be really here?
-            if not self:
-                return (0.0, 0.0, 0.0)
-            x, y, a = self.target
-            r = self.robot
-            #import pudb; pudb.set_trace()
-            ra = r.angle
-            va = 0.2 * (a - ra)
-            vx, vy = x - r.x, y - r.y
-            vx, vy = vx * cos(ra) + vy * sin(ra), vy * cos(ra) - vx * sin(ra)
-            return tuple(map(lambda t: s * t, (vx, vy, va)))
+        return self._speeds or (0.0, 0.0, 0.0)
 
     @speeds.setter
     def speeds(self, speeds):
@@ -194,11 +179,20 @@ class Robot(geom.Point):
 
         self.current_tactic = Steppable()
 
+    def __eq__(self, r):
+        return self.uuid == r.uuid
+
+    def __ne__(self, r):
+        return self.uuid != r.uuid
+
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
         super(Robot, self).update(*args, **kwargs)
         # TODO generate the actual body shape instead of a circle
         self._body = geom.Circle(self, self._radius)
+        if self.angle is not None:
+            d = array((cos(self.angle), sin(self.angle)))
+            self.kicker = geom.Point(array(self) + d * self.front_cut)
 
     @property
     def ball(self):
@@ -623,22 +617,24 @@ class Referee(object):
 
 class World(object):
 
+    # default metric constants, may be overriden at
+    # runtime, per instance or globally
+    width = 4.0
+    length = 6.0
+    line_width = 0.01
+    boundary_width = 0.25
+    referee_width = 0.425
+    center_radius = 0.5
+    defense_radius = 0.5
+    defense_stretch = 0.35
+    free_kick_distance = 0.7
+    penalty_spot_distance = 0.45
+    penalty_line_distance = 0.35
+    goal_width = 0.7
+    goal_depth = 0.18
+    goal_wall_width = 0.02
+
     def __init__(self, right_team=None, left_team=None):
-        # metric constants
-        self.width = 0.0
-        self.length = 0.0
-        self.line_width = 0.0
-        self.boundary_width = 0.0
-        self.referee_width = 0.0
-        self.center_radius = 0.0
-        self.defense_radius = 0.0
-        self.defense_stretch = 0.0
-        self.free_kick_distance = 0.0
-        self.penalty_spot_distance = 0.0
-        self.penalty_line_distance = 0.0
-        self.goal_width = 0.0
-        self.goal_depth = 0.0
-        self.goal_wall_width = 0.0
         self.inited = False
 
         # objects
@@ -667,6 +663,13 @@ class World(object):
         shot_line = geom.Line(self.ball, point_to_kick)
         for robot in self.iterrobots():
             if shot_line.crosses(robot.body):
+                return False
+        return True
+
+    def has_clear_pass(self, receiver):
+        shot_line = geom.Line(self.ball, receiver)
+        for robot in self.iterrobots():
+            if shot_line.crosses(robot.body) and robot != receiver:
                 return False
         return True
 

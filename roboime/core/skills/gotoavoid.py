@@ -21,7 +21,7 @@ class GotoAvoid(Goto):
 
     @property
     def avoid_radius(self):
-        return self.robot.radius + self.world.ball.radius + .02
+        return self.robot.radius + self.world.ball.radius + .04
 
     def _step(self):
         r = self.robot
@@ -38,7 +38,7 @@ class GotoAvoid(Goto):
 
                 # XXX: .04 is a magic parameter of wizardry. It works beautifully. Altering this
                 # to 0.5 breaks the conditions.
-                circ_avoid = a.buffer(avoid_radius + .04).boundary
+                circ_avoid = a.buffer(avoid_radius + .045).boundary
                 circ_robot_avoid = r.buffer(r.distance(a)).boundary
                 inter = circ_avoid.intersection(circ_robot_avoid)
                 if len(inter) == 2:

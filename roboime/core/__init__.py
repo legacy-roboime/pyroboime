@@ -6,10 +6,43 @@ Might it be splitted?
 from ..utils.statemachine import State, Machine
 
 
-class Skill(State):
+class Steppable(object):
 
-    def __init__(self, robot, deterministic):
-        super(Skill, self).__init__(deterministic)
+    name = None
+
+    def __init__(self, *args, **kwargs):
+        # the following is not the same as doing
+        # >>> self.name = kwargs.get('name')
+        # because the above will turn name into an instance
+        # property, and overwrite it if defined as a class member
+        if 'name' in kwargs and kwargs['name'] is not None:
+            self.name = kwargs.pop('name')
+        # continue the chain of inheritance init
+        super(Steppable, self).__init__(*args, **kwargs)
+        #try:
+        #    super(Steppable, self).__init__(*args, **kwargs)
+        #except TypeError:
+        #    pass
+
+    def __str__(self):
+        return self.name or self.__class__.__name__
+
+    def step(self):
+        """This method must be implemented to add some logic."""
+        raise NotImplementedError
+
+
+class Dummy(Steppable):
+    """Use this class if you want a Steppable that does nothing."""
+
+    def step(self):
+        pass
+
+
+class Skill(Steppable, State):
+
+    def __init__(self, robot, deterministic, **kwargs):
+        super(Skill, self).__init__(deterministic, **kwargs)
         self.robot = robot
 
     @property
@@ -42,7 +75,7 @@ class Skill(State):
         self.robot.skill = self
 
 
-class Tactic(Machine):
+class Tactic(Steppable, Machine):
 
     def __init__(self, robot, deterministic, **kwargs):
         super(Tactic, self).__init__(deterministic, **kwargs)
@@ -84,9 +117,9 @@ class Tactic(Machine):
         self.robot.tactic = self
 
 
-class Play(object):
+class Play(Steppable):
 
-    def __init__(self, team):
+    def __init__(self, team, **kwargs):
         """
         When constructing a derived play, keep in mind tactics_factory is a dictionary
         of lambda expressions that generate a steppable for a given robot.
@@ -95,7 +128,7 @@ class Play(object):
         under penalty of breaking the base play. Use tactics_factory.update(new_factory)
         instead. Remember to not use any keys already in your base factory.
         """
-
+        super(Play, self).__init__(**kwargs)
         self.team = team
         self.tactics_factory = {}
         self.players = {}

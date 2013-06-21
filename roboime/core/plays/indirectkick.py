@@ -5,11 +5,6 @@ from ..skills.sampledchipkick import SampledChipKick
 from ...utils.statemachine import Machine as StateMachine, State, Transition
 
 
-#class Steppable(object):
-#    def step(self):
-#        pass
-
-
 class IndirectKick(Stop, StateMachine):
     """
     Currently this play will extend StopReferee by performing an
@@ -18,7 +13,8 @@ class IndirectKick(Stop, StateMachine):
     """
 
     def __init__(self, team, verbose=False, **kwargs):
-        Stop.__init__(self, team, **kwargs)
+        super(IndirectKick, self).__init__(team, deterministic=True, **kwargs)
+        #Stop.__init__(self, team, **kwargs)
 
         self.states = {
             'starting': State(True, name='Starting'),

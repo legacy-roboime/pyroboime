@@ -129,14 +129,14 @@ class Interface(Process):
 
 class TxInterface(Interface):
 
-    def __init__(self, world, filters=[], transmission_ipaddr='127.0.0.1', transmission_port=9050, **kwargs):
+    def __init__(self, world, filters=[], transmission_ipaddr='127.0.0.1', transmission_port=9050, mapping_yellow=None, mapping_blue=None, **kwargs):
         super(TxInterface, self).__init__(
             world,
 
             updaters=[updater.RealVisionUpdater(), updater.RefereeUpdater()],
             commanders=[
-                commander.Tx2012Commander(world.blue_team, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True),
-                commander.Tx2012Commander(world.yellow_team, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True)
+                commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True),
+                commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True)
             ],
 
             filters=filters + [filter.LowPass(), filter.Speed(), filter.Scale()],
@@ -156,7 +156,7 @@ class SimulationInterface(Interface):
                 #filter.PositionLog(options.position_log_filename), #should be last, to have all data available
                 filter.Acceleration(),
                 filter.Speed(),
-                filter.CommandUpdateLog(options.cmdupd_filename),
+                #filter.CommandUpdateLog(options.cmdupd_filename),
                 #filter.Kalman(),
                 #filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
                 filter.Scale(),

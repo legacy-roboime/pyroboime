@@ -2,21 +2,25 @@ from random import random
 
 
 class State(object):
-    def __init__(self, deterministic, name="State"):
-        self.deterministic = deterministic
-        self.name = name
 
-    def __repr__(self):
-        return self.name
+    def __init__(self, deterministic, name=None, **kwargs):
+        super(State, self).__init__(**kwargs)
+
+        if name is not None:
+            self.name = name
+        self.deterministic = deterministic
 
 
 class Transition(object):
-    def __init__(self, from_state, to_state, probability=1.0, condition=None):
+
+    def __init__(self, from_state, to_state, probability=1.0, condition=None, **kwargs):
         """
         This class can be used in two ways:
         - subclass it and redefine the condition method
         - pass a condition function while constructing
         """
+        super(Transition, self).__init__(**kwargs)
+
         self.from_state = from_state
         self.to_state = to_state
         self.probability = probability
@@ -28,8 +32,10 @@ class Transition(object):
 
 
 class Machine(object):
-    #def __init__(self, deterministic, initial_state=None, final_state=None, transitions=[]):
-    def __init__(self, deterministic, initial_state=None, transitions=[]):
+
+    def __init__(self, deterministic, initial_state=None, transitions=[], **kwargs):
+        super(Machine, self).__init__(**kwargs)
+
         self.deterministic = deterministic
         #self.initial_state = initial_state
         #self.final_state = final_state

@@ -9,8 +9,9 @@ class DriveToBall(DriveToObject):
     and that some parameters are optimized for getting on the ball.
     """
 
-    attraction_factor = 70
-    #magnetic_factor = 0.1
+    #enter_angle = 30.0
+    enter_angle = 10.0
+    exit_angle = 20.0
 
     def __init__(self, robot, **kwargs):
         # TODO: magic parameters
@@ -23,11 +24,11 @@ class DriveToBall(DriveToObject):
             robot_angle = self.robot.angle_to_point(self.ball)
             delta = remainder(robot_angle - base_angle, 360)
             delta = min(abs(delta), abs(delta - 360))
-            if delta >= 45:
+            if delta >= self.exit_angle:
                 self.should_avoid = True
 
             if self.should_avoid:
-                if delta <= 30:
+                if delta <= self.enter_angle:
                     self.should_avoid = False
 
         super(DriveToBall, self)._step()
