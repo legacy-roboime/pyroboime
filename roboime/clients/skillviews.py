@@ -9,7 +9,7 @@ from .qtutils import scale as s
 from .qtutils import draw_x, draw_arrow_line
 from .qtutils import BLACK, RED, BLUE, GREEN, TRANSPARENT, PINK, LIGHT_BLUE
 from ..core import Skill
-from ..core.skills import goto, gotoavoid, driveto
+from ..core.skills import goto, gotoavoid, driveto, drivetoball
 
 _view_table = {}
 
@@ -212,6 +212,38 @@ class DriveToView(GotoAvoidView):
         # Reset transformation
         painter.restore()
 
+@view_for(drivetoball.DriveToBall)
+class DriveToBallView(DriveToView):
+    # TODO: this. 
+    def __init__(self, *args, **kwargs):
+        super(DriveToView, self).__init__(*args, **kwargs)
+        self.target = (0, 0)
+
+    def boundingRect(self):
+        m = self.margin
+        x, y = self.relative_point(self.target)
+        return QRectF(-m, -m, x + m, y + m)
+
+    def paint(self, painter, option, widget=None):
+        super(DriveToBallView, self).paint(painter, option, widget)
+
+        # Save transformation:
+        painter.save()
+
+        p1 = array(self.skill.base_point)
+        p2 = array([cos(self.skill.base_angle), sin(self.skill.base_angle)]) * self.skill.threshold
+        self.target = p1 + p2
+
+        x, y = self.relative_point(self.target)
+        m = self.margin
+
+        # draw an X on the target
+        painter.setBrush(BLUE)
+        painter.setPen(BLUE)
+        draw_x(painter, x, y, m)
+
+        # Reset transformation
+        painter.restore()
 
 _weighted_view_table = []
 for model, view in _view_table.iteritems():

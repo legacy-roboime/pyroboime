@@ -72,8 +72,9 @@ class DriveTo(Goto):
     def close_enough(self):
         if self.target is None:
             return None
-
         error_d = norm(array(self.target) - array(self.robot))
         error_a = abs(self.robot.angle - self.angle) % 180.0
+        error_a = min(error_a, 180. - error_a)
+        #print error_d, error_a
         # We're close enough if both errors are sufficiently small.
         return error_d < self.max_error_d and error_a < self.max_error_a

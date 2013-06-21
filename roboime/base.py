@@ -179,6 +179,12 @@ class Robot(geom.Point):
 
         self.current_tactic = Steppable()
 
+    def __eq__(self, r):
+        return self.uuid == r.uuid
+
+    def __ne__(self, r):
+        return self.uuid != r.uuid
+
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
         super(Robot, self).update(*args, **kwargs)
@@ -654,6 +660,13 @@ class World(object):
         shot_line = geom.Line(self.ball, point_to_kick)
         for robot in self.iterrobots():
             if shot_line.crosses(robot.body):
+                return False
+        return True
+
+    def has_clear_pass(self, receiver):
+        shot_line = geom.Line(self.ball, receiver)
+        for robot in self.iterrobots():
+            if shot_line.crosses(robot.body) and robot != receiver:
                 return False
         return True
 
