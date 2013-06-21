@@ -19,6 +19,7 @@ from ..core.skills import sampleddribble
 from ..core.skills import sampledkick
 from ..core.skills import followandcover
 from ..core.skills import sampledchipkick
+from ..core.skills import kickto
 try:
     from ..core.skills import joystick
 except ImportError:
@@ -364,6 +365,7 @@ class Intelligence(QtCore.QThread):
             ('Sampled Kick', sampledkick.SampledKick(robot, lookpoint=robot.enemy_goal)),
             ('Follow And Cover', followandcover.FollowAndCover(robot, follow=robot.goal, cover=self.world.ball)),
             ('Sampled Chip Kick', sampledchipkick.SampledChipKick(robot, lookpoint=robot.enemy_goal)),
+            ('Kick To (0,0)', kickto.KickTo(robot, lookpoint=Point(0, 0))),
             ('Blocker', blocker.Blocker(robot, arc=0)),
             ('Goalkeeper', goalkeeper.Goalkeeper(robot, angle=30, aggressive=True)),
             ('Zickler43', zickler43.Zickler43(robot)),
