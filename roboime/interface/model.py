@@ -82,7 +82,7 @@ class Model(object):
         ### Kalman Step finished ###
 
         # Update data
-        data['x'] = self.current_state_estimate[0, 0]
-        data['y'] = self.current_state_estimate[1, 0]
+        data['x'] = float(self.current_state_estimate[0, 0])
+        data['y'] = float(self.current_state_estimate[1, 0])
         if 'angle' in data:
-            data['angle'] = self.current_state_estimate[2, 0]
+            data['angle'] = float(self.current_state_estimate[2, 0])
