@@ -276,6 +276,26 @@ class PositionLog(Filter):
                     ))
 
 
+class RegisterPosition(Filter):
+    """
+    This filter registers the current position (x, y, angle) with new keys
+    in the data dictionary.
+    
+    usage:
+        RegisterPosition("prefix")
+        #This will register new values for "prefix_x", "prefix_y" and
+        # "prefix_angle" keys.
+    """
+    def __init__(self, prefix):
+        self.prefix = prefix + "_"
+        
+    def filter_updates(self, updates):
+        for u in updates:
+            for suffix in ['x', 'y', 'angle']:
+                if u.data.has_key(suffix):
+                    u.data[self.prefix + suffix] = u.data[suffix]
+
+
 class Noise(Filter):
     """
     This filter adds gaussian noise to the input x, y and angle variables. This
@@ -295,14 +315,11 @@ class Noise(Filter):
     def filter_updates(self, updates):
         for u in updates:
             if u.uid() < 0x400 or u.uid() == 0xba11:
-                u.data['input_x'] = u.data['x']
-                u.data['input_y'] = u.data['y']
                 u.data['x'] = normal(u.data['x'], self.std_dev_x)
                 u.data['y'] = normal(u.data['y'], self.std_dev_y)
                 u.data['noise_x'] = u.data['x']
                 u.data['noise_y'] = u.data['y']
             if u.uid() < 0x400:
-                u.data['input_angle'] = u.data['angle']
                 u.data['angle'] = normal(u.data['angle'], self.std_dev_a)
                 u.data['noise_angle'] = u.data['angle']
 
