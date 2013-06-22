@@ -88,7 +88,9 @@ class GotoView(SkillView):
         # draw a line from robot to its target
         painter.setBrush(BLACK)
         painter.setPen(BLACK)
-        painter.drawLine(0, 0, x, y)
+        #FIXME: float() casting because sometimes x or y can become numpy.float64
+        # Should be fixed with a proper API design
+        painter.drawLine(0, 0, float(x), float(y))
 
         # draw an X on the target
         painter.setBrush(RED)
