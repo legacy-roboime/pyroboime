@@ -25,4 +25,4 @@ Q = 1e-5
 # Low-Pass Filter (higher possible measurement error).
 R_var_x = 3.E-5
 R_var_y = 3.E-5
-R_var_angle = 3
+R_var_angle = 1e-5
