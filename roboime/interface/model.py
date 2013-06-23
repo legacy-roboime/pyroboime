@@ -52,12 +52,18 @@ class Model(object):
         # Time estimation for the first loop
         if self.time:
             timedelta = data['timestamp'] - self.time
+            self.time = data['timestamp']
         else:
             timedelta = 25e-3  # Estimated loop time (used if unavailable)
             self.time = data['timestamp']
+        if timedelta == 0:
+            raise ValueError, "timedelta == 0"
         # Per-step variable vectors
+        #timedelta = 25e-3
         B = numpy.eye(3) * timedelta  # control matrix B
         # control vector u_n
+#        data['speeds_cmd'] = self.speeds # FIXME: use commands when available
+        self.speeds = data.get('speed', (0.,0.,0.))
         control_vector = numpy.matrix(self.speeds).transpose()  # Helps predict based on model
         # measurement vector z_n
         measurement_vector = numpy.matrix([[data['x']], [data['y']], [data.get('angle', 0.)]])
@@ -80,7 +86,7 @@ class Model(object):
         ### Kalman Step finished ###
 
         # Update data
-        data['x'] = self.current_state_estimate[0, 0]
-        data['y'] = self.current_state_estimate[1, 0]
+        data['x'] = float(self.current_state_estimate[0, 0])
+        data['y'] = float(self.current_state_estimate[1, 0])
         if 'angle' in data:
-            data['angle'] = self.current_state_estimate[2, 0]
+            data['angle'] = float(self.current_state_estimate[2, 0])

@@ -155,10 +155,13 @@ class SimulationInterface(Interface):
             filters=filters + [
                 #filter.PositionLog(options.position_log_filename), #should be last, to have all data available
                 filter.Acceleration(),
-                filter.Speed(),
+                filter.Speed(), # second speed is more precise due to Kalman, size=2
                 #filter.CommandUpdateLog(options.cmdupd_filename),
-                #filter.Kalman(),
-                #filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
+                filter.Kalman(),
+                filter.Speed(3), # first speed used to predict speed for Kalman
+                #Noise should be enabled during simulation, to allow real noise simulation
+                filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
+                filter.RegisterPosition("input"),
                 filter.Scale(),
             ],
             **kwargs

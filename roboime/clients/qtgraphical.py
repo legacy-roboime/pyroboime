@@ -415,6 +415,7 @@ class Intelligence(QtCore.QThread):
 
     def run(self):
         self.interface.start()
+        # FIXME: this catchall catches too many things and breaks debugging
         try:
             while not self.stop:
                 self._loop()

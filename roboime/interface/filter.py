@@ -65,9 +65,14 @@ class Speed(Filter):
     with something smarter.
     """
 
-    def __init__(self):
+    def __init__(self, size=2):
         super(Speed, self).__init__()
         self.previous = {}
+        self.size = size
+        #FIXME: size is a hack, because speeds should be 3-shaped
+        # (x, y, w), where w is angular speed
+        # since too many places use speeds as a 2-element array, I'm just
+        # shrinking it at the end
 
     def remember_updates(self, updates):
         for u in updates:
@@ -78,9 +83,14 @@ class Speed(Filter):
         for u in updates:
             if u.uid() in self.previous:
                 pu = self.previous[u.uid()]
-                px, py, pt, = pu.data['x'], pu.data['y'], pu.data['timestamp']
-                x, y, t = u.data['x'], u.data['y'], u.data['timestamp']
-                u.data['speed'] = array((x - px, y - py)) / (t - pt)
+                px, py, pa = pu.data['x'], pu.data['y'], pu.data.get('angle', 0.)
+                pt = pu.data['timestamp']
+                x, y, a = u.data['x'], u.data['y'], u.data.get('angle', 0.)
+                t = u.data['timestamp']
+                speed = array((x - px, y - py, a - pa)) / (t - pt)
+                u.data['speed'] = speed[:self.size]
+            else:
+                u.data['speed'] = array((0.,0.,0.))[:self.size]
         self.remember_updates(updates)
 
 
@@ -244,6 +254,7 @@ class PositionLog(Filter):
             self.file.write("#Time\tUID\tx\ty\tangle" +
                             "\tinput_x\tinput_y\tinput_angle" +
                             "\tnoise_x\tnoise_y\tnoise_angle" +
+                            "\tspeed_vx\tspeed_vy\tspeed_vz" +
                             "\n")
         except:
             self.file = None
@@ -255,7 +266,9 @@ class PositionLog(Filter):
         if self.file is not None:
             for u in updates:
                 if u.uid() < 0x400 or u.uid() == 0xba11:
-                    self.file.write("\n%f\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f" % (
+                    vx, vy, w = u.data.get('speeds_cmd', (0,0,0))
+                    self.file.write(("\n%f\t%s\t%f\t%f\t%f\t%f\t%f\t%f" +
+                        "\t%f\t%f\t%f\t%f\t%f\t%f") % (
                         u.data['timestamp'],
                         u.uid(),
                         u.data.get('x', 0),
@@ -267,7 +280,30 @@ class PositionLog(Filter):
                         u.data.get('noise_x', 0),
                         u.data.get('noise_y', 0),
                         u.data.get('noise_angle', 0),
+                        vx,
+                        vy,
+                        w,
                     ))
+
+
+class RegisterPosition(Filter):
+    """
+    This filter registers the current position (x, y, angle) with new keys
+    in the data dictionary.
+    
+    usage:
+        RegisterPosition("prefix")
+        #This will register new values for "prefix_x", "prefix_y" and
+        # "prefix_angle" keys.
+    """
+    def __init__(self, prefix):
+        self.prefix = prefix + "_"
+        
+    def filter_updates(self, updates):
+        for u in updates:
+            for suffix in ['x', 'y', 'angle']:
+                if u.data.has_key(suffix):
+                    u.data[self.prefix + suffix] = u.data[suffix]
 
 
 class Noise(Filter):
@@ -289,14 +325,11 @@ class Noise(Filter):
     def filter_updates(self, updates):
         for u in updates:
             if u.uid() < 0x400 or u.uid() == 0xba11:
-                u.data['input_x'] = u.data['x']
-                u.data['input_y'] = u.data['y']
                 u.data['x'] = normal(u.data['x'], self.std_dev_x)
                 u.data['y'] = normal(u.data['y'], self.std_dev_y)
                 u.data['noise_x'] = u.data['x']
                 u.data['noise_y'] = u.data['y']
             if u.uid() < 0x400:
-                u.data['input_angle'] = u.data['angle']
                 u.data['angle'] = normal(u.data['angle'], self.std_dev_a)
                 u.data['noise_angle'] = u.data['angle']
 
@@ -310,6 +343,7 @@ class Kalman(Filter):
     time schedule).
     """
     def __init__(self):
+        super(Kalman, self).__init__()
         self.models = {}
 
     def get_model(self, uid):
@@ -319,10 +353,10 @@ class Kalman(Filter):
         self.models[uid] = model
         return model
 
-    def filter_commands(self, commands):
-        for c in commands:
-            if c.uid < 0x400 or c.uid == 0xba11:
-                self.get_model(c.uid).new_speed(c.absolute_speeds)
+#    def filter_commands(self, commands): #FIXME: use this when UID API is fixed
+#        for c in commands:
+#            if c.uid < 0x400 or c.uid == 0xba11:
+#                self.get_model(c.uid).new_speed(c.absolute_speeds)
 
     def filter_updates(self, updates):
         for u in updates:
