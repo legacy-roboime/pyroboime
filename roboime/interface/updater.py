@@ -219,7 +219,7 @@ class RealVisionUpdater(VisionUpdater):
 class SimVisionUpdater(VisionUpdater):
 
     def __init__(self):
-        VisionUpdater.__init__(self, ('224.5.23.2', 11003))
+        VisionUpdater.__init__(self, ('224.5.23.2', 11002))
 
 
 class RefereeUpdater(Updater):
