@@ -290,7 +290,7 @@ class RegisterPosition(Filter):
     """
     This filter registers the current position (x, y, angle) with new keys
     in the data dictionary.
-    
+
     usage:
         RegisterPosition("prefix")
         #This will register new values for "prefix_x", "prefix_y" and
@@ -298,7 +298,7 @@ class RegisterPosition(Filter):
     """
     def __init__(self, prefix):
         self.prefix = prefix + "_"
-        
+
     def filter_updates(self, updates):
         for u in updates:
             for suffix in ['x', 'y', 'angle']:
