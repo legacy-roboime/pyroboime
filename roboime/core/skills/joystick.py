@@ -155,15 +155,12 @@ class Joystick(Skill):
                 a = -self.joystick.get_axis(self.angle_axis)
                 power = abs(self.joystick.get_axis(self.power_axis))
 
+                # implementation of the deadzone:
                 x = x if abs(x) > self.deadzone else 0
                 y = y if abs(y) > self.deadzone else 0
                 a = a if abs(a) > self.deadzone else 0
                 power = power if abs(power) > self.deadzone else 0
-                
-                print '       x', x
-                print '       y', y
-                print '       a', a
-                
+
                 self.robot.action.speeds = y * self.speed_ratio, x * self.speed_ratio, a * 300
 
                 if self.joystick.get_button(self.kick_button):
