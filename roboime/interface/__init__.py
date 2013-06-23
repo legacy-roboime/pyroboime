@@ -160,7 +160,7 @@ class SimulationInterface(Interface):
                 filter.Kalman(),
                 filter.Speed(3), # first speed used to predict speed for Kalman
                 #Noise should be enabled during simulation, to allow real noise simulation
-                filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
+                #filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
                 filter.RegisterPosition("input"),
                 filter.Scale(),
             ],
