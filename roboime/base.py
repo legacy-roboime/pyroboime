@@ -137,6 +137,7 @@ class Robot(geom.Point):
         self.front_cut = self._radius * 0.7
         self.max_speed = max_speed
         self.max_ang_speed = max_ang_speed
+        self.max_speed_dribbling = max_speed * 0.75
 
         # ideally robot should inherit from a class that has an angle
         # and some geometry framework can use that angle
