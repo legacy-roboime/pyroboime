@@ -29,8 +29,8 @@ class SampledChipKick(DriveToBall):
     def __init__(self, robot, receiver=None, minpower=0.0, maxpower=1.0, **kwargs):
         """
         minpower and maxpower are in respect to the kicking power.
-        receiver must be a point like, if specified the kick will have
-        it's power calculated in a manner to arrive with speed zero at that point.
+        receiver must be a point If specified the kick will have
+        its power calculated in a manner to arrive with speed zero at that point.
 
         All other options from DriveToBall apply here.
         """

@@ -14,34 +14,13 @@ class Joystick(Skill):
     turbo_ratio = 2.0  # used to multiply speed_ratio
     angle_ratio = 180.0
     power_ratio = 1.0
+    deadzone = 0.2
 
     def __init__(self, robot, **kwargs):
         super(Joystick, self).__init__(robot, deterministic=True, **kwargs)
         pygame.init()
         pygame.joystick.init()
         self.check_joysticks()
-        # if pygame.joystick.get_count() == 0:
-            # self.joystick_found = False
-            # # raise RuntimeError('No joysticks found.')
-            # print 'WARNING: No joysticks found.'
-            # pygame.joystick.quit()
-            # pygame.quit()
-        # else:
-            # self.joystick_found = True
-            # self.joystick = pygame.joystick.Joystick(0)
-            # self.joystick.init()
-            # self.fishingrod = FishingRod(robot, b_angle=0)
-
-            # self.chipkick_button = 3
-            # self.kick_button = 0
-            # self.dribble_button = 2
-            # self.straffe_button = 1
-
-            # self.normal_axis = 1
-            # self.aux_axis = 0
-            # self.power_axis = 2
-
-            #nr eixos, nr hats, nr botoes
 
     def check_joysticks(self, index=0):
         if pygame.joystick.get_count() == 0:
@@ -175,6 +154,13 @@ class Joystick(Skill):
                 #s = self.joystick.get_axis(self.straffe_axis)
                 a = -self.joystick.get_axis(self.angle_axis)
                 power = abs(self.joystick.get_axis(self.power_axis))
+
+                # implementation of the deadzone:
+                x = x if abs(x) > self.deadzone else 0
+                y = y if abs(y) > self.deadzone else 0
+                a = a if abs(a) > self.deadzone else 0
+                power = power if abs(power) > self.deadzone else 0
+
                 self.robot.action.speeds = y * self.speed_ratio, x * self.speed_ratio, a * 300
 
                 if self.joystick.get_button(self.kick_button):

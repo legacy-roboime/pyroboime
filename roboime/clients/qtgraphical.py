@@ -2,6 +2,7 @@
 from time import sleep
 #import sys, os
 from os import path
+from collections import defaultdict
 from PyQt4 import QtGui, QtCore, uic
 from collections import OrderedDict
 from ..utils.geom import Point
@@ -135,6 +136,12 @@ class QtGraphicalClient(object):
         self.ui.btnDefaultBlue.clicked.connect(self.setDefaultMappingBlue)
         self.ui.btnDefaultYellow.clicked.connect(self.setDefaultMappingYellow)
 
+        self.ui.cmbKickYellow.currentIndexChanged.connect(self.selectSliderFromUidYellow)
+        self.ui.cmbKickBlue.currentIndexChanged.connect(self.selectSliderFromUidBlue)
+
+        self.ui.sliderKickBlue.valueChanged.connect(self.setKickPowerBlue)
+        self.ui.sliderKickYellow.valueChanged.connect(self.setKickPowerYellow)
+
         for i in range(self.intelligence.count_robot):
             self.ui.cmbRobotID.addItem(str(i))
 
@@ -170,6 +177,23 @@ class QtGraphicalClient(object):
         self.ui.txtRobotCanKick.setText(str(robot.can_kick))
 
     # GUI Functions
+
+    def selectSliderFromUidBlue(self):
+        uid = int(self.ui.cmbKickBlue.currentText())
+        self.ui.cmbKickBlue.setValue(self.intelligence.kick_mapping_blue[uid])
+    
+    def setKickPowerBlue(self):
+        uid = int(self.ui.cmbKickBlue.currentText())
+        self.intelligence.kick_mapping_blue[uid] = int(self.ui.sliderKickBlue.value())
+
+    def selectSliderFromUidYellow(self):
+        uid = int(self.ui.cmbSelectUidYellow.currentText())
+        self.ui.cmbKickBlue.setValue(self.intelligence.kick_mapping_yellow[uid])
+   
+    def setKickPowerYellow(self):
+        uid = int(self.ui.cmbKickBlue.currentText())
+        self.intelligence.kick_mapping_yellow[uid] = int(self.ui.sliderKickYellow.value())
+    
     def selectFirmwareFromUidYellow(self):
         uid = int(self.ui.cmbSelectUidYellow.currentText())
         if uid in self.intelligence.mapping_yellow:
@@ -351,8 +375,12 @@ class Intelligence(QtCore.QThread):
 
         self.mapping_blue = {}
         self.mapping_yellow = {}
+        self.kick_mapping_blue = defaultdict(lambda: 100)
+        self.kick_mapping_yellow = defaultdict(lambda: 100)
 
-        self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue, transmission_ipaddr='192.168.91.105', transmission_port=9050)
+        self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue, 
+                                        kick_mapping_yellow=self.kick_mapping_yellow, kick_mapping_blue=self.kick_mapping_blue, 
+                                        transmission_ipaddr='127.0.0.1', transmission_port=9050)
 
         dummy = ('(none)', Dummy())
         self.individual = lambda robot: OrderedDict([
