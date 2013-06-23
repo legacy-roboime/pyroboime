@@ -56,7 +56,6 @@ class RobotUpdate(Update):
             raise Exception('Wrong color "{}"'.format(self.team_color))
 
     def apply(self, world):
-
         if self.team_color == base.Blue:
             team = world.blue_team
         elif self.team_color == base.Yellow:

@@ -7,7 +7,7 @@ from multiprocessing import Process, Event
 from . import updater
 from . import commander
 from . import filter
-from .. import options
+#from .. import options
 
 
 def _update_loop(queue, updater):
@@ -132,14 +132,17 @@ class TxInterface(Interface):
     def __init__(self, world, filters=[], transmission_ipaddr='172.30.3.73', transmission_port=9050, mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None,**kwargs):
         super(TxInterface, self).__init__(
             world,
-
             updaters=[updater.RealVisionUpdater(), updater.RefereeUpdater()],
             commanders=[
-                commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_yellow, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True),
-                commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_blue, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True)
+                commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, ipaddr=transmission_ipaddr, port=transmission_port),
+                commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, ipaddr=transmission_ipaddr, port=transmission_port),
             ],
-
-            filters=filters + [filter.LowPass(), filter.Speed(), filter.Scale()],
+            filters=filters + [
+                #filter.LowPass(),
+                filter.Acceleration(),
+                filter.Speed(),
+                filter.Scale(),
+            ],
             **kwargs
         )
 
@@ -149,7 +152,6 @@ class SimulationInterface(Interface):
     def __init__(self, world, filters=[], **kwargs):
         super(SimulationInterface, self).__init__(
             world,
-
             updaters=[updater.SimVisionUpdater(), updater.RefereeUpdater()],
             commanders=[commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)],
             filters=filters + [

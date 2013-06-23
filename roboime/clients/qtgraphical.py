@@ -439,6 +439,7 @@ class Intelligence(QtCore.QThread):
 
     def run(self):
         self.interface.start()
+        self.tx_interface.start()
         # FIXME: this catchall catches too many things and breaks debugging
         try:
             while not self.stop:
@@ -451,6 +452,7 @@ class Intelligence(QtCore.QThread):
             raise
         finally:
             self.interface.stop()
+            self.tx_interface.stop()
 
 
 class App(QtGui.QApplication):
