@@ -113,7 +113,7 @@ class Tx2012Commander(Commander):
                 string_list.append(str((a.dribble or 0.0)))
                 if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:
                     string_list.append(str((a.kick * 100 / self.kicking_power_dict[a.uid] or 0.0)))
-                    string_list.append(str((a.kick or 0.0)))
+                    #string_list.append(str((a.kick or 0.0)))
                     string_list.append('0')
                 elif a.chipkick > 0 and self.kicking_power_dict[a.uid] > 0:
                     string_list.append('0')

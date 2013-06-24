@@ -36,7 +36,7 @@ from ..core.plays import indirectkick
 from ..core.plays import stop
 from ..core.plays import obeyreferee
 from ..core.plays import halt
-
+from ..core.plays import ifrit
 
 class GraphicalWorld(World, QtCore.QMutex):
 
@@ -110,7 +110,7 @@ class QtGraphicalClient(object):
         # Connect signals to slots
         #self.ui.cmbPenalty.currentIndexChanged.connect(self.setPenaltyKicker)
         #self.ui.cmbGoalkeeper.currentIndexChanged.connect(self.setGoalkeeper)
-        self.ui.cmbSelectOutput.currentIndexChanged.connect(self.changeIntelligenceOutput)
+        #self.ui.cmbSelectOutput.currentIndexChanged.connect(self.changeIntelligenceOutput)
         self.ui.cmbSelectPlayBlue.currentIndexChanged.connect(self.changePlayBlue)
         self.ui.cmbSelectRobotBlue.currentIndexChanged.connect(self.changeIndividualBlue)
         self.ui.cmbSelectIndividualBlue.currentIndexChanged.connect(self.changeIndividualBlue)
@@ -416,6 +416,7 @@ class Intelligence(QtCore.QThread):
         self.plays = lambda team: OrderedDict([
             dummy,
             ('Auto Retaliate', autoretaliate.AutoRetaliate(team)),
+            ('Ifrit', ifrit.Ifrit(team)),
             ('Stop', stop.Stop(team)),
             ('Indirect Kick', indirectkick.IndirectKick(team)),
             ('Obey Referee', obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(team))),
