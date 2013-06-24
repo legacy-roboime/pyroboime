@@ -1,117 +1,141 @@
-#if platform == 'win32':
-#    from multiprocessing.dummy import Process, Queue, Event, Lock
-#else:
-#    from multiprocessing import Process, Queue, Event, Lock
 from multiprocessing import Process, Queue, Event, Lock
-from numpy import array
 
 from ..communication import sslvision
 from ..communication import sslrefbox
-from .. import base
 
 
 STOP_TIMEOUT = 1
 
 
+#if robot.has_touched_ball:
+#    for r in robot.team:
+#        r.is_last_toucher = False
+#        r.has_touched_ball = False
+#    robot.is_last_toucher = True
+#    robot.has_touched_ball = False
 class Update(object):
 
     def __init__(self, data):
+        """
+        >>> data = {
+        ...     '__has_detection_data__': 1,
+        ...     'blue_team': {
+        ...         '__robots__': {
+        ...             0: {'x': 2.0, 'y': 3.0},
+        ...             3: {'x': -2.0, 'y': 4.0},
+        ...             5: '__delete__',
+        ...             4: {'x': 3.5, 'y': 0.5},
+        ...         },
+        ...         'goalie': 2,
+        ...     },
+        ...     'balls': [
+        ...         {'x': -2.0, 'y': 5.0},
+        ...         {'x': 4.0, 'y': -4.0},
+        ...     ],
+        ...     '__has_geometry_data__': 1,
+        ...     'length': 6.0,
+        ...     'width': 4.0,
+        ...     '__has_referee_data__': 1,
+        ...     'referee': {
+        ...         'stage': 4,
+        ...     },
+        ... }
+        """
         self.data = data
 
-    def apply(self):
-        raise NotImplemented
+    def apply(self, world):
+        for prop, value in self.data.iteritems():
+            if prop in ('blue_team', 'yellow_team'):
+                team = getattr(world, prop)
+
+                # the expected format is to have a dict with uids mapping to dicts with
+                # robot properties for each team, or instead of having
+                for team_prop, team_value in value.iteritems():
+
+                    # let's check if we have robot data
+                    if team_prop == '__robots__':
+                        for robot_id, robot_data in team_value.iteritems():
+                            robot = team[team_prop]
+                            robot_data = team_value
+
+                            # if instead of a dict the data is __delete__ it's used to signale
+                            # that the robot is not seen anymore and should be deactivated
+                            if robot_data == '__delete__':
+                                robot.active = False
+
+                            else:
+                                robot.active = True
+                                # x and y properties have a caveat, they cannot be set directly
+                                # thus they must be set through the update method
+                                robot.update(robot_data.pop('x'), robot_data.pop('y'))
+
+                                for robot_prop, robot_prop_value in robot_data.iteritems():
+                                    setattr(robot, robot_prop, robot_prop_value)
+
+                    else:
+                        setattr(team, team_prop, team_value)
+
+            elif prop == 'referee':
+                referee = world.referee
+
+                # referee data is a dict, applied similary to the world
+                for referee_prop, referee_prop_value in value.iteritems():
+                    setattr(referee, referee_prop, referee_prop_value)
+
+            elif prop == 'balls':
+                #TODO somehow support for multiple balls
+                if len(value) > 0:
+                    ball_data = value[0]
+                    world.ball.update(ball_data.pop('x'), ball_data.pop('y'))
+                    for ball_prop, ball_prop_value in ball_data.iteritems():
+                        setattr(world.ball, ball_prop, ball_prop_value)
+
+            # ignore some metadata
+            elif prop.startswith('__'):
+                pass
+
+            else:
+                # all other properties go straight to the world
+                setattr(world, prop, value)
+
+        if self.has_geometry_data():
+            world.right_goal.update((world.length / 2, 0.0))
+            world.left_goal.update((-world.length / 2, 0.0))
+            world.inited = True
 
     def __str__(self):
-        return "Updated: %s UID=%s data=%s" % (type(self), hex(self.uid()), str(self.data))
+        return "<{}: data={}>".format(type(self), self.data)
 
+    def has_detection_data(self):
+        return '__detection_data__' in self.data
 
-class BallUpdate(Update):
+    def has_geometry_data(self):
+        return '__geometry_data__' in self.data
 
-    def apply(self, world):
-        ball = world.ball
-        #for prop, value in self.data.iteritems():
-        #    if prop != 'x' and prop != 'y':
-        #        setattr(ball, prop, value)
-        ball.update((self.data['x'], self.data['y']))
-        if 'speed' in self.data:
-            ball.speed = array(self.data['speed'])
+    def has_referee_data(self):
+        return '__referee_data__' in self.data
 
-    def uid(self):
-        return 0xba11
+    def urobots(self):
+        for uid, robot_data in self.data['blue_team']['__robots__'].iteritems():
+            yield (uid + 0x100, robot_data)
+        for uid, robot_data in self.data['yellow_team']['__robots__'].iteritems():
+            yield (uid + 0x200, robot_data)
 
+    def robots(self):
+        for robot in self.data['blue_team']['__robots__'].iteritems():
+            yield robot
+        for robot in self.data['yellow_team']['__robots__'].iteritems():
+            yield robot
 
-class RobotUpdate(Update):
+    def balls(self):
+        for ball in self.data['balls']:
+            yield ('ball', ball)
 
-    def __init__(self, team_color, i, data):
-        Update.__init__(self, data)
-        self.team_color = team_color
-        self.i = i
-
-    def uid(self):
-        if self.team_color == base.Blue:
-            return 0x100 + self.i
-        elif self.team_color == base.Yellow:
-            return 0x200 + self.i
-        else:
-            raise Exception('Wrong color "{}"'.format(self.team_color))
-
-    def apply(self, world):
-        if self.team_color == base.Blue:
-            team = world.blue_team
-        elif self.team_color == base.Yellow:
-            team = world.yellow_team
-        robot = team[self.i]
-        robot.active = True
-
-        if robot.has_touched_ball:
-            for r in robot.team:
-                r.is_last_toucher = False
-                r.has_touched_ball = False
-            robot.is_last_toucher = True
-            robot.has_touched_ball = False
-
-        for prop, value in self.data.iteritems():
-            if prop != 'x' and prop != 'y':
-                setattr(robot, prop, value)
-        robot.update((self.data['x'], self.data['y']))
-
-
-class GeometryUpdate(Update):
-
-    def apply(self, world):
-        for prop, value in self.data.iteritems():
-            setattr(world, prop, value)
-        world.right_goal.update((world.length / 2, 0.0))
-        world.left_goal.update((-world.length / 2, 0.0))
-        world.inited = True
-
-    def uid(self):
-        return 0x6e0
-
-
-class RefereeUpdate(Update):
-
-    def apply(self, world):
-        for prop, value in self.data.iteritems():
-            setattr(world.referee, prop, value)
-
-    def uid(self):
-        return 0x43f3433
-
-
-class TeamUpdate(Update):
-
-    def __init__(self, team_color, data):
-        super(TeamUpdate, self).__init__(data)
-        self.team_color = team_color
-
-    def apply(self, world):
-        team = world.team(self.team_color)
-        for prop, value in self.data.iteritems():
-            setattr(team, prop, value)
-
-    def uid(self):
-        return 0x7e488
+    def objects(self):
+        for ball_data in self.balls():
+            yield ball_data
+        for robot_data in self.robots():
+            yield robot_data
 
 
 class Updater(Process):
@@ -157,12 +181,13 @@ class VisionUpdater(Updater):
         super(VisionUpdater, self).run()
 
     def receive(self):
-        updates = []
         packet = self.receiver.get_packet()
+        data = {}
 
         if packet.HasField('geometry'):
             f = packet.geometry.field
-            updates.append(GeometryUpdate({
+            data.update({
+                '__geometry_data__': 1,
                 'width': f.field_width,
                 'length': f.field_length,
                 'line_width': f.line_width,
@@ -177,36 +202,41 @@ class VisionUpdater(Updater):
                 'goal_width': f.goal_width,
                 'goal_depth': f.goal_depth,
                 'goal_wall_width': f.goal_wall_width,
-            }))
+            })
 
         if packet.HasField('detection'):
+            data.update({
+                'timestamp': packet.detection.t_capture,
+                '__detection_data__': 1,
+                'yellow_team': {'__robots__': {}},
+                'blue_team': {'__robots__': {}},
+                'balls': [],
+            })
 
-            timestamp = packet.detection.t_capture
-
+            balls = data['balls']
             for b in packet.detection.balls:
-                updates.append(BallUpdate({
-                    'timestamp': timestamp,
+                balls.append({'ball': {
                     'x': b.x,
                     'y': b.y,
-                }))
+                }})
 
+            yellow_team = data['yellow_team']['__robots__']
             for r in packet.detection.robots_yellow:
-                updates.append(RobotUpdate(base.Yellow, r.robot_id, {
-                    'timestamp': timestamp,
+                yellow_team.update({r.robot_id: {
                     'x': r.x,
                     'y': r.y,
                     'angle': r.orientation,
-                }))
+                }})
 
+            blue_team = data['blue_team']['__robots__']
             for r in packet.detection.robots_blue:
-                updates.append(RobotUpdate(base.Blue, r.robot_id, {
-                    'timestamp': timestamp,
+                blue_team.update({r.robot_id: {
                     'x': r.x,
                     'y': r.y,
                     'angle': r.orientation,
-                }))
+                }})
 
-        return updates
+        return Update(data)
 
 
 class RealVisionUpdater(VisionUpdater):
@@ -218,7 +248,7 @@ class RealVisionUpdater(VisionUpdater):
 class SimVisionUpdater(VisionUpdater):
 
     def __init__(self):
-        VisionUpdater.__init__(self, ('224.5.23.2', 11002))
+        VisionUpdater.__init__(self, ('224.5.23.2', 11004))
 
 
 class RefereeUpdater(Updater):
@@ -234,31 +264,35 @@ class RefereeUpdater(Updater):
         super(RefereeUpdater, self).run()
 
     def receive(self):
-        updates = []
         referee = self.receiver.get_packet()
-        updates.append(RefereeUpdate({
-            'command': referee.command,
-            'command_timestamp': referee.command_timestamp,
-            'stage': referee.stage,
-            'stage_time_left': referee.stage_time_left,
-            'timestamp': referee.packet_timestamp,
-        }))
-        updates.append(TeamUpdate(base.Blue, {
-            'score': referee.blue.score,
-            'red_cards': referee.blue.red_cards,
-            #'yellow_card_times': referee.blue.yellow_card_times,
-            'yellow_cards': referee.blue.yellow_cards,
-            'timeouts': referee.blue.timeouts,
-            'timeout_time': referee.blue.timeout_time,
-            'goalie': referee.blue.goalie,
-        }))
-        updates.append(TeamUpdate(base.Yellow, {
-            'score': referee.yellow.score,
-            'red_cards': referee.yellow.red_cards,
-            #'yellow_card_times': referee.yellow.yellow_card_times,
-            'yellow_cards': referee.yellow.yellow_cards,
-            'timeouts': referee.yellow.timeouts,
-            'timeout_time': referee.yellow.timeout_time,
-            'goalie': referee.yellow.goalie,
-        }))
-        return updates
+
+        data = {
+            '__referee_data__': 1,
+            'referee': {
+                'command': referee.command,
+                'command_timestamp': referee.command_timestamp,
+                'stage': referee.stage,
+                'stage_time_left': referee.stage_time_left,
+                'timestamp': referee.packet_timestamp,
+            },
+            'blue_team': {
+                'score': referee.blue.score,
+                'red_cards': referee.blue.red_cards,
+                #'yellow_card_times': referee.blue.yellow_card_times,
+                'yellow_cards': referee.blue.yellow_cards,
+                'timeouts': referee.blue.timeouts,
+                'timeout_time': referee.blue.timeout_time,
+                'goalie': referee.blue.goalie,
+            },
+            'yellow_team': {
+                'score': referee.yellow.score,
+                'red_cards': referee.yellow.red_cards,
+                #'yellow_card_times': referee.yellow.yellow_card_times,
+                'yellow_cards': referee.yellow.yellow_cards,
+                'timeouts': referee.yellow.timeouts,
+                'timeout_time': referee.yellow.timeout_time,
+                'goalie': referee.yellow.goalie,
+            }
+        }
+
+        return Update(data)

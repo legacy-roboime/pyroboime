@@ -4,15 +4,15 @@ from numpy.random import normal
 from math import degrees, sqrt
 from collections import defaultdict
 
-from roboime.interface.updater import RobotUpdate, BallUpdate, GeometryUpdate
 from model import Model
+from ..base import World
 
 
 class Filter(object):
     """The filter class is the base for all filters.
 
-    Filters should basically contain filter_updates and
-    filter_commands methods, those will be called with an
+    Filters should basically contain filter_update and
+    filter_command methods, those will be called with an
     iterator of updates and a list of commands respectively.
 
     Neither of those methods need to be implemented and
@@ -25,10 +25,10 @@ class Filter(object):
     have better perfomance and memory usage.
     """
 
-    def filter_updates(self, updates):
+    def filter_update(self, updates):
         pass
 
-    def filter_commands(self, commands):
+    def filter_command(self, commands):
         pass
 
 
@@ -39,18 +39,46 @@ class Scale(Filter):
     but for now it doesn't.
     """
 
-    def filter_updates(self, updates):
-        for update in updates:
-            if isinstance(update, RobotUpdate) or isinstance(update, BallUpdate) or isinstance(update, GeometryUpdate):
-                filtered_data = {}
-                for key, value in update.data.iteritems():
-                    if key == 'timestamp':
-                        filtered_data[key] = value
-                    elif key == 'angle':
-                        filtered_data[key] = degrees(value)
-                    else:
-                        filtered_data[key] = value / 1000.0
-                update.data = filtered_data
+    geom_fields = [
+        'width',
+        'length',
+        'line_width',
+        'boundary_width',
+        'referee_width',
+        'center_radius',
+        'defense_radius',
+        'defense_stretch',
+        'free_kick_distance',
+        'penalty_spot_distance',
+        'penalty_line_distance',
+        'goal_width',
+        'goal_depth',
+        'goal_wall_width',
+    ]
+
+    def __init__(self, from_unit='mm', to_unit='m'):
+        self.from_unit = from_unit
+        self.to_unit = to_unit
+
+    def filter_update(self, update):
+        if update.data['unit'] == self.from_unit:
+            update.data['unit'] = self.to_unit
+
+            #TODO this should be calculated from the units
+            ratio = 1e-3
+
+            # convert robot positions
+            if update.has_detection_data():
+                for uid, robot_data in update.objects():
+                    robot['x'] *= ratio
+                    robot['y'] *= ratio
+                    if uid != 'ball':
+                        robot['angle'] = degrees(robot['angle'])
+
+            if update.has_geometry_data():
+                for key in self.geom_fields:
+                    if key in update.data:
+                        update.data[key] *= ratio
 
 
 class Speed(Filter):
@@ -74,12 +102,12 @@ class Speed(Filter):
         # since too many places use speeds as a 2-element array, I'm just
         # shrinking it at the end
 
-    def remember_updates(self, updates):
+    def remember_update(self, update):
         for u in updates:
             if isinstance(u, RobotUpdate) or isinstance(u, BallUpdate):
                 self.previous[u.uid()] = u
 
-    def filter_updates(self, updates):
+    def filter_update(self, updates):
         for u in updates:
             if u.uid() in self.previous:
                 pu = self.previous[u.uid()]
@@ -110,19 +138,24 @@ class Acceleration(Filter):
         super(Acceleration, self).__init__()
         self.previous = {}
 
-    def remember_updates(self, updates):
-        for u in updates:
-            if (isinstance(u, RobotUpdate) or isinstance(u, BallUpdate)) and 'speed' in u.data:
-                self.previous[u.uid()] = u
+    def remember_update(self, update):
+        timestamp = update.data['timestamp']
+        self.previous['balls'] = update.data['balls']
+        self.previous['timestamp'] = timestamp
 
-    def filter_updates(self, updates):
-        for u in updates:
-            if u.uid() in self.previous:
-                pu = self.previous[u.uid()]
-                ps, pt, = pu.data['speed'], pu.data['timestamp']
-                s, t = u.data['speed'], u.data['timestamp']
-                u.data['acceleration'] = (s - ps) / (t - pt)
-        self.remember_updates(updates)
+        for uid, object_data in update.urobots():
+            if 'speed' in object_data:
+                self.previous[uid] = object_data
+
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, robot_data in update.urobots():
+                if uid in self.previous:
+                    pu = self.previous[uid]
+                    ps, pt, = pu.data['speed'], pu.data['timestamp']
+                    s, t = u.data['speed'], u.data['timestamp']
+                    u.data['acceleration'] = (s - ps) / (t - pt)
+            self.remember_update(update)
 
 
 class LowPass(Filter):
@@ -135,26 +168,25 @@ class LowPass(Filter):
     """
     def __init__(self):
         super(LowPass, self).__init__()
-        self.gain = 6.
+        self.gain = 6.0
         self.last_theta = None
-        self.coef = [3., 0., -1. / 3., 0.]
-        self.ux = defaultdict(lambda: [0., 0., 0., 0.])
-        self.uy = defaultdict(lambda: [0., 0., 0., 0.])
-        self.vx = defaultdict(lambda: [0., 0., 0., 0.])
-        self.vy = defaultdict(lambda: [0., 0., 0., 0.])
-        self.uo = defaultdict(lambda: [0., 0., 0., 0.])
-        self.vo = defaultdict(lambda: [0., 0., 0., 0.])
+        self.coef = [3.0, 0.0, -1.0 / 3.0, 0.0]
+        self.ux = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
+        self.uy = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
+        self.vx = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
+        self.vy = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
+        self.uo = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
+        self.vo = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
 
-    def filter_updates(self, updates):
-        for u in updates:
-            #print 'coe'
-            if isinstance(u, RobotUpdate) or isinstance(u, BallUpdate):
-                ux = self.ux[u.uid()]
-                uy = self.uy[u.uid()]
-                vx = self.vx[u.uid()]
-                vy = self.vy[u.uid()]
-                uo = self.uo[u.uid()]
-                vo = self.vo[u.uid()]
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, u in update.objects():
+                ux = self.ux[uid]
+                uy = self.uy[uid]
+                vx = self.vx[uid]
+                vy = self.vy[uid]
+                uo = self.uo[uid]
+                vo = self.vo[uid]
 
                 ux[0] = ux[1]
                 ux[1] = ux[2]
@@ -176,30 +208,30 @@ class LowPass(Filter):
                 #print u.data['x'], vx[3]
                 u.data['x'], u.data['y'] = vx[3], vy[3]
 
-            # TODO: Angle filtering.
-            if isinstance(u, RobotUpdate):
-                theta = u.data['orientation']
+                # TODO: Angle filtering.
+                if uid != 'ball':
+                    theta = u.data['orientation']
 
-                if self.last_theta is None:
-                    self.last_theta = theta
-                last_theta = self.last_theta
+                    if self.last_theta is None:
+                        self.last_theta = theta
+                    last_theta = self.last_theta
 
-                d_theta = theta - last_theta
-                d_theta = remainder(d_theta, 360)
+                    d_theta = theta - last_theta
+                    d_theta = remainder(d_theta, 360)
 
-                uo[0] = uo[1]
-                uo[1] = uo[2]
-                uo[2] = uo[3]
-                uo[3] = d_theta / self.gain
-                vo[0] = vo[1]
-                vo[1] = vo[2]
-                vo[2] = vo[3]
-                vo[3] = (uo[0] + uo[3]) + self.coef[0] * (uo[1] + uo[2]) + (self.coef[1] * vo[0]) + (self.coef[2] * vo[1]) + self.coef[3] * vo[2]
+                    uo[0] = uo[1]
+                    uo[1] = uo[2]
+                    uo[2] = uo[3]
+                    uo[3] = d_theta / self.gain
+                    vo[0] = vo[1]
+                    vo[1] = vo[2]
+                    vo[2] = vo[3]
+                    vo[3] = (uo[0] + uo[3]) + self.coef[0] * (uo[1] + uo[2]) + (self.coef[1] * vo[0]) + (self.coef[2] * vo[1]) + self.coef[3] * vo[2]
 
-                vo[3] = remainder(vo[3], 360)
+                    vo[3] = remainder(vo[3], 360)
 
-                self.last_theta = theta + vo[3]
-                u.data['orientation'] = vo[3] + theta
+                    self.last_theta = theta + vo[3]
+                    u.data['orientation'] = vo[3] + theta
 
 
 class UpdateLog(Filter):
@@ -221,7 +253,7 @@ class UpdateLog(Filter):
             print("Could not open log file (%s). Continuing..." % (filename))
         super(UpdateLog, self).__init__()
 
-    def filter_updates(self, updates):
+    def filter_update(self, updates):
         if self.file is not None:
             for u in updates:
                 self.file.write(str(u) + "\n")
@@ -231,10 +263,10 @@ class CommandUpdateLog(UpdateLog):
     """
     This filter is based on the UpdateLog filter and also stores commands.
     """
-    def filter_commands(self, commands):
+    def filter_command(self, command):
         if self.file is not None:
-            for c in commands:
-                self.file.write("Cmd:" + str(c) + "\n")
+            for a in command:
+                self.file.write("Cmd:" + str(a) + "\n")
 
 
 class PositionLog(Filter):
@@ -250,7 +282,8 @@ class PositionLog(Filter):
     """
     def __init__(self, filename):
         try:
-            self.file = open(filename, 'w')  # TODO: change to 'a' if want to append logs
+            # TODO: change to 'a' if want to append logs
+            self.file = open(filename, 'w')
             self.file.write("#Time\tUID\tx\ty\tangle" +
                             "\tinput_x\tinput_y\tinput_angle" +
                             "\tnoise_x\tnoise_y\tnoise_angle" +
@@ -262,27 +295,22 @@ class PositionLog(Filter):
                 print("Could not open log file (%s). Continuing..." % (filename))
         super(PositionLog, self).__init__()
 
-    def filter_updates(self, updates):
+    def filter_update(self, update):
         if self.file is not None:
-            for u in updates:
-                if u.uid() < 0x400 or u.uid() == 0xba11:
-                    vx, vy, w = u.data.get('speeds_cmd', (0,0,0))
-                    self.file.write(("\n%f\t%s\t%f\t%f\t%f\t%f\t%f\t%f" +
-                        "\t%f\t%f\t%f\t%f\t%f\t%f") % (
-                        u.data['timestamp'],
-                        u.uid(),
-                        u.data.get('x', 0),
-                        u.data.get('y', 0),
-                        u.data.get('angle', 0),
-                        u.data.get('input_x', 0),
-                        u.data.get('input_y', 0),
-                        u.data.get('input_angle', 0),
-                        u.data.get('noise_x', 0),
-                        u.data.get('noise_y', 0),
-                        u.data.get('noise_angle', 0),
-                        vx,
-                        vy,
-                        w,
+            if update.has_detection_data():
+                for uid, object_data in update.objects():
+                    self.file.write("\n%f\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f" % (
+                        object_data['timestamp'],
+                        uid,
+                        object_data.get('x', '-'),
+                        object_data.get('y', '-'),
+                        object_data.get('angle', '-'),
+                        object_data.get('input_x', '-'),
+                        object_data.get('input_y', '-'),
+                        object_data.get('input_angle', '-'),
+                        object_data.get('noise_x', '-'),
+                        object_data.get('noise_y', '-'),
+                        object_data.get('noise_angle', '-'),
                     ))
 
 
@@ -322,16 +350,21 @@ class Noise(Filter):
         self.std_dev_y = sqrt(variance_y)
         self.std_dev_a = sqrt(variance_angle)
 
-    def filter_updates(self, updates):
-        for u in updates:
-            if u.uid() < 0x400 or u.uid() == 0xba11:
-                u.data['x'] = normal(u.data['x'], self.std_dev_x)
-                u.data['y'] = normal(u.data['y'], self.std_dev_y)
-                u.data['noise_x'] = u.data['x']
-                u.data['noise_y'] = u.data['y']
-            if u.uid() < 0x400:
-                u.data['angle'] = normal(u.data['angle'], self.std_dev_a)
-                u.data['noise_angle'] = u.data['angle']
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, object_data in update.objects():
+                object_data['input_x'] = object_data['x']
+                object_data['x'] = normal(object_data['x'], self.std_dev_x)
+                object_data['noise_x'] = object_data['x']
+
+                object_data['input_y'] = object_data['y']
+                object_data['y'] = normal(object_data['y'], self.std_dev_y)
+                object_data['noise_y'] = object_data['y']
+
+                if uid != 'ball':
+                    object_data['input_angle'] = object_data['angle']
+                    object_data['angle'] = normal(object_data['angle'], self.std_dev_a)
+                    object_data['noise_angle'] = object_data['angle']
 
 
 class Kalman(Filter):
@@ -353,12 +386,16 @@ class Kalman(Filter):
         self.models[uid] = model
         return model
 
-#    def filter_commands(self, commands): #FIXME: use this when UID API is fixed
-#        for c in commands:
-#            if c.uid < 0x400 or c.uid == 0xba11:
-#                self.get_model(c.uid).new_speed(c.absolute_speeds)
+    #def filter_command(self, commands):
+    #    for c in commands:
+    #        if c.uid < 0x400 or c.uid == 0xba11:
+    #            self.get_model(c.uid).new_speed(c.absolute_speeds)
 
-    def filter_updates(self, updates):
-        for u in updates:
-            if u.uid() < 0x400 or u.uid() == 0xba11:
-                self.get_model(u.uid()).update(u.data)
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, object_data in update.objects():
+                if 'speed' in object_data and 'acceleration' in object_data:
+                    pass
+                    #m = self.get_model(u.uid())
+                    #m.update(u.data)
+                    #m.new_speed(u.data['speed'])
