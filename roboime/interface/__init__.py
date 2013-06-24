@@ -129,13 +129,13 @@ class Interface(Process):
 
 class TxInterface(Interface):
 
-    def __init__(self, world, filters=[], transmission_ipaddr='172.30.3.73', transmission_port=9050, mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None,**kwargs):
+    def __init__(self, world, filters=[], transmission_ipaddr='127.0.0.1', transmission_port=9050, mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None,**kwargs):
         super(TxInterface, self).__init__(
             world,
             updaters=[updater.RealVisionUpdater(), updater.RefereeUpdater()],
             commanders=[
-                commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, ipaddr=transmission_ipaddr, port=transmission_port),
-                commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, ipaddr=transmission_ipaddr, port=transmission_port),
+                commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, ipaddr=transmission_ipaddr, kicking_power_dict=kick_mapping_blue, port=transmission_port),
+                commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, ipaddr=transmission_ipaddr, port=transmission_port),
             ],
             filters=filters + [
                 #filter.LowPass(),

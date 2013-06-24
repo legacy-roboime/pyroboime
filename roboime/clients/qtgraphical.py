@@ -180,19 +180,31 @@ class QtGraphicalClient(object):
 
     def selectSliderFromUidBlue(self):
         uid = int(self.ui.cmbKickBlue.currentText())
-        self.ui.cmbKickBlue.setValue(self.intelligence.kick_mapping_blue[uid])
+        self.ui.sliderKickBlue.setValue(self.intelligence.kick_mapping_blue[uid])
+        #print self.intelligence.kick_mapping_blue
     
     def setKickPowerBlue(self):
         uid = int(self.ui.cmbKickBlue.currentText())
         self.intelligence.kick_mapping_blue[uid] = int(self.ui.sliderKickBlue.value())
+        if self.intelligence.kick_mapping_blue[uid] > 0:
+            self.world.blue_team[uid].can_kick = True
+        else:
+            self.world.blue_team[uid].can_kick = False
+        #print self.intelligence.kick_mapping_blue
 
     def selectSliderFromUidYellow(self):
         uid = int(self.ui.cmbSelectUidYellow.currentText())
-        self.ui.cmbKickBlue.setValue(self.intelligence.kick_mapping_yellow[uid])
+        self.ui.sliderKickBlue.setValue(self.intelligence.kick_mapping_yellow[uid])
+        #print self.intelligence.kick_mapping_yellow
    
     def setKickPowerYellow(self):
         uid = int(self.ui.cmbKickBlue.currentText())
         self.intelligence.kick_mapping_yellow[uid] = int(self.ui.sliderKickYellow.value())
+        if self.intelligence.kick_mapping_yellow[uid] > 0:
+            self.world.yellow_team[uid].can_kick = True
+        else:
+            self.world.yellow_team[uid].can_kick = False
+        #print self.intelligence.kick_mapping_yellow
     
     def selectFirmwareFromUidYellow(self):
         uid = int(self.ui.cmbSelectUidYellow.currentText())
@@ -371,7 +383,6 @@ class Intelligence(QtCore.QThread):
         self.world = world
         self.count_robot = count_robot
         self.skill = None
-        self.interface = SimulationInterface(self.world)
 
         self.mapping_blue = {}
         self.mapping_yellow = {}
@@ -381,6 +392,7 @@ class Intelligence(QtCore.QThread):
         self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue, 
                                         kick_mapping_yellow=self.kick_mapping_yellow, kick_mapping_blue=self.kick_mapping_blue, 
                                         transmission_ipaddr='127.0.0.1', transmission_port=9050)
+        self.interface = SimulationInterface(self.world)
 
         dummy = ('(none)', Dummy())
         self.individual = lambda robot: OrderedDict([
@@ -422,7 +434,7 @@ class Intelligence(QtCore.QThread):
         self.current_individual_blue = Dummy()
         self.current_individual_yellow = Dummy()
 
-        self.is_simulation = True
+        self.is_simulation = False
 
     def _loop(self):
         self.current_play_blue.step()

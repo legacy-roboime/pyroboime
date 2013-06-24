@@ -104,18 +104,21 @@ class Tx2012Commander(Commander):
                 # Convert va to angular speed.
                 va = va * pi / 180
                 if self.default_map or a.uid in self.mapping_dict:
-                    pass#string_list.append(str(self.mapping_dict[a.uid]))
+                    pass
+                    #string_list.append(str(self.mapping_dict[a.uid]))
                 else:
                     continue
 
                 string_list.extend([str(i) for i in self.omniwheel_speeds(a.robot.angle, vx, vy, va)])
                 string_list.append(str((a.dribble or 0.0)))
-                if a.kick > 0:
+                if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:
                     string_list.append(str((a.kick * 100 / self.kicking_power_dict[a.uid] or 0.0)))
+                    string_list.append(str((a.kick or 0.0)))
                     string_list.append('0')
-                elif a.chipkick > 0:
+                elif a.chipkick > 0 and self.kicking_power_dict[a.uid] > 0:
                     string_list.append('0')
                     string_list.append(str((a.chipkick * 100 /self.kicking_power_dict[a.uid] or 0.0)))
+                    #string_list.append(str((a.chipkick or 0.0)))
                 else:
                     string_list.append('0')
                     string_list.append('0')
@@ -131,6 +134,7 @@ class Tx2012Commander(Commander):
 
                 if packet:
                     if self.verbose:
+                        print self.kicking_power_dict
                         print packet
                     self.sender.send(packet)
 
