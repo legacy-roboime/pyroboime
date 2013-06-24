@@ -13,7 +13,7 @@ class State(object):
 
 class Transition(object):
 
-    def __init__(self, from_state, to_state, probability=1.0, condition=None, callback=lambda:, **kwargs):
+    def __init__(self, from_state, to_state, probability=1.0, condition=None, callback=lambda: None, **kwargs):
         """
         This class can be used in two ways:
         - subclass it and redefine the condition method

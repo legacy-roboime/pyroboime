@@ -14,7 +14,7 @@ class ReceivePass(Tactic):
     '''
     This tactic has the objective of receiving the ball from 
     another robot in the field. This side is a bit more complicated:
-    discretize the positions in a circlegaround the robot, see which
+    discretize the positions in a circle around the robot, see which
     one has the best clear shot (ordered by closeness to the target 
     goal) and move to that position with the ball as a lookpoint.
 
@@ -26,7 +26,7 @@ class ReceivePass(Tactic):
     
     class CompanionCube(object):
         def __init__(self, robot):
-            self._robot = robot.team[0]
+            self._robot = None
 
         @property
         def robot(self):
@@ -41,13 +41,17 @@ class ReceivePass(Tactic):
         self._point = point or self.robot
         self.companion = companion or self.CompanionCube(self.robot)
         
-        self.goto = GotoLooking(self.robot, target=self.point, lookpoint=self.companion.robot)
+        self.goto = GotoLooking(self.robot, target=self.point, lookpoint=lambda: self.companion.robot)
 
         super(ReceivePass, self).__init__(robot, deterministic, initial_state=self.goto, transitions=[])
 
     @property
     def point(self):
         return self._point
+
+    @point.setter
+    def point(self, value):
+        self._point = value
 
     def ready(self):
         print self.robot.distance(self.point) < 0.2

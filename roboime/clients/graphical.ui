@@ -153,7 +153,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab">
         <property name="sizePolicy">
@@ -479,42 +479,6 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
-            <widget class="QLabel" name="label_2">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Tipo de transmissão</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <widget class="QComboBox" name="cmbSelectOutput">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <item>
-              <property name="text">
-               <string>Simulação</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Transmissor</string>
-              </property>
-             </item>
-            </widget>
-           </item>
           </layout>
          </item>
          <item>
@@ -630,7 +594,7 @@
               <x>0</x>
               <y>0</y>
               <width>880</width>
-              <height>16</height>
+              <height>22</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_4">

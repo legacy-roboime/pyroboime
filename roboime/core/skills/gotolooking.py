@@ -7,7 +7,18 @@ class GotoLooking(Goto):
         lookpoint: Where you want it to look, what were you expecting?
         """
         super(GotoLooking, self).__init__(robot, **kwargs)
-        self.lookpoint = lookpoint
+        self._lookpoint = lookpoint
+    
+    @property
+    def lookpoint(self):
+        if callable(self._lookpoint):
+            return self._lookpoint()
+        else:
+            return self._lookpoint
+
+    @lookpoint.setter
+    def lookpoint(self, value):
+        self._lookpoint = value
 
     def _step(self):
         self.angle = self.robot.angle_to_point(self.lookpoint)
