@@ -117,7 +117,7 @@ class QtGraphicalClient(object):
         self.ui.cmbSelectPlayYellow.currentIndexChanged.connect(self.changePlayYellow)
         self.ui.cmbSelectRobotYellow.currentIndexChanged.connect(self.changeIndividualYellow)
         self.ui.cmbSelectIndividualYellow.currentIndexChanged.connect(self.changeIndividualYellow)
-        self.ui.cmbOurTeam.currentIndexChanged.connect(self.setTeamColor)
+        #self.ui.cmbOurTeam.currentIndexChanged.connect(self.setTeamColor)
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
         self.ui.actionFullscreen.triggered.connect(self.toggleFullScreen)
         self.ui.actionSetupDock.toggled.connect(self.toggleSetupDock)
@@ -285,8 +285,8 @@ class QtGraphicalClient(object):
         self.intelligence.current_individual_yellow = self.intelligence.individuals_yellow[self.ui.cmbSelectRobotYellow.currentIndex()][str(self.ui.cmbSelectIndividualYellow.currentText())]
 
     #XXX: not implemented in c++
-    def setTeamColor(self):
-        raise NotImplementedError
+    #def setTeamColor(self):
+    #    raise NotImplementedError
 
     def changeSides(self):
         self.intelligence.world.switch_sides()
