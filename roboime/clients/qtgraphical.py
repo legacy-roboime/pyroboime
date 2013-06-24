@@ -110,7 +110,7 @@ class QtGraphicalClient(object):
         # Connect signals to slots
         #self.ui.cmbPenalty.currentIndexChanged.connect(self.setPenaltyKicker)
         #self.ui.cmbGoalkeeper.currentIndexChanged.connect(self.setGoalkeeper)
-        self.ui.cmbSelectOutput.currentIndexChanged.connect(self.changeIntelligenceOutput)
+        #self.ui.cmbSelectOutput.currentIndexChanged.connect(self.changeIntelligenceOutput)
         self.ui.cmbSelectPlayBlue.currentIndexChanged.connect(self.changePlayBlue)
         self.ui.cmbSelectRobotBlue.currentIndexChanged.connect(self.changeIndividualBlue)
         self.ui.cmbSelectIndividualBlue.currentIndexChanged.connect(self.changeIndividualBlue)
