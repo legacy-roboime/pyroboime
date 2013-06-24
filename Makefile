@@ -58,3 +58,8 @@ pep8:
 .PHONY: pep8-strict
 pep8-strict:
 	@flake8 $(FLAKE8_STRICT_OPTS) roboime
+
+# count the number of lines
+.PHONY: count
+count:
+	@find roboime -type f -exec cat {} \; | wc -l
