@@ -81,6 +81,9 @@ class RobotUpdate(Update):
                 setattr(robot, prop, value)
         robot.update((self.data['x'], self.data['y']))
 
+        if 'timestamp' in self.data:
+            world.timestamp = self.data['timestamp']
+
 
 class GeometryUpdate(Update):
 
