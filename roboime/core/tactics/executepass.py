@@ -24,9 +24,13 @@ class ExecutePass(Tactic):
     so that one tactic can signal to the other when it is ready,
     while obscuring details such as which robot is doing what.
     '''
+    class Kicker(object):
+        def __init__(self):
+            self.kicker = None
+
     class CompanionCube(object):
         def __init__(self, robot):
-            self._robot = None
+            self._robot = ExecutePass.Kicker()
 
         @property
         def robot(self):
@@ -43,18 +47,18 @@ class ExecutePass(Tactic):
 
         self.drive = DriveToBall(robot, lookpoint=lambda: self.companion.robot, deterministic=True, avoid_collisions=True)
         self.dribble = SampledDribble(robot, deterministic=deterministic, lookpoint=lambda: self.companion.robot, minpower=0.0, maxpower=1.0)
-        self.kick = KickTo(robot, lookpoint=lambda: self.companion.robot, minpower=0.9, maxpower=1.0)
-        self.chip_kick = SampledChipKick(robot, deterministic=deterministic, lookpoint=lambda: self.companion.robot, receiver=self.companion.robot, minpower=0.9, maxpower=1.0)
+        self.kick = KickTo(robot, lookpoint=lambda: self.companion.robot.kicker, minpower=0.9, maxpower=1.0)
+        #self.chip_kick = SampledChipKick(robot, deterministic=deterministic, lookpoint=lambda: self.companion.robot.kicker, receiver=self.companion.robot.kicker, minpower=0.9, maxpower=1.0)
 
         super(ExecutePass, self).__init__(robot, deterministic, initial_state=self.drive, transitions=[
             Transition(self.drive, self.dribble, condition=lambda: self.drive.close_enough()),
             Transition(self.dribble, self.drive, condition=lambda: not self.dribble.close_enough()),
-            Transition(self.dribble, self.kick, condition=lambda: self.dribble.close_enough() and self.world.has_clear_pass(self.companion.robot) and self.companion.ready),
-            Transition(self.dribble, self.chip_kick, condition=lambda: self.dribble.close_enough() and not self.world.has_clear_pass(self.companion.robot) and self.companion.ready),
-            Transition(self.kick, self.drive, condition=lambda: self.kick.bad_position(), callback=self.set_passed),
-            Transition(self.chip_kick, self.drive, condition=lambda: not self.chip_kick.close_enough(), callback=self.set_passed),
-            Transition(self.kick, self.chip_kick, condition=lambda: self.kick.good_position() and not self.world.has_clear_pass(self.companion.robot)),
-            Transition(self.chip_kick, self.kick, condition=lambda: not self.chip_kick.close_enough() and self.world.has_clear_pass(self.companion.robot)),
+            Transition(self.dribble, self.kick, condition=lambda: self.dribble.close_enough() and self.companion.ready),
+            #Transition(self.dribble, self.chip_kick, condition=lambda: self.dribble.close_enough() and not self.world.has_clear_pass(self.companion.robot) and self.companion.ready),
+            Transition(self.kick, self.drive, condition=lambda: not self.kick.good_position(), callback=self.set_passed),
+            #Transition(self.chip_kick, self.drive, condition=lambda: not self.chip_kick.close_enough(), callback=self.set_passed),
+            #Transition(self.kick, self.chip_kick, condition=lambda: self.kick.good_position() and not self.world.has_clear_pass(self.companion.robot)),
+            #Transition(self.chip_kick, self.kick, condition=lambda: not self.chip_kick.close_enough() and self.world.has_clear_pass(self.companion.robot)),
         ])
 
     def set_passed(self):

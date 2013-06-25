@@ -41,7 +41,7 @@ class ReceivePass(Tactic):
         self._point = point or self.robot
         self.companion = companion or self.CompanionCube(self.robot)
         
-        self.goto = GotoLooking(self.robot, target=self.point, lookpoint=lambda: self.companion.robot)
+        self.goto = GotoLooking(self.robot, target=self.point, lookpoint=lambda: self.companion.robot.kicker)
 
         super(ReceivePass, self).__init__(robot, deterministic, initial_state=self.goto, transitions=[])
 
