@@ -136,6 +136,7 @@ class TxInterface(Interface):
                 commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, ipaddr=transmission_ipaddr, port=transmission_port),
             ],
             filters=filters + [
+                filter.DeactivateInactives(),
                 #filter.LowPass(),
                 filter.Acceleration(),
                 filter.Speed(),
@@ -160,6 +161,7 @@ class SimulationInterface(Interface):
             ],
             filters=filters + [
                 #filter.PositionLog(options.position_log_filename), #should be last, to have all data available
+                filter.DeactivateInactives(),
                 filter.Acceleration(),
                 filter.Speed(), # second speed is more precise due to Kalman, size=2
                 #filter.CommandUpdateLog(options.cmdupd_filename),
