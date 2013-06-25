@@ -435,7 +435,7 @@ class Intelligence(QtCore.QThread):
         self.current_individual_blue = Dummy()
         self.current_individual_yellow = Dummy()
 
-        self.is_simulation = False
+        self.is_simulation = True
 
     def _loop(self):
         self.current_play_blue.step()
