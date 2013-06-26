@@ -156,6 +156,7 @@ class Ifrit(Play):
             target = self.team.enemy_goal
 
         candidate = []
+        candidate_no_vision = []
         safety_margin = 2 * self.team[0].radius + 0.1
 
         # field params:
@@ -173,15 +174,19 @@ class Ifrit(Play):
                 for enemy in self.team.enemy_team.iterrobots():
                     # if the robot -> pt line doesn't cross any enemy body...
                     start_line = Line(b, pt)
-                    if not start_line.crosses(enemy.body):
+                    if start_line is not None and not start_line.crosses(enemy.body):
                         final_line = Line(pt, target)
                         # if the pt -> target line crosses any enemy body...
                         if final_line.crosses(enemy.body):
                             acceptable = False
                 if acceptable:
                     candidate += [(pt, start_line.length + final_line.length)]
-        if not candidate:
+                candidate_no_vision += [(pt, start_line.length + final_line.length)]
+        if candidate:
             #goal_point = self.enemy_goal
-            return [(Point(self.team.enemy_goal.x - sign(self.team.enemy_goal.x), self.team.enemy_goal.y), 1)]
+            return sorted(candidate, key=lambda tup: tup[1])               
+        elif candidate_no_vision:
+             return sorted(candidate_no_vision, key=lambda tup: tup[1])               
         else:
-            return sorted(candidate, key=lambda tup: tup[1])    
+            return [(Point(self.team.enemy_goal.x - sign(self.team.enemy_goal.x), self.team.enemy_goal.y), 1)]
+
