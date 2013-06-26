@@ -25,7 +25,7 @@ class Zickler43(Tactic):
     the tactic that will make goals. And it will!
     """
 
-    conduction_tolerance = 0.8
+    conduction_tolerance = 0.6
 
     def __init__(self, robot, deterministic=True):
         self._lookpoint = self.point_to_kick

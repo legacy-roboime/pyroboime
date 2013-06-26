@@ -32,6 +32,7 @@ class Ifrit(Play):
         """
         super(Ifrit, self).__init__(team, **kwargs)
         self.players = {}
+        self.last_passer = None
         self.tactics_factory.update({
             'goalkeeper': lambda robot: Goalkeeper(robot, aggressive=False, angle=0),
             'attacker': lambda robot: Zickler43(robot),
@@ -42,6 +43,10 @@ class Ifrit(Play):
         })
 
     def setup_tactics(self):
+        # Make sure that the robot receiving the ball keeps kicking it even if its tactic changes.
+        for attacker in [self.players[x.uid]['attacker'] for x in self.team]:
+            if attacker.time_of_last_kick + 4 < self.world.timestamp and self.last_passer is not None:
+                self.last_passer.action.kick = 1
         # list of the ids of the robots in order of proximity to the ball
         closest_robots = [r.uid for r in self.team.closest_robots_to_ball(can_kick=True)]
         # make sure we do not account for the goalkeeper on that list
@@ -97,7 +102,7 @@ class Ifrit(Play):
                 self.players[atk_id]['passer'].companion = self.players[pvt_id]['receiver']
                 self.players[pvt_id]['receiver'].companion = self.players[atk_id]['passer']
                 goal_kick = False
-        #print self.is_valid_position(self.team[0], self.team[1])
+        print self.is_valid_position(self.team[0], self.team[1], verbose=True)
         # step'em, this is needed to guarantee we're only stepping active robots
         for robot in self.team:
             r_id = robot.uid
@@ -107,6 +112,7 @@ class Ifrit(Play):
                 robot.current_tactic = self.players[r_id]['attacker']
             elif r_id == atk_id and not goal_kick:
                 robot.current_tactic = self.players[r_id]['passer']
+                self.last_passer = robot
             elif r_id == blk_id:
                 robot.current_tactic = self.players[r_id]['blocker']
             elif r_id == pvt_id:
@@ -114,13 +120,15 @@ class Ifrit(Play):
             else:
                 robot.current_tactic = self.players[r_id]['defender']
 
-    def is_valid_position(self, point, passer):
+    def is_valid_position(self, point, passer, verbose=False):
         base_array = array(point) - array(self.world.ball)
         p0, p1 = array(passer.enemy_goal.p1), array(passer.enemy_goal.p2)
-        angle1, angle2 = angle_between(base_array, p0), angle_between(base_array, p0)
+        angle1, angle2 = angle_between(base_array, p0), angle_between(base_array, p1)
         for angle in [angle1, angle2]:
             angle = angle if angle < 180 else angle - 360
-        return abs(angle1) < 70 and abs(angle2) < 70 and not Line(point, passer.enemy_goal.p1).crosses(passer.body) and not Line(point, passer.enemy_goal.p2).crosses(passer.body)
+        if verbose:
+            print angle1, angle2
+        return abs(angle1) < 70 and abs(angle2) < 70 and (not Line(point, passer.enemy_goal.p1).crosses(passer.body)) and (not Line(point, passer.enemy_goal.p2).crosses(passer.body))
     
     def best_receiver_positions(self, passer, target=None, precision=6):
         """
