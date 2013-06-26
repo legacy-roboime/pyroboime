@@ -57,8 +57,10 @@ class Point(geometry.Point):
 
     def closest_to(self, iterable):
         """Will return the closest object to self from iterable."""
-        d, i = min((self.distance(i), i) for i in iterable)
-        return i
+        distance_elem_list = [(self.distance(elem), elem) for elem in iterable]
+        if distance_elem_list:
+            d, i = min(distance_elem_list)
+            return i
 
 # Reference: http://stackoverflow.com/questions/11949808/what-is-the-difference-between-a-function-an-unbound-method-and-a-bound-methodo
 

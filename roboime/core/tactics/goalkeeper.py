@@ -93,7 +93,7 @@ class Goalkeeper(Tactic):
 
         # If dangerBot is an enemy, we shall watch his orientation. If he's a friend, we move on to a more
         # appropriate strategy
-        if danger_bot.is_enemy(self.robot) and danger_bot.distance(self.ball) < self.domination_radius:
+        if danger_bot is not None and danger_bot.is_enemy(self.robot) and danger_bot.distance(self.ball) < self.domination_radius:
             # Line starting from the dangerBot spanning twice the width of the field (just to be sure)
             # to the goal with the desired orientation.
             future_point = Point(array(danger_bot) + array((cos(danger_bot.angle), sin(danger_bot.angle))) * 2 * self.world.width)
