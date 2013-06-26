@@ -4,8 +4,10 @@ from numpy.random import normal
 from math import degrees, sqrt
 from collections import defaultdict
 
-from roboime.interface.updater import RobotUpdate, BallUpdate, GeometryUpdate
-from model import Model
+
+from .updater import RobotUpdate, BallUpdate, GeometryUpdate
+from .model import Model
+from ..base import Blue, Yellow
 
 
 class Filter(object):
@@ -362,3 +364,31 @@ class Kalman(Filter):
         for u in updates:
             if u.uid() < 0x400 or u.uid() == 0xba11:
                 self.get_model(u.uid()).update(u.data)
+
+
+class DeactivateInactives(Filter):
+    """
+    This filter will deactivate robots which are not seen after a given number
+    of frames.
+    """
+
+    def __init__(self, frames=50):
+        self.frames = frames
+        self.frame_count = 0
+        self.last_seen = dict((0x100 + i, (self.frame_count, RobotUpdate(Blue, i, {}))) for i in xrange(12))
+        self.last_seen.update(dict((0x200 + i, (self.frame_count, RobotUpdate(Yellow, i, {}))) for i in xrange(12)))
+
+    def filter_updates(self, updates):
+        self.frame_count += 1
+        for u in updates:
+            if isinstance(u, RobotUpdate):
+                self.last_seen[u.uid()] = (self.frame_count, u)
+
+        # check long unseens
+        for uid, (frame_count, u) in self.last_seen.iteritems():
+            delta_frames = self.frame_count - frame_count
+            #print self, u.i, uid, delta_frames
+            if delta_frames > self.frames:
+                # that robot is no longer here, we should remove it
+                u.deactivate = True
+                updates.append(RobotUpdate(u.team_color, u.i, deactivate=True))

@@ -42,10 +42,11 @@ class BallUpdate(Update):
 
 class RobotUpdate(Update):
 
-    def __init__(self, team_color, i, data):
+    def __init__(self, team_color, i, data={}, deactivate=False):
         Update.__init__(self, data)
         self.team_color = team_color
         self.i = i
+        self.deactivate = deactivate
 
     def uid(self):
         if self.team_color == base.Blue:
@@ -61,7 +62,12 @@ class RobotUpdate(Update):
         elif self.team_color == base.Yellow:
             team = world.yellow_team
         robot = team[self.i]
-        robot.active = True
+
+        if self.deactivate:
+            robot.active = False
+            return
+        else:
+            robot.active = True
 
         if robot.has_touched_ball:
             for r in robot.team:
@@ -74,6 +80,9 @@ class RobotUpdate(Update):
             if prop != 'x' and prop != 'y':
                 setattr(robot, prop, value)
         robot.update((self.data['x'], self.data['y']))
+
+        if 'timestamp' in self.data:
+            world.timestamp = self.data['timestamp']
 
 
 class GeometryUpdate(Update):

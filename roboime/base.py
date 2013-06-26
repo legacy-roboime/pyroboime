@@ -184,11 +184,15 @@ class Robot(geom.Point):
 
         self.current_tactic = Steppable()
 
-    def __eq__(self, r):
-        return self.uuid == r.uuid
+    def __eq__(self, other):
+        return self.uuid == other.uuid
 
-    def __ne__(self, r):
-        return self.uuid != r.uuid
+    def __ne__(self, other):
+        return self.uuid != other.uuid
+
+    def __str__(self):
+        color = 'Blue' if self.color == Blue else 'Yellow' if self.color == Yellow else 'NoColor'
+        return '<Robot {}:{} at {}>'.format(self.uid, color, super(Robot, self).__str__())
 
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
