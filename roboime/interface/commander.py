@@ -69,12 +69,12 @@ class Tx2012Commander(Commander):
         ]
 
         # RoboIME 2012
-        self.wheel_angles = [
-            -57.,
-            +57.,
-            +135.,
-            -135.,
-        ]
+        #self.wheel_angles = [
+        #    -57.,
+        #    +57.,
+        #    +135.,
+        #    -135.,
+        #]
         #self.wheel_radius = 28.9
         #self.wheel_distance = 80.6
 

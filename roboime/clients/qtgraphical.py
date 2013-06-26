@@ -241,8 +241,8 @@ class QtGraphicalClient(object):
     def setDefaultMappingBlue(self):
         self.intelligence.mapping_yellow.clear()
         self.intelligence.mapping_blue.clear()
-        for r in self.intelligence.world.blue_team:
-            self.intelligence.mapping_blue[r.uid] = r.uid
+        for r in xrange(10):#self.intelligence.world.blue_team:
+            self.intelligence.mapping_blue[r] = r
         uid = int(self.ui.cmbSelectUidBlue.currentText())
         if uid in self.intelligence.mapping_blue:
             self.ui.cmbSelectFirmwareIdBlue.setCurrentIndex(self.intelligence.mapping_blue[uid]+1)
@@ -251,8 +251,8 @@ class QtGraphicalClient(object):
     def setDefaultMappingYellow(self):
         self.intelligence.mapping_yellow.clear()
         self.intelligence.mapping_blue.clear()
-        for r in self.intelligence.world.yellow_team:
-            self.intelligence.mapping_yellow[r.uid] = r.uid
+        for r in xrange(10):#self.intelligence.world.yellow_team:
+            self.intelligence.mapping_yellow[r] = r
         uid = int(self.ui.cmbSelectUidYellow.currentText())
         if uid in self.intelligence.mapping_yellow:
             self.ui.cmbSelectFirmwareIdYellow.setCurrentIndex(self.intelligence.mapping_yellow[uid]+1)
