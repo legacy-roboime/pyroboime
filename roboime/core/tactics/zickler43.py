@@ -25,7 +25,7 @@ class Zickler43(Tactic):
     the tactic that will make goals. And it will!
     """
 
-    conduction_tolerance = 0.8
+    conduction_tolerance = 0.6
 
     def __init__(self, robot, deterministic=True):
         self._lookpoint = self.point_to_kick
@@ -36,6 +36,7 @@ class Zickler43(Tactic):
         self.force_kick = KickTo(robot, name='FUCKING KICK IT ALREADY!!!', force_kick=True, lookpoint=lambda: self.lookpoint, minpower=0.9, maxpower=1.0)
         self.wait = Halt(robot)
         self.stored_point = None
+        self.time_of_last_kick = 0
 
         super(Zickler43, self).__init__(robot, deterministic=deterministic, initial_state=self.drive, transitions=[
             #Transition(self.drive, self.dribble, condition=lambda: self.drive.close_enough()),
@@ -44,12 +45,15 @@ class Zickler43(Tactic):
             Transition(self.dribble, self.goal_kick, condition=lambda: self.dribble.close_enough()),
             Transition(self.dribble, self.force_kick, condition=lambda: self.stored_point.distance(self.robot) > self.conduction_tolerance * Rules.max_conduction_distance, callback=self.clear_point),
             #Transition(self.goal_kick, self.drive, condition=lambda: not self.goal_kick.close_enough()),
-            Transition(self.goal_kick, self.drive, condition=lambda: self.goal_kick.bad_position(), callback=self.clear_point),
+            Transition(self.goal_kick, self.drive, condition=lambda: self.goal_kick.bad_position(), callback=lambda: map(lambda a: a(), [self.clear_point, self.set_time])),
             Transition(self.goal_kick, self.force_kick, condition=lambda: self.stored_point.distance(self.robot) > self.conduction_tolerance * Rules.max_conduction_distance, callback=self.clear_point),
-            Transition(self.force_kick, self.drive, condition=lambda: self.goal_kick.bad_position(), callback=self.clear_point),
+            Transition(self.force_kick, self.drive, condition=lambda: self.goal_kick.bad_position(), callback=lambda: map(lambda a: a(), [self.clear_point, self.set_time])),
         ])
 
         self.max_hole_size = -1
+
+    def set_time(self):
+        self.time_of_last_kick = self.world.timestamp
 
     def store_point(self):
         self.stored_point = Point(array(self.robot))

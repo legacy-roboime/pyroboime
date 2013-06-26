@@ -1,3 +1,4 @@
+
 from numpy import linspace
 from itertools import groupby
 
@@ -10,13 +11,10 @@ from ..skills.halt import Halt
 from ...utils.geom import Point
 from ..skills.gotolooking import GotoLooking
 
-class ReceivePass(Tactic):
+class ReceivePassAndKick(Tactic):
     '''
     This tactic has the objective of receiving the ball from 
-    another robot in the field. This side is a bit more complicated:
-    discretize the positions in a circle around the robot, see which
-    one has the best clear shot (ordered by closeness to the target 
-    goal) and move to that position with the ball as a lookpoint.
+    another robot while aiming for the goal.
 
     This tactic is designed to work along a ExecutePass tactic
     (or any other tactic that implements its methods). This is 
@@ -41,9 +39,12 @@ class ReceivePass(Tactic):
         self._point = point or self.robot
         self.companion = companion or self.CompanionCube(self.robot)
         
-        self.goto = GotoLooking(self.robot, target=self.point, lookpoint=lambda: self.companion.robot.kicker)
-
-        super(ReceivePass, self).__init__(robot, deterministic, initial_state=self.goto, transitions=[])
+        self.goto = GotoLooking(self.robot, target=self.point, lookpoint=lambda: self.point_to_kick())
+        super(ReceivePassAndKick, self).__init__(robot, deterministic, initial_state=self.goto, transitions=[])
+    
+    def _step(self):
+        self.robot.action.kick = 1.
+        super(ReceivePassAndKick, self)._step()    
 
     @property
     def point(self):
@@ -54,5 +55,22 @@ class ReceivePass(Tactic):
         self._point = value
 
     def ready(self):
-        print self.robot.distance(self.point) < 0.2
         return self.robot.distance(self.point) < 0.2
+
+    def point_to_kick(self):
+        enemy_goal = self.robot.enemy_goal
+        max_hole = []
+
+        possible_points = [(y, self.world.has_clear_shot(Point(enemy_goal.x, y))) for y in linspace(enemy_goal.p2.y, enemy_goal.p1.y, 5)]
+
+        for has_clear_shot, group in groupby(possible_points, lambda (point, has): has):
+            if has_clear_shot:
+                hole = list(group)
+                if len(hole) > len(max_hole):
+                    max_hole = hole
+
+        if len(max_hole) != 0:
+            y = (max_hole[0][0] + max_hole[-1][0]) / 2
+            return Point(enemy_goal.x, y)
+        else:
+            return Point(enemy_goal.x, enemy_goal.y)

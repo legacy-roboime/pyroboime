@@ -41,6 +41,16 @@ class KickTo(Skill):
         self.distance_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
 
     @property
+    def lookpoint(self):
+        if callable(self._lookpoint):
+            return self._lookpoint()
+        return self._lookpoint
+
+    @lookpoint.setter
+    def lookpoint(self, value):
+        self._lookpoint = value   
+ 
+    @property
     def final_target(self):
         return self.lookpoint
 
