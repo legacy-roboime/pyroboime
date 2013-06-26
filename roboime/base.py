@@ -809,8 +809,10 @@ class World(object):
           If you want to consider both set can_kick to None.
         color: If specified will only consider robots from matching color.
         """
-        d, r = min((r.distance(point), r) for r in self.iterrobots(can_kick=can_kick, color=color))
-        return r
+        distance_robots_list = [(r.distance(point), r) for r in self.iterrobots(can_kick=can_kick, color=color)]
+        if distance_robots_list:
+            d, r = min(distance_robots_list)
+            return r
 
     def closest_robots_to_ball(self, **kwargs):
         return self.closest_robots_to_point(self.ball, **kwargs)
