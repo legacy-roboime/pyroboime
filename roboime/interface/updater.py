@@ -232,14 +232,13 @@ class SimVisionUpdater(VisionUpdater):
 
 class RefereeUpdater(Updater):
 
-    def __init__(self):
+    def __init__(self, address):
         super(RefereeUpdater, self).__init__()
-        #self.address = address
+        self.address = address
         self.counter = 0
 
     def run(self):
-        #self.receiver = sslrefbox.SimRefboxReceiver(self.address)
-        self.receiver = sslrefbox.SimRefboxReceiver()
+        self.receiver = sslrefbox.RefboxReceiver(self.address)
         super(RefereeUpdater, self).run()
 
     def receive(self):
@@ -271,3 +270,15 @@ class RefereeUpdater(Updater):
             'goalie': referee.yellow.goalie,
         }))
         return updates
+
+
+class RealRefereeUpdater(RefereeUpdater):
+
+    def __init__(self):
+        RefereeUpdater.__init__(self, ('224.5.23.1', 10003))
+
+
+class SimRefereeUpdater(RefereeUpdater):
+
+    def __init__(self):
+        RefereeUpdater.__init__(self, ('224.5.23.1', 11003))
