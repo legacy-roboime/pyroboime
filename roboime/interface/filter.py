@@ -392,3 +392,20 @@ class DeactivateInactives(Filter):
                 # that robot is no longer here, we should remove it
                 u.deactivate = True
                 updates.append(RobotUpdate(u.team_color, u.i, deactivate=True))
+
+
+class IgnoreSide(Filter):
+
+    def __init__(self, side_to_ignore='+'):
+        self.side_to_ignore = side_to_ignore
+        super(IgnoreSide, self).__init__()
+
+    def filter_updates(self, updates):
+        sign = -1 if self.side_to_ignore == '-' else 1
+        to_be_removed = []
+        for u in updates:
+            if 'x' in u.data:
+                if u.data['x'] * sign > 0:
+                    to_be_removed.append(u)
+        for u in to_be_removed:
+            updates.remove(u)
