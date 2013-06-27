@@ -129,7 +129,7 @@ class TxInterface(Interface):
             world,
             updaters=[
                 updater.RealVisionUpdater(),
-                updater.RefereeUpdater(),
+                updater.RealRefereeUpdater(),
             ],
             commanders=[
                 commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, ipaddr=transmission_ipaddr, kicking_power_dict=kick_mapping_blue, port=transmission_port),
@@ -153,7 +153,7 @@ class SimulationInterface(Interface):
             world,
             updaters=[
                 updater.SimVisionUpdater(),
-                updater.RefereeUpdater(),
+                updater.SimRefereeUpdater(),
             ],
             commanders=[
                 commander.SimCommander(world.blue_team),
