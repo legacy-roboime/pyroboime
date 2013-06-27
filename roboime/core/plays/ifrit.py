@@ -63,7 +63,7 @@ class Ifrit(Play):
 
         # Here we split from autoretaliate.         
         # We'll find now the best position for our pivot to receive a possible pass.
-        best_position = self.best_receiver_positions(self.team[atk_id])[0][0]
+        best_position = self.best_receiver_positions(self.team[atk_id], self.last_passer)[0][0]
         robots_closest_to_bathtub = self.team.closest_robots_to_point(point=best_position)
         if self.team[atk_id] in robots_closest_to_bathtub:
             robots_closest_to_bathtub.remove(self.team[atk_id])
@@ -125,9 +125,11 @@ class Ifrit(Play):
             else:
                 robot.current_tactic = self.players[r_id]['defender']
 
+        print self.is_valid_position(self.players[pvt_id]['receiver'].point, self.team[atk_id], verbose=True)
+
     def is_valid_position(self, point, passer, verbose=False):
         base_array = array(point) - array(self.world.ball)
-        p0, p1 = array(passer.enemy_goal.p1), array(passer.enemy_goal.p2)
+        p0, p1 = array(passer.enemy_goal.p1) - array(point), array(passer.enemy_goal.p2) - array(point)
         angle1, angle2 = angle_between(base_array, p0), angle_between(base_array, p1)
         for angle in [angle1, angle2]:
             angle = angle if angle < 180 else angle - 360
@@ -135,7 +137,7 @@ class Ifrit(Play):
             print angle1, angle2
         return abs(angle1) < 70 and abs(angle2) < 70 and (not Line(point, passer.enemy_goal.p1).crosses(passer.body)) and (not Line(point, passer.enemy_goal.p2).crosses(passer.body))
     
-    def best_receiver_positions(self, passer, target=None, precision=6):
+    def best_receiver_positions(self, passer, current_position, target=None, precision=6):
         """
         Discretizes points over the field (respecting a minimum border from the field,
         and without entering none of the defense areas), according to given precision.
@@ -156,6 +158,7 @@ class Ifrit(Play):
             target = self.team.enemy_goal
 
         candidate = []
+        candidate_no_vision = []
         safety_margin = 2 * self.team[0].radius + 0.1
 
         # field params:
@@ -167,21 +170,26 @@ class Ifrit(Play):
             for y in linspace(-f_w / 2, f_w / 2, precision - 2):
                 pt = Point(x, y)
                 if not self.is_valid_position(pt, passer):
-                    continue
-                acceptable = True
+                    acceptable = False
+                else:
+                    acceptable = True
                 final_line = Point(0, 0)
                 for enemy in self.team.enemy_team.iterrobots():
                     # if the robot -> pt line doesn't cross any enemy body...
                     start_line = Line(b, pt)
-                    if not start_line.crosses(enemy.body):
+                    if start_line is not None and not start_line.crosses(enemy.body):
                         final_line = Line(pt, target)
                         # if the pt -> target line crosses any enemy body...
                         if final_line.crosses(enemy.body):
                             acceptable = False
                 if acceptable:
-                    candidate += [(pt, start_line.length + final_line.length)]
-        if not candidate:
+                    if current_position is not None:
+                        candidate += [(pt, pt.distance(current_position))]
+                    else:
+                        candidate += [(pt, 0)]
+        if not candidate and current_position is not None:
             #goal_point = self.enemy_goal
-            return [(Point(self.team.enemy_goal.x - sign(self.team.enemy_goal.x), self.team.enemy_goal.y), 1)]
-        else:
-            return sorted(candidate, key=lambda tup: tup[1])    
+            return [(Point(current_position), 0)]
+        elif current_position is None:
+            return [(Point(self.team.goal.x - sign(self.team.goal.x)*1,self.team.goal.y - 0.6), 0)]
+

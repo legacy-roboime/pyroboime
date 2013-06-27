@@ -137,9 +137,10 @@ class TxInterface(Interface):
             ],
             filters=filters + [
                 filter.DeactivateInactives(),
-                #filter.LowPass(),
                 filter.Acceleration(),
-                filter.Speed(),
+                filter.Speed(), # second speed is more precise due to Kalman, size=2
+                filter.Kalman(),
+                filter.Speed(3), # first speed used to predict speed for Kalman
                 filter.Scale(),
             ],
             **kwargs
