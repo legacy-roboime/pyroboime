@@ -10,13 +10,14 @@ If running 64-bit Python, the following , 64-bit packages for numpy and scipy ar
 - http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy
 
 Great Python debugger for Windows users (even though it is meant to be a platform-independent debugger):
+
 - Winpdb (http://winpdb.org/download/)
 - Which needs wxPython (http://sourceforge.net/projects/wxpython/?source=dlp)
 - How-to:
   1. install wxPython
   2. create a folder, then extract and install Winpdb
   3. To add a breakpoint:
-    - add the following line before the "point to be broken": import rpdb2; rpdb2.start_embedded_debugger("123")
+    - add the following line before the "point to be broken": import rpdb2; rpdb2.start\_embedded\_debugger("123")
       note: that 123 is a customizable password, which will be retrieved later
     - open winpdb GUI.
     - file > attach...
