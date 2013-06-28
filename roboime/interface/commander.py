@@ -63,9 +63,9 @@ class Tx2012Commander(Commander):
         # RoboIME 2013
         self.wheel_angles = [
             -60.,
-            -135.,
-            +135.,
             +60.,
+            +135.,
+            -135.,
         ]
 
         # RoboIME 2012
@@ -109,7 +109,7 @@ class Tx2012Commander(Commander):
                 else:
                     continue
                 #string_list.extend(['10','10','10','10'])
-                string_list.extend([str(i) for i in self.omniwheel_speeds(a.robot.angle, vx, vy, va)])
+                string_list.extend([str(i) for i in self.omniwheel_speeds(0, vx, vy, -1*va)])
                 string_list.append(str((a.dribble or 0.0)))
                 if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:
                     string_list.append(str((a.kick * 100 / self.kicking_power_dict[a.uid] or 0.0)))
@@ -134,7 +134,7 @@ class Tx2012Commander(Commander):
 
                 if packet:
                     if self.verbose:
-                        print self.kicking_power_dict
+                        pass#print self.kicking_power_dict
                         print packet
                     self.sender.send(packet)
 

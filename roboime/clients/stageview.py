@@ -99,16 +99,16 @@ class StageView(QGraphicsView):
 
             # following layers: skills and tactics
 
-            #for r in robots:
-            #    # draw the skill
-            #    skill = skillviews.view_selector(r.skill)
-            #    if skill is not None:
-            #        skill.position()
-            #        scene.addItem(skill)
+            for r in robots:
+                # draw the skill
+                skill = skillviews.view_selector(r.skill)
+                if skill is not None:
+                    skill.position()
+                    scene.addItem(skill)
 
-            #for r in robots:
-            #    # draw the tactic
-            #    tactic = tacticviews.view_selector(r.tactic)
-            #    if tactic is not None:
-            #        tactic.position()
-            #        scene.addItem(tactic)
+            for r in robots:
+                # draw the tactic
+                tactic = tacticviews.view_selector(r.tactic)
+                if tactic is not None:
+                    tactic.position()
+                    scene.addItem(tactic)

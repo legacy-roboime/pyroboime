@@ -61,7 +61,7 @@ class TacticView(QGraphicsItem):
         painter.restore()
 
 
-@view_for(Blocker)
+#@view_for(Blocker)
 class BlockerView(TacticView):
 
     def boundingRect(self):
@@ -94,7 +94,7 @@ class BlockerView(TacticView):
         painter.restore()
 
 
-@view_for(Zickler43)
+#@view_for(Zickler43)
 class Zickler43View(TacticView):
 
     def boundingRect(self):

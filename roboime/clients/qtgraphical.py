@@ -391,7 +391,7 @@ class Intelligence(QtCore.QThread):
 
         self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue, 
                                         kick_mapping_yellow=self.kick_mapping_yellow, kick_mapping_blue=self.kick_mapping_blue, 
-                                        transmission_ipaddr='192.168.2.128', transmission_port=9050)
+                                        transmission_ipaddr=' 127.0.0.1')
         self.interface = SimulationInterface(self.world)
 
         dummy = ('(none)', Dummy())

@@ -120,7 +120,7 @@ class Action(object):
     @absolute_speeds.setter
     def absolute_speeds(self, speeds):
         vx, vy, va = speeds
-        ra = self.robot.angle
+        ra = self.robot.angle or 0.0
         self._speeds = (vx * cos(ra) + vy * sin(ra), vy * cos(ra) - vx * sin(ra), va)
 
     def __str__(self):
@@ -130,7 +130,7 @@ class Action(object):
 
 class Robot(geom.Point):
 
-    def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None, max_speed=5.0, max_ang_speed=10.0):
+    def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None, max_speed=2.0, max_ang_speed=10.0):
         """This class represents a robot, regardless of the team.
 
         Remember to set max_speed and max_ang_speed to reasonable limits.

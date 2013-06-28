@@ -373,7 +373,7 @@ class DeactivateInactives(Filter):
     of frames.
     """
 
-    def __init__(self, frames=50):
+    def __init__(self, frames=360):
         self.frames = frames
         self.frame_count = 0
         self.last_seen = dict((0x100 + i, (self.frame_count, RobotUpdate(Blue, i, {}))) for i in xrange(12))

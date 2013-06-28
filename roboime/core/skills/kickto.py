@@ -22,7 +22,9 @@ class KickTo(Skill):
     This class is an alternative to SampledKick.
     Meanwhile it's experimental, depending on the results it'll stay or not.
     """
-    angle_kick_min_error = 0.5
+    #TODO: Change parameter back once we have real control.
+    #angle_kick_min_error = 0.5
+    angle_kick_min_error = 15
     angle_approach_min_error = 15
     angle_tolerance = 30
     orientation_tolerance = 0.7

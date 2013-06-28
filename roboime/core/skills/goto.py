@@ -40,7 +40,8 @@ class Goto(Skill):
     # force is as least this high:
     min_force_to_ignore_others = 100000
 
-    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
+    #def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
+    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=False, **kwargs):
         """
         final_target: the ultimate position the robot should attain
         target: the intermediate position you're ACTUALLY sending the robot to
