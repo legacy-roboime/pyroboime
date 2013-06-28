@@ -1,7 +1,6 @@
 from math import pi
 
-import socket
-
+#import socket
 from ..communication.network import unicast
 from ..communication import grsim
 from collections import defaultdict
@@ -49,7 +48,7 @@ class Tx2012Commander(Commander):
     This commander uses a transmission protocol compatible with the RoboIME MK-2012 architecture.
     This might be deprecated soon. Or not.
     '''
-    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, verbose=True, **kwargs):
+    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, verbose=False, **kwargs):
         super(Tx2012Commander, self).__init__(**kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
@@ -82,14 +81,8 @@ class Tx2012Commander(Commander):
         self.wheel_radius = .0289
         self.wheel_distance = .0806
 
-    def omniwheel_speeds(self, theta, vx, vy, va):
-        speeds = []
-        for j in xrange(4):
-            a = self.wheel_angles[j]
-            val = cos(a) * (vy * cos(theta) - vx * sin(theta)) - sin(a) * (vx * cos(theta) + vy * sin(theta)) + va * self.wheel_distance
-            val /= self.wheel_radius
-            speeds.append(val)
-        return speeds
+    def omniwheel_speeds(self, vx, vy, va):
+        return [(vy * cos(a) - vx * sin(a) + va * self.wheel_distance) / self.wheel_radius for a in self.wheel_angles]
 
     def send(self, actions):
         actions_dict = defaultdict(lambda:['0','0','0','0','0','0','0'])
@@ -108,8 +101,8 @@ class Tx2012Commander(Commander):
                     #string_list.append(str(self.mapping_dict[a.uid]))
                 else:
                     continue
-                #string_list.extend(['10','10','10','10'])
-                string_list.extend([str(i) for i in self.omniwheel_speeds(0, vx, vy, -1*va)])
+
+                string_list.extend([str(i) for i in self.omniwheel_speeds(vx, vy, -va)])
                 string_list.append(str((a.dribble or 0.0)))
                 if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:
                     string_list.append(str((a.kick * 100 / self.kicking_power_dict[a.uid] or 0.0)))
@@ -122,7 +115,7 @@ class Tx2012Commander(Commander):
                 else:
                     string_list.append('0')
                     string_list.append('0')
-                    
+
                 actions_dict[self.mapping_dict[a.uid]] = string_list
                 a.reset()
             if dirty:
