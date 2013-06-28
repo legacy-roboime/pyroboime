@@ -62,9 +62,9 @@ class Tx2012Commander(Commander):
         # RoboIME 2013
         self.wheel_angles = [
             -60.,
-            +60.,
-            +135.,
             -135.,
+            +135.,
+            +60.,
         ]
 
         # RoboIME 2012
@@ -107,7 +107,7 @@ class Tx2012Commander(Commander):
                     #string_list.append(str(self.mapping_dict[a.uid]))
                 else:
                     continue
-
+                #string_list.extend(['10','10','10','10'])
                 string_list.extend([str(i) for i in self.omniwheel_speeds(a.robot.angle, vx, vy, va)])
                 string_list.append(str((a.dribble or 0.0)))
                 if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:

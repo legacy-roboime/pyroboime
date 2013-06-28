@@ -48,7 +48,7 @@ class Ifrit(Play):
             if attacker.time_of_last_kick + .5 < self.world.timestamp:
                 self.hold_down_passer = self.last_passer
             if attacker.time_of_last_kick + 8 < self.world.timestamp and self.last_passer is not None:
-                print self.hold_down_passer.uid
+                #print self.hold_down_passer.uid
                 self.hold_down_passer.action.kick = 1
 
         # list of the ids of the robots in order of proximity to the ball
@@ -190,5 +190,7 @@ class Ifrit(Play):
             #goal_point = self.enemy_goal
             return [(Point(current_position), 0)]
         elif current_position is None:
-            return [(Point(self.team.goal.x - sign(self.team.goal.x)*1,self.team.goal.y - 0.6), 0)]
+            return [(Point(self.team.goal.x - sign(self.team.goal.x)*1.5,self.team.goal.y - 1), 0)]
+        else:
+            return sorted(candidate, key=lambda tup: tup[1])    
 
