@@ -6,7 +6,7 @@ from ..tactics.zickler43 import Zickler43
 from ..tactics.blocker import Blocker
 from ..tactics.defender import Defender
 from ..tactics.executepass import ExecutePass
-from ..tactics.receivepass import ReceivePass
+#from ..tactics.receivepass import ReceivePass
 from ..tactics.receivepassandkick import ReceivePassAndKick
 from ...utils.mathutils import angle_between
 from ...utils.geom import Point, Line
@@ -116,7 +116,6 @@ class Ifrit(Play):
                 robot.current_tactic = self.players[r_id]['attacker']
             elif r_id == atk_id and not goal_kick:
                 robot.current_tactic = self.players[r_id]['passer']
-                
                 self.last_passer = robot
             elif r_id == blk_id:
                 robot.current_tactic = self.players[r_id]['blocker']
@@ -125,7 +124,7 @@ class Ifrit(Play):
             else:
                 robot.current_tactic = self.players[r_id]['defender']
 
-        print self.is_valid_position(self.players[pvt_id]['receiver'].point, self.team[atk_id], verbose=True)
+        #print self.is_valid_position(self.players[pvt_id]['receiver'].point, self.team[atk_id], verbose=True)
 
     def is_valid_position(self, point, passer, verbose=False):
         base_array = array(point) - array(self.world.ball)
@@ -136,7 +135,7 @@ class Ifrit(Play):
         if verbose:
             print angle1, angle2
         return abs(angle1) < 70 and abs(angle2) < 70 and (not Line(point, passer.enemy_goal.p1).crosses(passer.body)) and (not Line(point, passer.enemy_goal.p2).crosses(passer.body))
-    
+
     def best_receiver_positions(self, passer, current_position, target=None, precision=6):
         """
         Discretizes points over the field (respecting a minimum border from the field,
@@ -158,7 +157,7 @@ class Ifrit(Play):
             target = self.team.enemy_goal
 
         candidate = []
-        candidate_no_vision = []
+        #candidate_no_vision = []
         safety_margin = 2 * self.team[0].radius + 0.1
 
         # field params:

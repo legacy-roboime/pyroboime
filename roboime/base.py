@@ -120,7 +120,7 @@ class Action(object):
     @absolute_speeds.setter
     def absolute_speeds(self, speeds):
         vx, vy, va = speeds
-        ra = self.robot.angle
+        ra = self.robot.angle or 0.0
         self._speeds = (vx * cos(ra) + vy * sin(ra), vy * cos(ra) - vx * sin(ra), va)
 
     def __str__(self):

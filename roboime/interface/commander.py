@@ -1,7 +1,6 @@
 from math import pi
 
-import socket
-
+#import socket
 from ..communication.network import unicast
 from ..communication import grsim
 from collections import defaultdict
@@ -49,7 +48,7 @@ class Tx2012Commander(Commander):
     This commander uses a transmission protocol compatible with the RoboIME MK-2012 architecture.
     This might be deprecated soon. Or not.
     '''
-    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, verbose=True, **kwargs):
+    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, verbose=False, **kwargs):
         super(Tx2012Commander, self).__init__(**kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
