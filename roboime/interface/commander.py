@@ -60,11 +60,18 @@ class Tx2012Commander(Commander):
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
 
         # RoboIME 2013
+        #self.wheel_angles = [
+        #    -60.,
+        #    +60.,
+        #    +135.,
+        #    -135.,
+        #]
+        # RoboIME 2013
         self.wheel_angles = [
-            -60.,
-            +60.,
-            +135.,
-            -135.,
+            -45.,
+            +45.,
+            +120.,
+            -120.,
         ]
 
         # RoboIME 2012
