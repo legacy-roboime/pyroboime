@@ -5,7 +5,7 @@ from ..communication.network import unicast
 from ..communication import grsim
 from collections import defaultdict
 from time import time
-
+from math import isnan
 from ..utils.mathutils import sin, cos
 from ..utils.keydefaultdict import keydefaultdict
 from ..communication.rftransmission.vivatxrx import VIVATxRx
@@ -89,6 +89,8 @@ class Tx2013Commander(Commander):
         self.max_speed = 110.
 
     def omniwheel_speeds(self, vx, vy, va):
+        if isnan(vx) or isnan(vy) or isnan(va):
+            return [0., 0., 0., 0.]
         return [(vy * cos(a) - vx * sin(a) + va * self.wheel_distance) / self.wheel_radius for a in self.wheel_angles]
 
     def prepare_byte(self, x, max_speed=None):
