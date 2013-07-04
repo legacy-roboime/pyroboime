@@ -8,7 +8,7 @@ from time import time
 
 from ..utils.mathutils import sin, cos
 from ..utils.keydefaultdict import keydefaultdict
-
+from ..communication.rftransmission.vivatxrx import VIVATxRx
 
 class Commander(object):
 #class Commander(Process):
@@ -37,6 +37,111 @@ class Commander(object):
     def send(self, actions):
         raise NotImplemented
 
+class Tx2013Commander(Commander):
+    '''
+    Sends commands as byte arrays via RF to the robots. Since the robots' firmware IDs are not the same as
+    the UIDs sent by the VisionUpdater, a dict mapping the UIDs to the firmware IDs should be provided. 
+    If it is not provided, we shall use the trivial mapping: x => x.
+
+    This commander uses a transmission protocol compatible with the RoboIME MK-2012/2013 architecture.
+    The main difference from this one to the Tx2012Commander are that this one does not require
+    the usage of a separate program to actually execute the radio transmission.
+    '''
+    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, verbose=False, **kwargs):
+        super(Tx2013Commander, self).__init__(**kwargs)
+        self.default_map = mapping_dict is None
+        self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
+        self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
+        self.team = team
+        self.verbose = verbose
+        self.sender = VIVATxRx()
+        #self.sock = so
+        # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
+
+        # RoboIME 2013
+        #self.wheel_angles = [
+        #    -60.,
+        #    +60.,
+        #    +135.,
+        #    -135.,
+        #]
+        # RoboIME 2013
+        self.wheel_angles = [
+            -45.,
+            +45.,
+            +120.,
+            -120.,
+        ]
+
+        # RoboIME 2012
+        #self.wheel_angles = [
+        #    -57.,
+        #    +57.,
+        #    +135.,
+        #    -135.,
+        #]
+        #self.wheel_radius = 28.9
+        #self.wheel_distance = 80.6
+
+        #Values in meters.
+        self.wheel_radius = .0289
+        self.wheel_distance = .0806
+        self.max_speed = 110.
+
+    def omniwheel_speeds(self, vx, vy, va):
+        return [(vy * cos(a) - vx * sin(a) + va * self.wheel_distance) / self.wheel_radius for a in self.wheel_angles]
+
+    def prepare_byte(self, x, max_speed=None):
+        if max_speed == None:
+            max_speed = self.max_speed
+        if abs(x) > max_speed:
+            x = x / abs(x)
+        else:
+            x = x / max_speed
+        return int(127 * x) & 255
+
+    def send(self, actions):
+        actions_dict = keydefaultdict(lambda x: [x, 0, 0, 0, 0, 0, 0])
+        # Initializes packet with the header.
+        dirty = False
+        if len(actions) > 0:
+            for a in actions:
+                if not a:
+                    continue
+                dirty = True
+                vx, vy, va = a.speeds
+                # Convert va to angular speed.
+                va = va * pi / 180
+                robot_packet = []
+                
+                if self.default_map or a.uid in self.mapping_dict:
+                    robot_packet.append(self.mapping_dict[a.uid])
+                else:
+                    continue
+
+                robot_packet.extend([self.prepare_byte(i) for i in self.omniwheel_speeds(vx, vy, -va)])
+                robot_packet.append(int(a.dribble or 0.))
+                if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:
+                    robot_packet.append(self.prepare_byte(a.kick * 100 / self.kicking_power_dict[a.uid] or 0.0, 1))
+                elif a.chipkick > 0 and self.kicking_power_dict[a.uid] > 0:
+                    robot_packet.append(self.prepare_byte(-a.chipkick * 100 / self.kicking_power_dict[a.uid] or 0.0, 1))
+                else:
+                    robot_packet.append(0)
+
+                actions_dict[self.mapping_dict[a.uid]] = robot_packet 
+                a.reset()
+
+            if dirty:
+                packet = [254, 0, 44]
+                for i in xrange(6):
+                    packet.extend(actions_dict[i])
+                packet.append(55)
+                if packet:
+                    if self.verbose:
+                        print packet
+                        print self.sender.send(packet)
+                    else:
+                        self.sender.send(packet)
 
 class Tx2012Commander(Commander):
     '''
