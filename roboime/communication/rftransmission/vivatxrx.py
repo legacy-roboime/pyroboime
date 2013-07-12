@@ -1,12 +1,11 @@
 import usb.core
 
-from .transmitter import Transmitter
+from . import Transmitter
 
 class VIVATxRx(Transmitter):
     '''
     This class implements a thin wrapper around the RF12 USB transmitter
     we currently (as of july 2013) use to transmit commands to the robots.
-
     '''
     def __init__(self, id_vendor=5824, id_product=1500):
         super(VIVATxRx, self).__init__()
