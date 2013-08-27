@@ -1,13 +1,8 @@
-#from sys import platform
-#if platform == 'win32':
-#    from multiprocessing.dummy import Process, Queue, Event, Lock
-#else:
-#    from multiprocessing import Process, Queue, Event, Lock
 from multiprocessing import Process, Event
 from . import updater
 from . import commander
 from . import filter
-from .. import options
+#from .. import options
 
 
 def _update_loop(queue, updater):
@@ -129,17 +124,25 @@ class Interface(Process):
 
 class TxInterface(Interface):
 
-    def __init__(self, world, filters=[], transmission_ipaddr='127.0.0.1', transmission_port=9050, mapping_yellow=None, mapping_blue=None, **kwargs):
+    def __init__(self, world, filters=[], transmission_ipaddr='127.0.0.1', transmission_port=9050, mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None,**kwargs):
         super(TxInterface, self).__init__(
             world,
-
-            updaters=[updater.RealVisionUpdater(), updater.RefereeUpdater()],
-            commanders=[
-                commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True),
-                commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True)
+            updaters=[
+                updater.RealVisionUpdater(),
+                updater.RealRefereeUpdater(),
             ],
-
-            filters=filters + [filter.LowPass(), filter.Speed(), filter.Scale()],
+            commanders=[
+                commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, ipaddr=transmission_ipaddr, kicking_power_dict=kick_mapping_blue, port=transmission_port, verbose=True),
+                commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True),
+            ],
+            filters=filters + [
+                filter.DeactivateInactives(),
+                filter.Acceleration(),
+                filter.Speed(), # second speed is more precise due to Kalman, size=2
+                filter.Kalman(),
+                filter.Speed(3), # first speed used to predict speed for Kalman
+                filter.Scale(),
+            ],
             **kwargs
         )
 
@@ -149,18 +152,24 @@ class SimulationInterface(Interface):
     def __init__(self, world, filters=[], **kwargs):
         super(SimulationInterface, self).__init__(
             world,
-
-            updaters=[updater.SimVisionUpdater(), updater.RefereeUpdater()],
-            commanders=[commander.SimCommander(world.blue_team), commander.SimCommander(world.yellow_team)],
+            updaters=[
+                updater.SimVisionUpdater(),
+                updater.SimRefereeUpdater(),
+            ],
+            commanders=[
+                commander.SimCommander(world.blue_team),
+                commander.SimCommander(world.yellow_team),
+            ],
             filters=filters + [
                 #filter.PositionLog(options.position_log_filename), #should be last, to have all data available
+                filter.DeactivateInactives(),
                 filter.Acceleration(),
                 filter.Speed(), # second speed is more precise due to Kalman, size=2
                 #filter.CommandUpdateLog(options.cmdupd_filename),
                 filter.Kalman(),
                 filter.Speed(3), # first speed used to predict speed for Kalman
                 #Noise should be enabled during simulation, to allow real noise simulation
-                filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
+                #filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
                 filter.RegisterPosition("input"),
                 filter.Scale(),
             ],

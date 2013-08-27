@@ -42,10 +42,11 @@ class BallUpdate(Update):
 
 class RobotUpdate(Update):
 
-    def __init__(self, team_color, i, data):
+    def __init__(self, team_color, i, data={}, deactivate=False):
         Update.__init__(self, data)
         self.team_color = team_color
         self.i = i
+        self.deactivate = deactivate
 
     def uid(self):
         if self.team_color == base.Blue:
@@ -56,13 +57,17 @@ class RobotUpdate(Update):
             raise Exception('Wrong color "{}"'.format(self.team_color))
 
     def apply(self, world):
-
         if self.team_color == base.Blue:
             team = world.blue_team
         elif self.team_color == base.Yellow:
             team = world.yellow_team
         robot = team[self.i]
-        robot.active = True
+
+        if self.deactivate:
+            robot.active = False
+            return
+        else:
+            robot.active = True
 
         if robot.has_touched_ball:
             for r in robot.team:
@@ -75,6 +80,9 @@ class RobotUpdate(Update):
             if prop != 'x' and prop != 'y':
                 setattr(robot, prop, value)
         robot.update((self.data['x'], self.data['y']))
+
+        if 'timestamp' in self.data:
+            world.timestamp = self.data['timestamp']
 
 
 class GeometryUpdate(Update):
@@ -224,14 +232,13 @@ class SimVisionUpdater(VisionUpdater):
 
 class RefereeUpdater(Updater):
 
-    def __init__(self):
+    def __init__(self, address):
         super(RefereeUpdater, self).__init__()
-        #self.address = address
+        self.address = address
         self.counter = 0
 
     def run(self):
-        #self.receiver = sslrefbox.SimRefboxReceiver(self.address)
-        self.receiver = sslrefbox.SimRefboxReceiver()
+        self.receiver = sslrefbox.RefboxReceiver(self.address)
         super(RefereeUpdater, self).run()
 
     def receive(self):
@@ -263,3 +270,15 @@ class RefereeUpdater(Updater):
             'goalie': referee.yellow.goalie,
         }))
         return updates
+
+
+class RealRefereeUpdater(RefereeUpdater):
+
+    def __init__(self):
+        RefereeUpdater.__init__(self, ('224.5.23.1', 10003))
+
+
+class SimRefereeUpdater(RefereeUpdater):
+
+    def __init__(self):
+        RefereeUpdater.__init__(self, ('224.5.23.1', 11003))

@@ -13,7 +13,7 @@ class State(object):
 
 class Transition(object):
 
-    def __init__(self, from_state, to_state, probability=1.0, condition=None, **kwargs):
+    def __init__(self, from_state, to_state, probability=1.0, condition=None, callback=lambda: None, **kwargs):
         """
         This class can be used in two ways:
         - subclass it and redefine the condition method
@@ -25,6 +25,7 @@ class Transition(object):
         self.to_state = to_state
         self.probability = probability
         self._condition = condition
+        self.callback = callback
 
     def condition(self):
         if self._condition is not None:
@@ -47,6 +48,7 @@ class Machine(object):
         if self.deterministic:
             if possible_transitions:
                 self.current_state = possible_transitions[0].to_state
+                possible_transitions[0].callback()
         else:
             total_prob = sum(t.probability for t in possible_transitions)
             rand_prob = total_prob * random()
@@ -55,4 +57,5 @@ class Machine(object):
                 tmp_prob += t.probability
                 if rand_prob < tmp_prob:
                     self.current_state = t.to_state
+                    t.callback()
                     break

@@ -2,6 +2,7 @@
 from time import sleep
 #import sys, os
 from os import path
+from collections import defaultdict
 from PyQt4 import QtGui, QtCore, uic
 from collections import OrderedDict
 from ..utils.geom import Point
@@ -35,7 +36,7 @@ from ..core.plays import indirectkick
 from ..core.plays import stop
 from ..core.plays import obeyreferee
 from ..core.plays import halt
-
+from ..core.plays import ifrit
 
 class GraphicalWorld(World, QtCore.QMutex):
 
@@ -111,14 +112,14 @@ class QtGraphicalClient(object):
         # Connect signals to slots
         #self.ui.cmbPenalty.currentIndexChanged.connect(self.setPenaltyKicker)
         #self.ui.cmbGoalkeeper.currentIndexChanged.connect(self.setGoalkeeper)
-        self.ui.cmbSelectOutput.currentIndexChanged.connect(self.changeIntelligenceOutput)
+        #self.ui.cmbSelectOutput.currentIndexChanged.connect(self.changeIntelligenceOutput)
         self.ui.cmbSelectPlayBlue.currentIndexChanged.connect(self.changePlayBlue)
         self.ui.cmbSelectRobotBlue.currentIndexChanged.connect(self.changeIndividualBlue)
         self.ui.cmbSelectIndividualBlue.currentIndexChanged.connect(self.changeIndividualBlue)
         self.ui.cmbSelectPlayYellow.currentIndexChanged.connect(self.changePlayYellow)
         self.ui.cmbSelectRobotYellow.currentIndexChanged.connect(self.changeIndividualYellow)
         self.ui.cmbSelectIndividualYellow.currentIndexChanged.connect(self.changeIndividualYellow)
-        self.ui.cmbOurTeam.currentIndexChanged.connect(self.setTeamColor)
+        #self.ui.cmbOurTeam.currentIndexChanged.connect(self.setTeamColor)
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
         self.ui.actionFullscreen.triggered.connect(self.toggleFullScreen)
         self.ui.actionSetupDock.toggled.connect(self.toggleSetupDock)
@@ -136,6 +137,12 @@ class QtGraphicalClient(object):
         self.ui.cmbSelectFirmwareIdBlue.currentIndexChanged.connect(self.setFirmwareIdBlue)
         self.ui.btnDefaultBlue.clicked.connect(self.setDefaultMappingBlue)
         self.ui.btnDefaultYellow.clicked.connect(self.setDefaultMappingYellow)
+
+        self.ui.cmbKickYellow.currentIndexChanged.connect(self.selectSliderFromUidYellow)
+        self.ui.cmbKickBlue.currentIndexChanged.connect(self.selectSliderFromUidBlue)
+
+        self.ui.sliderKickBlue.valueChanged.connect(self.setKickPowerBlue)
+        self.ui.sliderKickYellow.valueChanged.connect(self.setKickPowerYellow)
 
         for i in range(self.intelligence.count_robot):
             self.ui.cmbRobotID.addItem(str(i))
@@ -172,6 +179,35 @@ class QtGraphicalClient(object):
         self.ui.txtRobotCanKick.setText(str(robot.can_kick))
 
     # GUI Functions
+
+    def selectSliderFromUidBlue(self):
+        uid = int(self.ui.cmbKickBlue.currentText())
+        self.ui.sliderKickBlue.setValue(self.intelligence.kick_mapping_blue[uid])
+        #print self.intelligence.kick_mapping_blue
+    
+    def setKickPowerBlue(self):
+        uid = int(self.ui.cmbKickBlue.currentText())
+        self.intelligence.kick_mapping_blue[uid] = int(self.ui.sliderKickBlue.value())
+        if self.intelligence.kick_mapping_blue[uid] > 0:
+            self.world.blue_team[uid].can_kick = True
+        else:
+            self.world.blue_team[uid].can_kick = False
+        #print self.intelligence.kick_mapping_blue
+
+    def selectSliderFromUidYellow(self):
+        uid = int(self.ui.cmbSelectUidYellow.currentText())
+        self.ui.sliderKickBlue.setValue(self.intelligence.kick_mapping_yellow[uid])
+        #print self.intelligence.kick_mapping_yellow
+   
+    def setKickPowerYellow(self):
+        uid = int(self.ui.cmbKickBlue.currentText())
+        self.intelligence.kick_mapping_yellow[uid] = int(self.ui.sliderKickYellow.value())
+        if self.intelligence.kick_mapping_yellow[uid] > 0:
+            self.world.yellow_team[uid].can_kick = True
+        else:
+            self.world.yellow_team[uid].can_kick = False
+        #print self.intelligence.kick_mapping_yellow
+    
     def selectFirmwareFromUidYellow(self):
         uid = int(self.ui.cmbSelectUidYellow.currentText())
         if uid in self.intelligence.mapping_yellow:
@@ -207,8 +243,8 @@ class QtGraphicalClient(object):
     def setDefaultMappingBlue(self):
         self.intelligence.mapping_yellow.clear()
         self.intelligence.mapping_blue.clear()
-        for r in self.intelligence.world.blue_team:
-            self.intelligence.mapping_blue[r.uid] = r.uid
+        for r in xrange(10):#self.intelligence.world.blue_team:
+            self.intelligence.mapping_blue[r] = r
         uid = int(self.ui.cmbSelectUidBlue.currentText())
         if uid in self.intelligence.mapping_blue:
             self.ui.cmbSelectFirmwareIdBlue.setCurrentIndex(self.intelligence.mapping_blue[uid]+1)
@@ -217,8 +253,8 @@ class QtGraphicalClient(object):
     def setDefaultMappingYellow(self):
         self.intelligence.mapping_yellow.clear()
         self.intelligence.mapping_blue.clear()
-        for r in self.intelligence.world.yellow_team:
-            self.intelligence.mapping_yellow[r.uid] = r.uid
+        for r in xrange(10):#self.intelligence.world.yellow_team:
+            self.intelligence.mapping_yellow[r] = r
         uid = int(self.ui.cmbSelectUidYellow.currentText())
         if uid in self.intelligence.mapping_yellow:
             self.ui.cmbSelectFirmwareIdYellow.setCurrentIndex(self.intelligence.mapping_yellow[uid]+1)
@@ -251,8 +287,8 @@ class QtGraphicalClient(object):
         self.intelligence.current_individual_yellow = self.intelligence.individuals_yellow[self.ui.cmbSelectRobotYellow.currentIndex()][str(self.ui.cmbSelectIndividualYellow.currentText())]
 
     #XXX: not implemented in c++
-    def setTeamColor(self):
-        raise NotImplementedError
+    #def setTeamColor(self):
+    #    raise NotImplementedError
 
     def changeSides(self):
         self.intelligence.world.switch_sides()
@@ -351,12 +387,16 @@ class Intelligence(QtCore.QThread):
         self.world = world
         self.count_robot = count_robot
         self.skill = None
-        self.interface = SimulationInterface(self.world)
 
         self.mapping_blue = {}
         self.mapping_yellow = {}
+        self.kick_mapping_blue = defaultdict(lambda: 100)
+        self.kick_mapping_yellow = defaultdict(lambda: 100)
 
-        self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue, transmission_ipaddr='192.168.91.105', transmission_port=9050)
+        self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue, 
+                                        kick_mapping_yellow=self.kick_mapping_yellow, kick_mapping_blue=self.kick_mapping_blue, 
+                                        transmission_ipaddr='127.0.0.1', transmission_port=9050)
+        self.interface = SimulationInterface(self.world)
 
         dummy = ('(none)', Dummy())
         self.individual = lambda robot: OrderedDict([
@@ -380,6 +420,7 @@ class Intelligence(QtCore.QThread):
         self.plays = lambda team: OrderedDict([
             dummy,
             ('Auto Retaliate', autoretaliate.AutoRetaliate(team)),
+            ('Ifrit', ifrit.Ifrit(team)),
             ('Stop', stop.Stop(team)),
             ('Indirect Kick', indirectkick.IndirectKick(team)),
             ('Obey Referee', obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(team))),
@@ -415,6 +456,7 @@ class Intelligence(QtCore.QThread):
 
     def run(self):
         self.interface.start()
+        self.tx_interface.start()
         # FIXME: this catchall catches too many things and breaks debugging
         try:
             while not self.stop:
@@ -427,6 +469,7 @@ class Intelligence(QtCore.QThread):
             raise
         finally:
             self.interface.stop()
+            self.tx_interface.stop()
 
 
 class App(QtGui.QApplication):

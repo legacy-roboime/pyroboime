@@ -45,5 +45,6 @@ class DriveToObject(DriveTo, GotoAvoid):
 
         # ultimately we should update our base angle to the oposite
         # of our target angle and let drive to object to its thing
-        self.base_angle = remainder(self.angle + 180, 360)
+        if self.angle is not None:
+		self.base_angle = remainder(self.angle + 180, 360)
         super(DriveToObject, self)._step()

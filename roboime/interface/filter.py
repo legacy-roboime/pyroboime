@@ -4,8 +4,10 @@ from numpy.random import normal
 from math import degrees, sqrt
 from collections import defaultdict
 
-from roboime.interface.updater import RobotUpdate, BallUpdate, GeometryUpdate
-from model import Model
+
+from .updater import RobotUpdate, BallUpdate, GeometryUpdate
+from .model import Model
+from ..base import Blue, Yellow
 
 
 class Filter(object):
@@ -155,51 +157,52 @@ class LowPass(Filter):
                 vy = self.vy[u.uid()]
                 uo = self.uo[u.uid()]
                 vo = self.vo[u.uid()]
+                if 'x' in u.data and 'y' in u.data:
+                    ux[0] = ux[1]
+                    ux[1] = ux[2]
+                    ux[2] = ux[3]
+                    ux[3] = u.data['x'] / self.gain
+                    vx[0] = vx[1]
+                    vx[1] = vx[2]
+                    vx[2] = vx[3]
+                    vx[3] = (ux[0] + ux[3]) + self.coef[0] * (ux[1] + ux[2]) + (self.coef[1] * vx[0]) + (self.coef[2] * vx[1]) + self.coef[3] * vx[2]
 
-                ux[0] = ux[1]
-                ux[1] = ux[2]
-                ux[2] = ux[3]
-                ux[3] = u.data['x'] / self.gain
-                vx[0] = vx[1]
-                vx[1] = vx[2]
-                vx[2] = vx[3]
-                vx[3] = (ux[0] + ux[3]) + self.coef[0] * (ux[1] + ux[2]) + (self.coef[1] * vx[0]) + (self.coef[2] * vx[1]) + self.coef[3] * vx[2]
-
-                uy[0] = uy[1]
-                uy[1] = uy[2]
-                uy[2] = uy[3]
-                uy[3] = u.data['y'] / self.gain
-                vy[0] = vy[1]
-                vy[1] = vy[2]
-                vy[2] = vy[3]
-                vy[3] = (uy[0] + uy[3]) + self.coef[0] * (uy[1] + uy[2]) + (self.coef[1] * vy[0]) + (self.coef[2] * vy[1]) + self.coef[3] * vy[2]
-                #print u.data['x'], vx[3]
-                u.data['x'], u.data['y'] = vx[3], vy[3]
+                    uy[0] = uy[1]
+                    uy[1] = uy[2]
+                    uy[2] = uy[3]
+                    uy[3] = u.data['y'] / self.gain
+                    vy[0] = vy[1]
+                    vy[1] = vy[2]
+                    vy[2] = vy[3]
+                    vy[3] = (uy[0] + uy[3]) + self.coef[0] * (uy[1] + uy[2]) + (self.coef[1] * vy[0]) + (self.coef[2] * vy[1]) + self.coef[3] * vy[2]
+                    #print u.data['x'], vx[3]
+                    u.data['x'], u.data['y'] = vx[3], vy[3]
 
             # TODO: Angle filtering.
             if isinstance(u, RobotUpdate):
-                theta = u.data['orientation']
+                if 'orientation' in u.data:
+                    theta = u.data['orientation']
 
-                if self.last_theta is None:
-                    self.last_theta = theta
-                last_theta = self.last_theta
+                    if self.last_theta is None:
+                        self.last_theta = theta
+                    last_theta = self.last_theta
 
-                d_theta = theta - last_theta
-                d_theta = remainder(d_theta, 360)
+                    d_theta = theta - last_theta
+                    d_theta = remainder(d_theta, 360)
 
-                uo[0] = uo[1]
-                uo[1] = uo[2]
-                uo[2] = uo[3]
-                uo[3] = d_theta / self.gain
-                vo[0] = vo[1]
-                vo[1] = vo[2]
-                vo[2] = vo[3]
-                vo[3] = (uo[0] + uo[3]) + self.coef[0] * (uo[1] + uo[2]) + (self.coef[1] * vo[0]) + (self.coef[2] * vo[1]) + self.coef[3] * vo[2]
+                    uo[0] = uo[1]
+                    uo[1] = uo[2]
+                    uo[2] = uo[3]
+                    uo[3] = d_theta / self.gain
+                    vo[0] = vo[1]
+                    vo[1] = vo[2]
+                    vo[2] = vo[3]
+                    vo[3] = (uo[0] + uo[3]) + self.coef[0] * (uo[1] + uo[2]) + (self.coef[1] * vo[0]) + (self.coef[2] * vo[1]) + self.coef[3] * vo[2]
 
-                vo[3] = remainder(vo[3], 360)
+                    vo[3] = remainder(vo[3], 360)
 
-                self.last_theta = theta + vo[3]
-                u.data['orientation'] = vo[3] + theta
+                    self.last_theta = theta + vo[3]
+                    u.data['orientation'] = vo[3] + theta
 
 
 class UpdateLog(Filter):
@@ -290,7 +293,7 @@ class RegisterPosition(Filter):
     """
     This filter registers the current position (x, y, angle) with new keys
     in the data dictionary.
-    
+
     usage:
         RegisterPosition("prefix")
         #This will register new values for "prefix_x", "prefix_y" and
@@ -298,7 +301,7 @@ class RegisterPosition(Filter):
     """
     def __init__(self, prefix):
         self.prefix = prefix + "_"
-        
+
     def filter_updates(self, updates):
         for u in updates:
             for suffix in ['x', 'y', 'angle']:
@@ -362,3 +365,48 @@ class Kalman(Filter):
         for u in updates:
             if u.uid() < 0x400 or u.uid() == 0xba11:
                 self.get_model(u.uid()).update(u.data)
+
+
+class DeactivateInactives(Filter):
+    """
+    This filter will deactivate robots which are not seen after a given number
+    of frames.
+    """
+
+    def __init__(self, frames=360):
+        self.frames = frames
+        self.frame_count = 0
+        self.last_seen = dict((0x100 + i, (self.frame_count, RobotUpdate(Blue, i, {}))) for i in xrange(12))
+        self.last_seen.update(dict((0x200 + i, (self.frame_count, RobotUpdate(Yellow, i, {}))) for i in xrange(12)))
+
+    def filter_updates(self, updates):
+        self.frame_count += 1
+        for u in updates:
+            if isinstance(u, RobotUpdate):
+                self.last_seen[u.uid()] = (self.frame_count, u)
+
+        # check long unseens
+        for uid, (frame_count, u) in self.last_seen.iteritems():
+            delta_frames = self.frame_count - frame_count
+            #print self, u.i, uid, delta_frames
+            if delta_frames > self.frames:
+                # that robot is no longer here, we should remove it
+                u.deactivate = True
+                updates.append(RobotUpdate(u.team_color, u.i, deactivate=True))
+
+
+class IgnoreSide(Filter):
+
+    def __init__(self, side_to_ignore='+'):
+        self.side_to_ignore = side_to_ignore
+        super(IgnoreSide, self).__init__()
+
+    def filter_updates(self, updates):
+        sign = -1 if self.side_to_ignore == '-' else 1
+        to_be_removed = []
+        for u in updates:
+            if 'x' in u.data:
+                if u.data['x'] * sign > 0:
+                    to_be_removed.append(u)
+        for u in to_be_removed:
+            updates.remove(u)
