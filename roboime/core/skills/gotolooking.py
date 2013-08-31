@@ -8,7 +8,7 @@ class GotoLooking(Goto):
         """
         super(GotoLooking, self).__init__(robot, **kwargs)
         self._lookpoint = lookpoint
-    
+
     @property
     def lookpoint(self):
         if callable(self._lookpoint):
