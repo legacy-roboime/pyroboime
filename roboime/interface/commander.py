@@ -12,7 +12,8 @@ from ..utils.mathutils import sin, cos
 from ..utils.keydefaultdict import keydefaultdict
 from ..communication.rftransmission.vivatxrx import VIVATxRx
 
-class Commander(Process):
+class Commander(object):
+#class Commander(Process):
     '''
     This class instantiates a process that receives the actions for the robots and
     dispatches its actions to the transmitter. As of now, this class does NOT
@@ -25,9 +26,9 @@ class Commander(Process):
     '''
 
     def __init__(self, maxsize=15):
-        self.world = World()
-        self.action_queue = Queue()
-        #super(Commander, self).__init__()
+        #self.world = World()
+        #self.action_queue = Queue()
+        super(Commander, self).__init__()
         #self._recvr, self._sendr = Pipe()
         #self.conn = None
         #self._exit = Event()
@@ -37,10 +38,10 @@ class Commander(Process):
     #    super(Commander, self).start()
     #    self.conn = self._sendr
 
-    def run(self):
-        while self._exit.is_set():
-            self.send(self.conn.recv())
-        self.conn.close()
+    #def run(self):
+    #    while self._exit.is_set():
+    #        self.send(self.conn.recv())
+    #    self.conn.close()
 
     #def stop(self):
     #    self.conn.close()
