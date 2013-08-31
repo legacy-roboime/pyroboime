@@ -425,7 +425,7 @@ class Team(keydefaultdict):
             #goal_point = self.enemy_goal
             return [(geom.Point(self.enemy_goal.x - sign(self.enemy_goal.x), self.enemy_goal.y), 1)]
         else:
-            return sorted(candidate, key=lambda tup: tup[1])    
+            return sorted(candidate, key=lambda tup: tup[1])
 
     def __iter__(self):
         return self.iterrobots(active=True)
@@ -562,6 +562,14 @@ class Goal(geom.Point):
     def wall_width(self):
         return self.world.goal_wall_width
 
+    @property
+    def is_blue(self):
+        return self.world.blue_goal == self
+
+    @property
+    def is_yellow(self):
+        return self.world.yellow_goal == self
+
 
 class Referee(object):
 
@@ -675,7 +683,7 @@ class World(object):
             if shot_line.crosses(robot.body):
                 return False
         return True
-    
+
     def has_clear_shot_from_position(self, kicker_position, point_to_kick):
         shot_line = geom.Line(kicker_position, point_to_kick)
         for robot in self.iterrobots():

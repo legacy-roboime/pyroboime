@@ -25,9 +25,11 @@ class StageView(QGraphicsView):
         self.setScene(QGraphicsScene(0, 0, 0, 0))
         self._world = None
         self.scale(1.0 / 15, 1.0 / 15)
+        '''
         self.ball = None
         self.field = None
         self.robot = []
+        '''
 
     @property
     def world(self):
@@ -38,7 +40,7 @@ class StageView(QGraphicsView):
         self._world = w
         width, height = s(w.length), s(w.width)
         self.setScene(QGraphicsScene(-1.5 * width, -1.5 * height, 3 * width, 3 * height))
-
+        '''
         scene = self.scene()
         self.ball = worldviews.BallView(w.ball)
         scene.addItem(self.ball)
@@ -49,6 +51,7 @@ class StageView(QGraphicsView):
             scene.addItem(self.robot[-1])
             self.robot.append(worldviews.RobotView(w.yellow_team[i]))
             scene.addItem(self.robot[-1])
+        '''
 
     # Mouse wheel to zoom
     def wheelEvent(self, event):
