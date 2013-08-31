@@ -25,6 +25,9 @@ class StageView(QGraphicsView):
         self.setScene(QGraphicsScene(0, 0, 0, 0))
         self._world = None
         self.scale(1.0 / 15, 1.0 / 15)
+        self.ball = None
+        self.field = None
+        self.robot = []
 
     @property
     def world(self):
@@ -35,6 +38,17 @@ class StageView(QGraphicsView):
         self._world = w
         width, height = s(w.length), s(w.width)
         self.setScene(QGraphicsScene(-1.5 * width, -1.5 * height, 3 * width, 3 * height))
+
+        scene = self.scene()
+        self.ball = worldviews.BallView(w.ball)
+        scene.addItem(self.ball)
+        self.field = worldviews.FieldView(w)
+        scene.addItem(self.field)
+        for i in xrange(6):
+            self.robot.append(worldviews.RobotView(w.blue_team[i]))
+            scene.addItem(self.robot[-1])
+            self.robot.append(worldviews.RobotView(w.yellow_team[i]))
+            scene.addItem(self.robot[-1])
 
     # Mouse wheel to zoom
     def wheelEvent(self, event):
@@ -62,6 +76,16 @@ class StageView(QGraphicsView):
             self.fit()
 
     def redraw(self):
+        '''
+        scene = self.scene()
+
+        with self.world:
+            for i in scene.items():
+                i.position()
+
+        scene.update()
+        '''
+
         # TODO: only do this when geometry changes
         # clear the old scene
         self.scene().clear()
