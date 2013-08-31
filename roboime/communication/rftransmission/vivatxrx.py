@@ -10,10 +10,10 @@ class VIVATxRx(Transmitter):
     def __init__(self, id_vendor=5824, id_product=1500):
         super(VIVATxRx, self).__init__()
         self.transmitter = usb.core.find(idVendor=id_vendor, idProduct=id_product)
-        self.transmitter.set_configuration()
         if self.transmitter is None:
             self.is_working = False
         else:
+            self.transmitter.set_configuration()
             self.is_working = True
     
     def send(self, array):
