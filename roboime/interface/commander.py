@@ -175,10 +175,10 @@ class Tx2012Commander(Commander):
         #]
         # RoboIME 2013
         self.wheel_angles = [
-            -45.,
-            +45.,
-            +120.,
-            -120.,
+            -45.0,
+            +45.0,
+            +120.0,
+            -120.0,
         ]
 
         # RoboIME 2012
@@ -192,8 +192,8 @@ class Tx2012Commander(Commander):
         #self.wheel_distance = 80.6
 
         #Values in meters.
-        self.wheel_radius = .0289
-        self.wheel_distance = .0806
+        self.wheel_radius = 0.0289
+        self.wheel_distance = 0.0806
 
     def omniwheel_speeds(self, vx, vy, va):
         return [(vy * cos(a) - vx * sin(a) + va * self.wheel_distance) / self.wheel_radius for a in self.wheel_angles]

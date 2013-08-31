@@ -185,7 +185,12 @@ class Goto(Skill):
         if self.avoid_collisions:
             v = out * gradient / norm(gradient)
         else:
-            v = out * error / norm(error)
+            # v = out * normalized error
+            # must check if error is zero lengthed
+            v = error
+            ne = norm(error)
+            if ne != 0:
+                v *= out / ne
 
         # increase by referential speed
         # not working, must think about it

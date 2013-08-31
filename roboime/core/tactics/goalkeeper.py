@@ -136,7 +136,7 @@ class Goalkeeper(Tactic):
         self.goto.step()
 
     def point_to_defend(self):
-        radius = (self.robot.radius + 2 * self.ball.radius) * self.safety_ratio
+        #radius = (self.robot.radius + 2 * self.ball.radius) * self.safety_ratio
         """
         This method comes from Zickler.
 

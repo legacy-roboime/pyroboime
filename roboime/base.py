@@ -500,13 +500,12 @@ class Goal(geom.Point):
     def __init__(self, world, *args):
         super(Goal, self).__init__(0.0, 0.0)
         self.world = world
-        self.update(0.0, 0.0)
+        assert len(args) == 2
+        self.update(*args)
         #self._p1 = geom.Point(0, 0)
         #self._p2 = geom.Point(0, 0)
         #self._line = geom.Line(self._p1, self._p2)
         #self._body = geometry.LineString
-        if len(args) > 0:
-            self.update(*args)
 
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
@@ -666,8 +665,8 @@ class World(object):
         else:
             left_team.world = self
             self.left_team = left_team
-        self.right_goal = Goal(self)
-        self.left_goal = Goal(self)
+        self.right_goal = Goal(self, self.length / 2, 0.0)
+        self.left_goal = Goal(self, -self.length / 2, 0.0)
         self.referee = None
         self.ball = Ball(self)
 
