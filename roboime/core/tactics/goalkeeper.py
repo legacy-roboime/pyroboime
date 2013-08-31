@@ -130,7 +130,9 @@ class Goalkeeper(Tactic):
         #}
 
         # middle of the largest gap:
-        self.goto.target = self.point_to_defend()
+        p = self.point_to_defend()
+        if p is not None:
+            self.goto.target = self.point_to_defend()
 
         # continue stepping the last strategy
         self.goto.step()
