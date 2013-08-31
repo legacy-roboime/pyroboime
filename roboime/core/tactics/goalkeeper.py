@@ -65,7 +65,7 @@ class Goalkeeper(Tactic):
 
         # Aaaand the home line
         home_line = Line(p1, p2)
-        
+
         ### Find out where in the homeline should we stay ###
 
         if self.aggressive:
@@ -136,10 +136,10 @@ class Goalkeeper(Tactic):
         self.goto.step()
 
     def point_to_defend(self):
-        radius = (self.robot.radius + 2 * self.ball.radius) * self.safety_ratio
+        #radius = (self.robot.radius + 2 * self.ball.radius) * self.safety_ratio
         """
         This method comes from Zickler.
-        
+
         The main difference is that it transfers the point to defend from the goal line to the base line.
         """
         our_goal = self.team.goal
