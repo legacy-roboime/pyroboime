@@ -74,10 +74,6 @@ class QtGraphicalClient(object):
 
         self.ui.stageView.world = self.world
 
-        self.timer = QtCore.QTimer()
-        #self.timer.timeout.connect(self.ui.stageView.redraw)
-        self.timer.timeout.connect(self.redraw)
-
         # FIXME: This should work.
         # Redraw stageview when the interface applies an update
         #self.intelligence.interface.world_updated.connect(self.ui.stageView.redraw)
@@ -90,7 +86,9 @@ class QtGraphicalClient(object):
         self.intelligence.start()
 
         # Start redraw timer (once every 25ms)
-        self.timer_period = 10
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.redraw)
+        self.timer_period = 25
         self.timer.start(self.timer_period)
 
         self.dockSetupActive = True
