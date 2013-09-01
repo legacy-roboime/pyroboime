@@ -31,7 +31,7 @@ class GotoAvoid(Goto):
         base_angle = self.target.angle_to_point(self.ball)
         robot_angle = self.robot.angle_to_point(self.ball)
 
-        if abs(base_angle - robot_angle) < 90:
+        if abs(base_angle - robot_angle) > 110:
             pass
         else:
             if self.avoid is not None and self.should_avoid:
