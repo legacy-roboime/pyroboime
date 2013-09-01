@@ -1,20 +1,34 @@
 from math import pi
 
 #import socket
-from ..communication.network import unicast
-from ..communication import grsim
+from multiprocessing import Process, Queue, Event, Lock
 from collections import defaultdict
 from time import time
 from math import isnan
+from ..base import World
+from ..communication.network import unicast
+from ..communication import grsim
 from ..utils.mathutils import sin, cos
 from ..utils.keydefaultdict import keydefaultdict
 from ..communication.rftransmission.vivatxrx import VIVATxRx
 
 class Commander(object):
 #class Commander(Process):
+    '''
+    This class instantiates a process that receives the actions for the robots and
+    dispatches its actions to the transmitter. As of now, this class does NOT
+    implement potential field collision avoidance. This will be treated on a future
+    release. When using this, an updater is needed to apply the updates that are coming
+    both to the main window and to the Commander. 
 
-    def __init__(self):
-        #super(Commander, self).__init__()
+    It is still being decided whether or
+    not this is going to be a thread in and of itself running in the main window
+    '''
+
+    def __init__(self, maxsize=15):
+        #self.world = World()
+        #self.action_queue = Queue()
+        super(Commander, self).__init__()
         #self._recvr, self._sendr = Pipe()
         #self.conn = None
         #self._exit = Event()
@@ -25,7 +39,6 @@ class Commander(object):
     #    self.conn = self._sendr
 
     #def run(self):
-    #    self.conn = self._recvr
     #    while self._exit.is_set():
     #        self.send(self.conn.recv())
     #    self.conn.close()
