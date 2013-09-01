@@ -53,8 +53,6 @@ class SkillView(QGraphicsItem):
         painter.setPen(BLACK)
         painter.setFont(QFont('Courier', 72, 2))
 
-        #tactic = str(self.tactic)
-        #painter.drawText(-10, -140, tactic)
         skill = str(self.skill)
         painter.drawText(-10, -90, skill)
 

@@ -85,10 +85,10 @@ class QtGraphicalClient(object):
         # Start children threads
         self.intelligence.start()
 
-        # Start redraw timer (once every 25ms)
+        # Start redraw timer
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.redraw)
-        self.timer_period = 25
+        self.timer_period = 1
         self.timer.start(self.timer_period)
 
         self.dockSetupActive = True
