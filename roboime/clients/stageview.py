@@ -86,18 +86,31 @@ class StageView(QGraphicsView):
             skills = set(map(lambda r: r.skill, w.robots))
             prev_skills = set(self.scene_skills.keys())
 
+            for skill in (skills & prev_skills):
+                if not self.scene_skills[skill].isVisible():
+                    self.scene_skills[skill].show()
+
+            for skill in (prev_skills - skills):
+                if self.scene_skills[skill].isVisible():
+                    self.scene_skills[skill].hide()
+
             for skill in (skills - prev_skills):
                 view = skillviews.view_selector(skill)
                 if view is not None:
                     scene.addItem(view)
                     self.scene_skills[skill] = view
 
-            for skill in (prev_skills - skills):
-                scene.removeItem(self.scene_skills.pop(skill))
-
             # Update robot tactics
             tactics = set(map(lambda r: r.tactic, w.robots))
             prev_tactics = set(self.scene_tactics.keys())
+
+            for tactic in (tactics & prev_tactics):
+                if not self.scene_tactics[tactic].isVisible():
+                    self.scene_tactics[tactic].show()
+
+            for tactic in (prev_tactics - tactics):
+                if self.scene_tactics[tactic].isVisible():
+                    self.scene_tactics[tactic].hide()
 
             for tactic in (tactics - prev_tactics):
                 view = tacticviews.view_selector(tactic)
@@ -105,16 +118,12 @@ class StageView(QGraphicsView):
                     scene.addItem(view)
                     self.scene_tactics[tactic] = view
 
-            for tactic in (prev_tactics - tactics):
-                scene.removeItem(self.scene_tactics.pop(tactic))
-
             for i in scene.items():
                 i.position()
 
         scene.update()
 
         '''
-
         # TODO: only do this when geometry changes
         # clear the old scene
         self.scene().clear()
