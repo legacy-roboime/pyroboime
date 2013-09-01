@@ -179,7 +179,7 @@ class Goto(Skill):
         mi = 0.1
         a_max = mi * g
         v_max = r.max_speed
-        cte = (4 * a_max / (v_max * v_max))
+        cte = (10 * a_max / (v_max * v_max))
         out = v_max * (1 - exp(-cte * r.distance(f_t)))
         # v is the speed vector resulting from that equation
         if self.avoid_collisions:
