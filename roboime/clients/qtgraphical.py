@@ -49,7 +49,7 @@ class QLock(QtCore.QMutex):
         self.unlock()
 
 
-class GraphicalWorld(World, QLock):
+class SharedWorld(World, QLock):
 
     def __init__(self, *args, **kwargs):
         World.__init__(self, *args, **kwargs)
@@ -64,7 +64,7 @@ class QtGraphicalClient(object):
     def __init__(self, **kwargs):
         super(QtGraphicalClient, self).__init__()
 
-        self.world = GraphicalWorld()
+        self.world = SharedWorld()
 
         self.intelligence = Intelligence(self.world, **kwargs)
         #self.intelligence = Intelligence(self.world, self.ui.stageView.redraw)
@@ -168,7 +168,6 @@ class QtGraphicalClient(object):
         with self.counter_lock:
             self.counter += 1
 
-        self.ui.stageView.redraw()
         w = self.intelligence.world
         self.ui.txtRefCommand.setText(str(w.referee.pretty_command))
         self.ui.txtRefStage.setText(str(w.referee.pretty_stage))
@@ -197,6 +196,9 @@ class QtGraphicalClient(object):
         else:
             self.ui.txtRobotAcceleration.setText('{: 6.2f}, {: 6.2f}'.format(*robot.acceleration))
         self.ui.txtRobotCanKick.setText(str(robot.can_kick))
+
+        self.ui.stageView.redraw()
+        self.ui.update()
 
     # GUI Functions
 

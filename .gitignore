@@ -4,5 +4,6 @@
 *.sln
 *.suo
 *.pyproj
+*~
 /*-venv
 .virtualenv*
