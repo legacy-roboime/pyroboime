@@ -28,15 +28,14 @@ class GotoAvoid(Goto):
         a = self.avoid
         t = self.final_target
 
-        base_angle = self.target.angle_to_point(self.avoid)
-        robot_angle = self.target.angle_to_point(self.robot)
+        if self.avoid is not None and self.should_avoid:
+            base_angle = self.target.angle_to_point(self.avoid)
+            robot_angle = self.target.angle_to_point(self.robot)
 
-        base_angle = base_angle if abs(base_angle) < 180 else base_angle - 360
-        robot_angle = robot_angle if abs(robot_angle) < 180 else robot_angle - 360
+            base_angle = base_angle if abs(base_angle) < 180 else base_angle - 360
+            robot_angle = robot_angle if abs(robot_angle) < 180 else robot_angle - 360
 
-        if not abs(base_angle - robot_angle) > 90:
-            if self.avoid is not None and self.should_avoid:
-
+            if not abs(base_angle - robot_angle) > 90:
                 avoid_radius = self.avoid_radius
                 # If the robot can go straight to the target unimpeded by avoid, do so.
                 if not a.buffer(avoid_radius).crosses(Line(r, t)):
