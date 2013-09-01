@@ -38,11 +38,8 @@ from ..core.plays import obeyreferee
 from ..core.plays import halt
 from ..core.plays import ifrit
 
-class GraphicalWorld(World, QtCore.QMutex):
 
-    def __init__(self, *args, **kwargs):
-        World.__init__(self, *args, **kwargs)
-        QtCore.QMutex.__init__(self)
+class QLock(QtCore.QMutex):
 
     def __enter__(self):
         self.lock()
@@ -50,6 +47,13 @@ class GraphicalWorld(World, QtCore.QMutex):
 
     def __exit__(self, t, v, tb):
         self.unlock()
+
+
+class GraphicalWorld(World, QLock):
+
+    def __init__(self, *args, **kwargs):
+        World.__init__(self, *args, **kwargs)
+        QLock.__init__(self)
 
 
 class QtGraphicalClient(object):
@@ -86,11 +90,26 @@ class QtGraphicalClient(object):
         self.intelligence.start()
 
         # Start redraw timer (once every 25ms)
-        self.timer.start(25)
+        self.timer_period = 10
+        self.timer.start(self.timer_period)
 
         self.dockSetupActive = True
         self.dockRobotActive = True
         self.ui.statusBar.hide()
+
+        # FPS counter
+        self.counter = 0
+        self.counter_lock = QLock()
+        self.fps = 0
+        self.fps_timer = QtCore.QTimer()
+        self.fps_timer.timeout.connect(self.fpsCount);
+        self.fps_timer.start(1000)
+
+    def fpsCount(self):
+        with self.counter_lock:
+            self.fps = self.counter
+            self.counter = 0
+            self.ui.setWindowTitle("RoboIME Graphical Client - {}/{} fps".format(self.fps, 1000 / self.timer_period))
 
     def setupUI(self):
         # Setup GUI buttons and combo boxes
@@ -129,7 +148,7 @@ class QtGraphicalClient(object):
 
         self.ui.rbtSimulation.toggled.connect(self.toggleSimulation)
         self.ui.rbtTransmission.toggled.connect(self.toggleSimulation)
-        
+
         # Mappings
         self.ui.cmbSelectUidYellow.currentIndexChanged.connect(self.selectFirmwareFromUidYellow)
         self.ui.cmbSelectUidBlue.currentIndexChanged.connect(self.selectFirmwareFromUidBlue)
@@ -148,6 +167,9 @@ class QtGraphicalClient(object):
             self.ui.cmbRobotID.addItem(str(i))
 
     def redraw(self):
+        with self.counter_lock:
+            self.counter += 1
+
         self.ui.stageView.redraw()
         w = self.intelligence.world
         self.ui.txtRefCommand.setText(str(w.referee.pretty_command))
@@ -184,7 +206,7 @@ class QtGraphicalClient(object):
         uid = int(self.ui.cmbKickBlue.currentText())
         self.ui.sliderKickBlue.setValue(self.intelligence.kick_mapping_blue[uid])
         #print self.intelligence.kick_mapping_blue
-    
+
     def setKickPowerBlue(self):
         uid = int(self.ui.cmbKickBlue.currentText())
         self.intelligence.kick_mapping_blue[uid] = int(self.ui.sliderKickBlue.value())
@@ -198,7 +220,7 @@ class QtGraphicalClient(object):
         uid = int(self.ui.cmbSelectUidYellow.currentText())
         self.ui.sliderKickBlue.setValue(self.intelligence.kick_mapping_yellow[uid])
         #print self.intelligence.kick_mapping_yellow
-   
+
     def setKickPowerYellow(self):
         uid = int(self.ui.cmbKickBlue.currentText())
         self.intelligence.kick_mapping_yellow[uid] = int(self.ui.sliderKickYellow.value())
@@ -207,7 +229,7 @@ class QtGraphicalClient(object):
         else:
             self.world.yellow_team[uid].can_kick = False
         #print self.intelligence.kick_mapping_yellow
-    
+
     def selectFirmwareFromUidYellow(self):
         uid = int(self.ui.cmbSelectUidYellow.currentText())
         if uid in self.intelligence.mapping_yellow:
@@ -393,8 +415,8 @@ class Intelligence(QtCore.QThread):
         self.kick_mapping_blue = defaultdict(lambda: 100)
         self.kick_mapping_yellow = defaultdict(lambda: 100)
 
-        self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue, 
-                                        kick_mapping_yellow=self.kick_mapping_yellow, kick_mapping_blue=self.kick_mapping_blue, 
+        self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue,
+                                        kick_mapping_yellow=self.kick_mapping_yellow, kick_mapping_blue=self.kick_mapping_blue,
                                         transmission_ipaddr='127.0.0.1', transmission_port=9050)
         self.interface = SimulationInterface(self.world)
 
