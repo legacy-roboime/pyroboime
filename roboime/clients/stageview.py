@@ -25,11 +25,12 @@ class StageView(QGraphicsView):
         self.setScene(QGraphicsScene(0, 0, 0, 0))
         self._world = None
         self.scale(1.0 / 15, 1.0 / 15)
-        '''
+
         self.ball = None
         self.field = None
         self.robot = []
-        '''
+        self.scene_skills = {}
+        self.scene_tactics = {}
 
     @property
     def world(self):
@@ -40,7 +41,7 @@ class StageView(QGraphicsView):
         self._world = w
         width, height = s(w.length), s(w.width)
         self.setScene(QGraphicsScene(-1.5 * width, -1.5 * height, 3 * width, 3 * height))
-        '''
+
         scene = self.scene()
         self.ball = worldviews.BallView(w.ball)
         scene.addItem(self.ball)
@@ -51,7 +52,6 @@ class StageView(QGraphicsView):
             scene.addItem(self.robot[-1])
             self.robot.append(worldviews.RobotView(w.yellow_team[i]))
             scene.addItem(self.robot[-1])
-        '''
 
     # Mouse wheel to zoom
     def wheelEvent(self, event):
@@ -79,14 +79,40 @@ class StageView(QGraphicsView):
             self.fit()
 
     def redraw(self):
-        '''
         scene = self.scene()
 
-        with self.world:
+        with self.world as w:
+            # Update robot skills
+            skills = set(map(lambda r: r.skill, w.robots))
+            prev_skills = set(self.scene_skills.keys())
+
+            for skill in (skills - prev_skills):
+                view = skillviews.view_selector(skill)
+                if view is not None:
+                    scene.addItem(view)
+                    self.scene_skills[skill] = view
+
+            for skill in (prev_skills - skills):
+                scene.removeItem(self.scene_skills.pop(skill))
+
+            # Update robot tactics
+            tactics = set(map(lambda r: r.tactic, w.robots))
+            prev_tactics = set(self.scene_tactics.keys())
+
+            for tactic in (tactics - prev_tactics):
+                view = tacticviews.view_selector(tactic)
+                if view is not None:
+                    scene.addItem(view)
+                    self.scene_tactics[tactic] = view
+
+            for tactic in (prev_tactics - tactics):
+                scene.removeItem(self.scene_tactics.pop(tactic))
+
             for i in scene.items():
                 i.position()
 
         scene.update()
+
         '''
 
         # TODO: only do this when geometry changes
@@ -139,3 +165,4 @@ class StageView(QGraphicsView):
                 if tactic is not None:
                     tactic.position()
                     scene.addItem(tactic)
+        '''
