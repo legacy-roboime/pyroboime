@@ -53,8 +53,6 @@ class SkillView(QGraphicsItem):
         painter.setPen(BLACK)
         painter.setFont(QFont('Courier', 72, 2))
 
-        #tactic = str(self.tactic)
-        #painter.drawText(-10, -140, tactic)
         skill = str(self.skill)
         painter.drawText(-10, -90, skill)
 
@@ -62,7 +60,7 @@ class SkillView(QGraphicsItem):
         painter.restore()
 
 
-#@view_for(goto.Goto)
+@view_for(goto.Goto)
 class GotoView(SkillView):
 
     draw_forces = False
@@ -140,7 +138,7 @@ class GotoView(SkillView):
         painter.restore()
 
 
-#@view_for(gotoavoid.GotoAvoid)
+@view_for(gotoavoid.GotoAvoid)
 class GotoAvoidView(GotoView):
 
     def __init__(self, *args, **kwargs):
@@ -181,7 +179,7 @@ class GotoAvoidView(GotoView):
         painter.restore()
 
 
-#@view_for(driveto.DriveTo)
+@view_for(driveto.DriveTo)
 class DriveToView(GotoAvoidView):
 
     def __init__(self, *args, **kwargs):
@@ -214,9 +212,9 @@ class DriveToView(GotoAvoidView):
         # Reset transformation
         painter.restore()
 
-#@view_for(drivetoball.DriveToBall)
+@view_for(drivetoball.DriveToBall)
 class DriveToBallView(DriveToView):
-    # TODO: this. 
+    # TODO: this.
     def __init__(self, *args, **kwargs):
         super(DriveToView, self).__init__(*args, **kwargs)
         self.target = (0, 0)

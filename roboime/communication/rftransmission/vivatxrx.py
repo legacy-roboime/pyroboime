@@ -9,13 +9,14 @@ class VIVATxRx(Transmitter):
     '''
     def __init__(self, id_vendor=5824, id_product=1500):
         super(VIVATxRx, self).__init__()
-        self.transmitter = usb.core.find(idVendor=id_vendor, idProduct=id_product)
-        if self.transmitter is None:
-            self.is_working = False
-        else:
+        try:
+            self.transmitter = usb.core.find(idVendor=id_vendor, idProduct=id_product)
+        except ValueError:
+            self.transmitter = None
+        if self.transmitter is not None:
             self.transmitter.set_configuration()
-            self.is_working = True
-    
+        self.is_working = self.transmitter is None
+
     def send(self, array):
         print self.is_busy
         if (not self.is_busy) and self.is_working:

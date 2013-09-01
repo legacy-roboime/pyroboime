@@ -102,7 +102,6 @@ class Interface(Process):
         # actions extraction phase
         # TODO filtering
         for co in self.commanders:
-
             actions = []
             for r in co.team:
                 if r.action is not None:

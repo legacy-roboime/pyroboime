@@ -173,10 +173,22 @@ class FieldView(QGraphicsItem):
         gdepth = s(self.world.goal_depth)
         gline = s(self.world.goal_wall_width)
 
+        if self.world.left_goal.is_blue:
+            painter.setBrush(BLUE)
+            painter.setPen(BLUE)
+        else:
+            painter.setBrush(YELLOW)
+            painter.setPen(YELLOW)
         painter.drawRect(-gdepth - gline, (height - gwidth) / 2 - gline, gdepth + gline, gline)
         painter.drawRect(-gdepth - gline, (height - gwidth) / 2, gline, gwidth)
         painter.drawRect(-gdepth - gline, (height + gwidth) / 2, gdepth + gline, gline)
 
+        if self.world.right_goal.is_blue:
+            painter.setBrush(BLUE)
+            painter.setPen(BLUE)
+        else:
+            painter.setBrush(YELLOW)
+            painter.setPen(YELLOW)
         painter.drawRect(width, (height - gwidth) / 2 - gline, gdepth + gline, gline)
         painter.drawRect(width + gdepth, (height - gwidth) / 2, gline, gwidth)
         painter.drawRect(width, (height + gwidth) / 2, gdepth + gline, gline)

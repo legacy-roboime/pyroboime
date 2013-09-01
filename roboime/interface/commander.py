@@ -53,7 +53,7 @@ class Commander(object):
 class Tx2013Commander(Commander):
     '''
     Sends commands as byte arrays via RF to the robots. Since the robots' firmware IDs are not the same as
-    the UIDs sent by the VisionUpdater, a dict mapping the UIDs to the firmware IDs should be provided. 
+    the UIDs sent by the VisionUpdater, a dict mapping the UIDs to the firmware IDs should be provided.
     If it is not provided, we shall use the trivial mapping: x => x.
 
     This commander uses a transmission protocol compatible with the RoboIME MK-2012/2013 architecture.
@@ -128,7 +128,7 @@ class Tx2013Commander(Commander):
                 # Convert va to angular speed.
                 va = va * pi / 180
                 robot_packet = []
-                
+
                 if self.default_map or a.uid in self.mapping_dict:
                     robot_packet.append(self.mapping_dict[a.uid])
                 else:
@@ -143,7 +143,7 @@ class Tx2013Commander(Commander):
                 else:
                     robot_packet.append(0)
 
-                actions_dict[self.mapping_dict[a.uid]] = robot_packet 
+                actions_dict[self.mapping_dict[a.uid]] = robot_packet
                 a.reset()
 
             if dirty:
