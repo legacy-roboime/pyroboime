@@ -72,6 +72,14 @@ class Update(object):
                                 for robot_prop, robot_prop_value in robot_data.iteritems():
                                     setattr(robot, robot_prop, robot_prop_value)
 
+                                    if robot.has_touched_ball:
+                                        for r in robot.team:
+                                            r.is_last_toucher = False
+                                            r.has_touched_ball = False
+                                        robot.is_last_toucher = True
+                                        robot.has_touched_ball = False
+
+
                     else:
                         setattr(team, team_prop, team_value)
 
@@ -102,6 +110,7 @@ class Update(object):
             world.right_goal.update((world.length / 2, 0.0))
             world.left_goal.update((-world.length / 2, 0.0))
             world.inited = True
+
 
     def __str__(self):
         return "<{}: data={}>".format(type(self), self.data)
@@ -253,14 +262,13 @@ class SimVisionUpdater(VisionUpdater):
 
 class RefereeUpdater(Updater):
 
-    def __init__(self):
+    def __init__(self, address):
         super(RefereeUpdater, self).__init__()
-        #self.address = address
+        self.address = address
         self.counter = 0
 
     def run(self):
-        #self.receiver = sslrefbox.SimRefboxReceiver(self.address)
-        self.receiver = sslrefbox.SimRefboxReceiver()
+        self.receiver = sslrefbox.RefboxReceiver(self.address)
         super(RefereeUpdater, self).run()
 
     def receive(self):
@@ -296,3 +304,15 @@ class RefereeUpdater(Updater):
         }
 
         return Update(data)
+
+
+class RealRefereeUpdater(RefereeUpdater):
+
+    def __init__(self):
+        RefereeUpdater.__init__(self, ('224.5.23.1', 10003))
+
+
+class SimRefereeUpdater(RefereeUpdater):
+
+    def __init__(self):
+        RefereeUpdater.__init__(self, ('224.5.23.1', 11003))

@@ -1,4 +1,4 @@
-from numpy import linspace
+from numpy import linspace, array
 from itertools import groupby
 
 from .. import Tactic
@@ -9,6 +9,7 @@ from ..skills.kickto import KickTo
 from ..skills.sampleddribble import SampledDribble
 from ..skills.halt import Halt
 from ...utils.geom import Point
+from ...base import Rules
 
 
 class Zickler43(Tactic):
@@ -23,40 +24,53 @@ class Zickler43(Tactic):
     Somebody has to make goals, so, this is it, this will be
     the tactic that will make goals. And it will!
     """
+
+    conduction_tolerance = 0.6
+
     def __init__(self, robot, deterministic=True):
-        self._lookpoint = None
+        self._lookpoint = self.point_to_kick
         self._robot = robot
-        self.drive = DriveToBall(robot, name='Get the Ball', lookpoint=self.lookpoint, deterministic=True, avoid_collisions=True)
-        self.dribble = SampledDribble(robot, name='Drag the Ball', deterministic=deterministic, lookpoint=self.lookpoint, minpower=0.0, maxpower=1.0)
-        self.goal_kick = KickTo(robot, name='KICK IT!!!', lookpoint=self.lookpoint, minpower=0.9, maxpower=1.0)
+        self.drive = DriveToBall(robot, name='Get the Ball', lookpoint=self.robot.enemy_goal, deterministic=True, avoid_collisions=True)
+        self.dribble = SampledDribble(robot, name='Drag the Ball', deterministic=deterministic, lookpoint=lambda: self.lookpoint, minpower=0.0, maxpower=1.0)
+        self.goal_kick = KickTo(robot, name='KICK IT!!!', lookpoint=lambda: self.lookpoint, minpower=0.9, maxpower=1.0)
+        self.force_kick = KickTo(robot, name='FUCKING KICK IT ALREADY!!!', force_kick=True, lookpoint=lambda: self.lookpoint, minpower=0.9, maxpower=1.0)
         self.wait = Halt(robot)
+        self.stored_point = None
+        self.time_of_last_kick = 0
 
         super(Zickler43, self).__init__(robot, deterministic=deterministic, initial_state=self.drive, transitions=[
             #Transition(self.drive, self.dribble, condition=lambda: self.drive.close_enough()),
-            Transition(self.drive, self.dribble, condition=lambda: self.goal_kick.good_position()),
-            Transition(self.dribble, self.drive, condition=lambda: not self.dribble.close_enough()),
+            Transition(self.drive, self.dribble, condition=lambda: self.drive.close_enough(), callback=self.store_point),
+            Transition(self.dribble, self.drive, condition=lambda: not self.dribble.close_enough(), callback=self.clear_point),
             Transition(self.dribble, self.goal_kick, condition=lambda: self.dribble.close_enough()),
+            Transition(self.dribble, self.force_kick, condition=lambda: self.stored_point.distance(self.robot) > self.conduction_tolerance * Rules.max_conduction_distance, callback=self.clear_point),
             #Transition(self.goal_kick, self.drive, condition=lambda: not self.goal_kick.close_enough()),
-            Transition(self.goal_kick, self.drive, condition=lambda: not self.goal_kick.good_position()),
+            Transition(self.goal_kick, self.drive, condition=lambda: self.goal_kick.bad_position(), callback=lambda: map(lambda a: a(), [self.clear_point, self.set_time])),
+            Transition(self.goal_kick, self.force_kick, condition=lambda: self.stored_point.distance(self.robot) > self.conduction_tolerance * Rules.max_conduction_distance, callback=self.clear_point),
+            Transition(self.force_kick, self.drive, condition=lambda: self.goal_kick.bad_position(), callback=lambda: map(lambda a: a(), [self.clear_point, self.set_time])),
         ])
 
         self.max_hole_size = -1
 
+    def set_time(self):
+        self.time_of_last_kick = self.world.timestamp
+
+    def store_point(self):
+        self.stored_point = Point(array(self.robot))
+
+    def clear_point(self):
+        self.stored_point = None
+
     @property
     def lookpoint(self):
-        return self._lookpoint or self.robot.enemy_goal
+        if callable(self._lookpoint):
+            return self._lookpoint() or self.robot.enemy_goal
+        else:
+            return self._lookpoint or self.robot.enemy_goal
 
     @lookpoint.setter
     def lookpoint(self, point):
         self._lookpoint = point
-        for state in [self.drive, self.dribble, self.goal_kick]:
-            state.lookpoint = point
-
-    def _step(self):
-        lookpoint = self.point_to_kick()
-        if lookpoint is not None:
-            self.lookpoint = lookpoint
-        super(Zickler43, self)._step()
 
     def point_to_kick(self):
         enemy_goal = self.robot.enemy_goal

@@ -1,8 +1,9 @@
 .DS_STORE
 *.py[cod]
-*.swp
+*.sw[po]
 *.sln
 *.suo
 *.pyproj
+*~
 /*-venv
 .virtualenv*

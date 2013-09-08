@@ -40,7 +40,8 @@ class Goto(Skill):
     # force is as least this high:
     min_force_to_ignore_others = 100000
 
-    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
+    #def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
+    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=False, **kwargs):
         """
         final_target: the ultimate position the robot should attain
         target: the intermediate position you're ACTUALLY sending the robot to
@@ -157,7 +158,7 @@ class Goto(Skill):
             t = self.point_away_from_defense_area
 
         # angle control using PID controller
-        if self.angle is not None:
+        if self.angle is not None and self.robot.angle is not None:
             self.angle_controller.input = (180 + self.angle - self.robot.angle) % 360 - 180
             self.angle_controller.feedback = 0.0
             self.angle_controller.step()
@@ -178,13 +179,18 @@ class Goto(Skill):
         mi = 0.1
         a_max = mi * g
         v_max = r.max_speed
-        cte = (4 * a_max / (v_max * v_max))
+        cte = (10 * a_max / (v_max * v_max))
         out = v_max * (1 - exp(-cte * r.distance(f_t)))
         # v is the speed vector resulting from that equation
         if self.avoid_collisions:
             v = out * gradient / norm(gradient)
         else:
-            v = out * error / norm(error)
+            # v = out * normalized error
+            # must check if error is zero lengthed
+            v = error
+            ne = norm(error)
+            if ne != 0:
+                v *= out / ne
 
         # increase by referential speed
         # not working, must think about it

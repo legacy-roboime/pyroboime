@@ -57,7 +57,7 @@ class Model(object):
             timedelta = 25e-3  # Estimated loop time (used if unavailable)
             self.time = data['timestamp']
         if timedelta == 0:
-            raise ValueError, "timedelta == 0"
+            pass#raise ValueError, "timedelta == 0"
         # Per-step variable vectors
         #timedelta = 25e-3
         B = numpy.eye(3) * timedelta  # control matrix B

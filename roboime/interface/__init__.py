@@ -102,7 +102,6 @@ class Interface(Process):
         # actions extraction phase
         # TODO filtering
         for co in self.commanders:
-
             actions = []
             for r in co.team:
                 if r.action is not None:
@@ -129,16 +128,18 @@ class TxInterface(Interface):
             world,
             updaters=[
                 updater.RealVisionUpdater(),
-                updater.RefereeUpdater(),
+                updater.RealRefereeUpdater(),
             ],
             commanders=[
-                commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, ipaddr=transmission_ipaddr, kicking_power_dict=kick_mapping_blue, port=transmission_port),
-                commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, ipaddr=transmission_ipaddr, port=transmission_port),
+                commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, ipaddr=transmission_ipaddr, kicking_power_dict=kick_mapping_blue, port=transmission_port, verbose=True),
+                commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True),
             ],
             filters=filters + [
-                #filter.LowPass(),
+                filter.DeactivateInactives(),
                 filter.Acceleration(),
-                filter.Speed(),
+                filter.Speed(), # second speed is more precise due to Kalman, size=2
+                filter.Kalman(),
+                filter.Speed(3), # first speed used to predict speed for Kalman
                 filter.Scale(),
             ],
             **kwargs
@@ -152,7 +153,7 @@ class SimulationInterface(Interface):
             world,
             updaters=[
                 updater.SimVisionUpdater(),
-                updater.RefereeUpdater(),
+                updater.SimRefereeUpdater(),
             ],
             commanders=[
                 commander.SimCommander(world.blue_team),
@@ -160,6 +161,7 @@ class SimulationInterface(Interface):
             ],
             filters=filters + [
                 #filter.PositionLog(options.position_log_filename), #should be last, to have all data available
+                filter.DeactivateInactives(),
                 filter.Acceleration(),
                 filter.Speed(), # second speed is more precise due to Kalman, size=2
                 #filter.CommandUpdateLog(options.cmdupd_filename),

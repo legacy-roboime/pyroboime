@@ -24,14 +24,14 @@ class RefboxReceiver(MulticastReceiver):
         return referee
 
 
-class RealRefboxReceiver(RefboxReceiver):
-    def __init__(self):
-        super(RealRefboxReceiver, self).__init__(('224.5.23.1', 10003))
-
-
-class SimRefboxReceiver(RefboxReceiver):
-    def __init__(self):
-        super(SimRefboxReceiver, self).__init__(('224.5.23.1', 11003))
+#class RealRefboxReceiver(RefboxReceiver):
+#    def __init__(self):
+#        super(RealRefboxReceiver, self).__init__(('224.5.23.1', 10003))
+#
+#
+#class SimRefboxReceiver(RefboxReceiver):
+#    def __init__(self):
+#        super(SimRefboxReceiver, self).__init__(('224.5.23.1', 11003))
 
 
 class RefboxLegacyReceiver(MulticastReceiver):

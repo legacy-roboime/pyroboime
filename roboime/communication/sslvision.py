@@ -1,3 +1,5 @@
+from google.protobuf.message import DecodeError
+
 from .network.multicast import MulticastReceiver
 from .protos.messages_robocup_ssl_wrapper_pb2 import SSL_WrapperPacket as Wrapper
 
@@ -18,7 +20,10 @@ class VisionReceiver(MulticastReceiver):
 
     def get_packet(self):
         wrapper = Wrapper()
-        wrapper.ParseFromString(self.recv())
+        try:
+            wrapper.ParseFromString(self.recv())
+        except DecodeError:
+            pass
         return wrapper
 
 

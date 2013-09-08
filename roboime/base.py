@@ -28,6 +28,10 @@ Yellow = 0x1e11000
 Blue = 0xb100e00
 
 
+class Rules(object):
+    max_conduction_distance = 0.5
+
+
 class Component(object):
     """Use this class to build components such as kicker or dribbler"""
 
@@ -116,7 +120,7 @@ class Action(object):
     @absolute_speeds.setter
     def absolute_speeds(self, speeds):
         vx, vy, va = speeds
-        ra = self.robot.angle
+        ra = self.robot.angle or 0.0
         self._speeds = (vx * cos(ra) + vy * sin(ra), vy * cos(ra) - vx * sin(ra), va)
 
     def __str__(self):
@@ -126,7 +130,7 @@ class Action(object):
 
 class Robot(geom.Point):
 
-    def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None, max_speed=5.0, max_ang_speed=10.0):
+    def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None, max_speed=2.0, max_ang_speed=10.0):
         """This class represents a robot, regardless of the team.
 
         Remember to set max_speed and max_ang_speed to reasonable limits.
@@ -180,11 +184,15 @@ class Robot(geom.Point):
 
         self.current_tactic = Steppable()
 
-    def __eq__(self, r):
-        return self.uuid == r.uuid
+    def __eq__(self, other):
+        return self.uuid == other.uuid
 
-    def __ne__(self, r):
-        return self.uuid != r.uuid
+    def __ne__(self, other):
+        return self.uuid != other.uuid
+
+    def __str__(self):
+        color = 'Blue' if self.color == Blue else 'Yellow' if self.color == Yellow else 'NoColor'
+        return '<Robot {}:{} at {}>'.format(self.uid, color, super(Robot, self).__str__())
 
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
@@ -492,13 +500,12 @@ class Goal(geom.Point):
     def __init__(self, world, *args):
         super(Goal, self).__init__(0.0, 0.0)
         self.world = world
-        self.update(0.0, 0.0)
+        assert len(args) == 2
+        self.update(*args)
         #self._p1 = geom.Point(0, 0)
         #self._p2 = geom.Point(0, 0)
         #self._line = geom.Line(self._p1, self._p2)
         #self._body = geometry.LineString
-        if len(args) > 0:
-            self.update(*args)
 
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
@@ -553,6 +560,14 @@ class Goal(geom.Point):
     @property
     def wall_width(self):
         return self.world.goal_wall_width
+
+    @property
+    def is_blue(self):
+        return self.world.blue_goal == self
+
+    @property
+    def is_yellow(self):
+        return self.world.yellow_goal == self
 
 
 class Referee(object):
@@ -637,6 +652,7 @@ class World(object):
 
     def __init__(self, right_team=None, left_team=None):
         self.inited = False
+        self.timestamp = 0
 
         # objects
         if right_team is None:
@@ -649,8 +665,8 @@ class World(object):
         else:
             left_team.world = self
             self.left_team = left_team
-        self.right_goal = Goal(self)
-        self.left_goal = Goal(self)
+        self.right_goal = Goal(self, self.length / 2, 0.0)
+        self.left_goal = Goal(self, -self.length / 2, 0.0)
         self.referee = None
         self.ball = Ball(self)
 
@@ -662,6 +678,13 @@ class World(object):
 
     def has_clear_shot(self, point_to_kick):
         shot_line = geom.Line(self.ball, point_to_kick)
+        for robot in self.iterrobots():
+            if shot_line.crosses(robot.body):
+                return False
+        return True
+
+    def has_clear_shot_from_position(self, kicker_position, point_to_kick):
+        shot_line = geom.Line(kicker_position, point_to_kick)
         for robot in self.iterrobots():
             if shot_line.crosses(robot.body):
                 return False
@@ -748,8 +771,10 @@ class World(object):
           If you want to consider both set can_kick to None.
         color: If specified will only consider robots from matching color.
         """
-        d, r = min((r.distance(point), r) for r in self.iterrobots(can_kick=can_kick, color=color))
-        return r
+        distance_robots_list = [(r.distance(point), r) for r in self.iterrobots(can_kick=can_kick, color=color)]
+        if distance_robots_list:
+            d, r = min(distance_robots_list)
+            return r
 
     def closest_robots_to_ball(self, **kwargs):
         return self.closest_robots_to_point(self.ball, **kwargs)

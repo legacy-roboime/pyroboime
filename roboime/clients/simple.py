@@ -14,7 +14,7 @@ from ..interface import SimulationInterface
 #from ..core.tactics import blocker
 #from ..core.tactics import defender
 #from ..core.tactics import zickler43 as zickler
-#from ..core.plays import autoretaliate
+from ..core.plays import autoretaliate
 #from ..core.plays import halt
 from ..core.plays import stop
 #from ..utils.geom import Point
@@ -82,12 +82,12 @@ class Simple(object):
         #        self.skills['def'] = defender.Defender(r, enemy=self.world.yellow_team[2])
         #    r.max_speed = 2.0
 
-        #if 'retaliate' not in self.plays:
-        #    self.plays['retaliate'] = autoretaliate.AutoRetaliate(self.world.yellow_team, 0)
+        if 'retaliate' not in self.plays:
+            self.plays['retaliate'] = autoretaliate.AutoRetaliate(self.world.yellow_team)
         #if 'halt' not in self.plays:
         #    self.plays['halt'] = halt.Halt(self.world.yellow_team)
-        if 'stop1' not in self.plays:
-            self.plays['stop1'] = stop.Stop(self.world.blue_team)
+        #if 'stop1' not in self.plays:
+        #    self.plays['stop1'] = stop.Stop(self.world.blue_team)
         if 'stop2' not in self.plays:
             self.plays['stop2'] = stop.Stop(self.world.yellow_team)
 

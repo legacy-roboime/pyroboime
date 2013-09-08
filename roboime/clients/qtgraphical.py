@@ -38,11 +38,8 @@ from ..core.plays import obeyreferee
 from ..core.plays import halt
 from ..core.plays import ifrit
 
-class GraphicalWorld(World, QtCore.QMutex):
 
-    def __init__(self, *args, **kwargs):
-        World.__init__(self, *args, **kwargs)
-        QtCore.QMutex.__init__(self)
+class QLock(QtCore.QMutex):
 
     def __enter__(self):
         self.lock()
@@ -50,6 +47,13 @@ class GraphicalWorld(World, QtCore.QMutex):
 
     def __exit__(self, t, v, tb):
         self.unlock()
+
+
+class SharedWorld(World, QLock):
+
+    def __init__(self, *args, **kwargs):
+        World.__init__(self, *args, **kwargs)
+        QLock.__init__(self)
 
 
 class QtGraphicalClient(object):
@@ -60,7 +64,7 @@ class QtGraphicalClient(object):
     def __init__(self, **kwargs):
         super(QtGraphicalClient, self).__init__()
 
-        self.world = GraphicalWorld()
+        self.world = SharedWorld()
 
         self.intelligence = Intelligence(self.world, **kwargs)
         #self.intelligence = Intelligence(self.world, self.ui.stageView.redraw)
@@ -69,10 +73,6 @@ class QtGraphicalClient(object):
         self.setupUI()
 
         self.ui.stageView.world = self.world
-
-        self.timer = QtCore.QTimer()
-        #self.timer.timeout.connect(self.ui.stageView.redraw)
-        self.timer.timeout.connect(self.redraw)
 
         # FIXME: This should work.
         # Redraw stageview when the interface applies an update
@@ -85,10 +85,29 @@ class QtGraphicalClient(object):
         # Start children threads
         self.intelligence.start()
 
-        # Start redraw timer (once every 25ms)
-        self.timer.start(25)
+        # Start redraw timer
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.redraw)
+        self.timer_period = 1
+        self.timer.start(self.timer_period)
 
+        self.dockSetupActive = True
+        self.dockRobotActive = True
         self.ui.statusBar.hide()
+
+        # FPS counter
+        self.counter = 0
+        self.counter_lock = QLock()
+        self.fps = 0
+        self.fps_timer = QtCore.QTimer()
+        self.fps_timer.timeout.connect(self.fpsCount);
+        self.fps_timer.start(1000)
+
+    def fpsCount(self):
+        with self.counter_lock:
+            self.fps = self.counter
+            self.counter = 0
+            self.ui.setWindowTitle("RoboIME Graphical Client - {}/{} fps".format(self.fps, 1000 / self.timer_period))
 
     def setupUI(self):
         # Setup GUI buttons and combo boxes
@@ -121,13 +140,13 @@ class QtGraphicalClient(object):
         self.ui.btnChangeSides.clicked.connect(self.changeSides)
         self.ui.actionFullscreen.triggered.connect(self.toggleFullScreen)
         self.ui.actionSetupDock.toggled.connect(self.toggleSetupDock)
-        #self.ui.dockSetup.visibilityChanged.connect(self.toggleSetupDockAction)
+        self.ui.dockSetup.visibilityChanged.connect(self.toggleSetupDockAction)
         self.ui.actionRobotDock.toggled.connect(self.toggleRobotDock)
-        #self.ui.dockRobot.visibilityChanged.connect(self.toggleRobotDockAction)
+        self.ui.dockRobot.visibilityChanged.connect(self.toggleRobotDockAction)
 
         self.ui.rbtSimulation.toggled.connect(self.toggleSimulation)
         self.ui.rbtTransmission.toggled.connect(self.toggleSimulation)
-        
+
         # Mappings
         self.ui.cmbSelectUidYellow.currentIndexChanged.connect(self.selectFirmwareFromUidYellow)
         self.ui.cmbSelectUidBlue.currentIndexChanged.connect(self.selectFirmwareFromUidBlue)
@@ -146,7 +165,9 @@ class QtGraphicalClient(object):
             self.ui.cmbRobotID.addItem(str(i))
 
     def redraw(self):
-        self.ui.stageView.redraw()
+        with self.counter_lock:
+            self.counter += 1
+
         w = self.intelligence.world
         self.ui.txtRefCommand.setText(str(w.referee.pretty_command))
         self.ui.txtRefStage.setText(str(w.referee.pretty_stage))
@@ -176,13 +197,16 @@ class QtGraphicalClient(object):
             self.ui.txtRobotAcceleration.setText('{: 6.2f}, {: 6.2f}'.format(*robot.acceleration))
         self.ui.txtRobotCanKick.setText(str(robot.can_kick))
 
+        self.ui.stageView.redraw()
+        self.ui.update()
+
     # GUI Functions
 
     def selectSliderFromUidBlue(self):
         uid = int(self.ui.cmbKickBlue.currentText())
         self.ui.sliderKickBlue.setValue(self.intelligence.kick_mapping_blue[uid])
         #print self.intelligence.kick_mapping_blue
-    
+
     def setKickPowerBlue(self):
         uid = int(self.ui.cmbKickBlue.currentText())
         self.intelligence.kick_mapping_blue[uid] = int(self.ui.sliderKickBlue.value())
@@ -196,7 +220,7 @@ class QtGraphicalClient(object):
         uid = int(self.ui.cmbSelectUidYellow.currentText())
         self.ui.sliderKickBlue.setValue(self.intelligence.kick_mapping_yellow[uid])
         #print self.intelligence.kick_mapping_yellow
-   
+
     def setKickPowerYellow(self):
         uid = int(self.ui.cmbKickBlue.currentText())
         self.intelligence.kick_mapping_yellow[uid] = int(self.ui.sliderKickYellow.value())
@@ -205,7 +229,7 @@ class QtGraphicalClient(object):
         else:
             self.world.yellow_team[uid].can_kick = False
         #print self.intelligence.kick_mapping_yellow
-    
+
     def selectFirmwareFromUidYellow(self):
         uid = int(self.ui.cmbSelectUidYellow.currentText())
         if uid in self.intelligence.mapping_yellow:
@@ -241,8 +265,8 @@ class QtGraphicalClient(object):
     def setDefaultMappingBlue(self):
         self.intelligence.mapping_yellow.clear()
         self.intelligence.mapping_blue.clear()
-        for r in self.intelligence.world.blue_team:
-            self.intelligence.mapping_blue[r.uid] = r.uid
+        for r in xrange(10):#self.intelligence.world.blue_team:
+            self.intelligence.mapping_blue[r] = r
         uid = int(self.ui.cmbSelectUidBlue.currentText())
         if uid in self.intelligence.mapping_blue:
             self.ui.cmbSelectFirmwareIdBlue.setCurrentIndex(self.intelligence.mapping_blue[uid]+1)
@@ -251,8 +275,8 @@ class QtGraphicalClient(object):
     def setDefaultMappingYellow(self):
         self.intelligence.mapping_yellow.clear()
         self.intelligence.mapping_blue.clear()
-        for r in self.intelligence.world.yellow_team:
-            self.intelligence.mapping_yellow[r.uid] = r.uid
+        for r in xrange(10):#self.intelligence.world.yellow_team:
+            self.intelligence.mapping_yellow[r] = r
         uid = int(self.ui.cmbSelectUidYellow.currentText())
         if uid in self.intelligence.mapping_yellow:
             self.ui.cmbSelectFirmwareIdYellow.setCurrentIndex(self.intelligence.mapping_yellow[uid]+1)
@@ -328,8 +352,8 @@ class QtGraphicalClient(object):
     def toggleFullScreen(self):
         if self.ui.windowState() & QtCore.Qt.WindowFullScreen:
             self.ui.showNormal()
-            self.ui.dockSetup.show()
-            self.ui.dockRobot.show()
+            if self.dockSetupActive: self.ui.dockSetup.show()
+            if self.dockRobotActive: self.ui.dockRobot.show()
             self.ui.menuBar.show()
             #self.ui.statusBar.show()
         else:
@@ -346,6 +370,7 @@ class QtGraphicalClient(object):
             self.ui.dockSetup.show()
         else:
             self.ui.dockSetup.hide()
+        self.dockSetupActive = activate
 
     def toggleSetupDockAction(self, activate):
         self.ui.actionSetupDock.setChecked(activate)
@@ -355,6 +380,7 @@ class QtGraphicalClient(object):
             self.ui.dockRobot.show()
         else:
             self.ui.dockRobot.hide()
+        self.dockRobotActive = activate
 
     def toggleRobotDockAction(self, activate):
         self.ui.actionRobotDock.setChecked(activate)
@@ -389,8 +415,8 @@ class Intelligence(QtCore.QThread):
         self.kick_mapping_blue = defaultdict(lambda: 100)
         self.kick_mapping_yellow = defaultdict(lambda: 100)
 
-        self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue, 
-                                        kick_mapping_yellow=self.kick_mapping_yellow, kick_mapping_blue=self.kick_mapping_blue, 
+        self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue,
+                                        kick_mapping_yellow=self.kick_mapping_yellow, kick_mapping_blue=self.kick_mapping_blue,
                                         transmission_ipaddr='127.0.0.1', transmission_port=9050)
         self.interface = SimulationInterface(self.world)
 
@@ -435,7 +461,7 @@ class Intelligence(QtCore.QThread):
         self.current_individual_blue = Dummy()
         self.current_individual_yellow = Dummy()
 
-        self.is_simulation = False
+        self.is_simulation = True
 
     def _loop(self):
         self.current_play_blue.step()

@@ -6,6 +6,7 @@ from collections import defaultdict
 
 from model import Model
 from ..base import World
+from ..base import Blue, Yellow
 
 
 class Filter(object):
@@ -399,3 +400,48 @@ class Kalman(Filter):
                     #m = self.get_model(u.uid())
                     #m.update(u.data)
                     #m.new_speed(u.data['speed'])
+
+
+class DeactivateInactives(Filter):
+    """
+    This filter will deactivate robots which are not seen after a given number
+    of frames.
+    """
+
+    def __init__(self, frames=360):
+        self.frames = frames
+        self.frame_count = 0
+        self.last_seen = dict((0x100 + i, (self.frame_count, RobotUpdate(Blue, i, {}))) for i in xrange(12))
+        self.last_seen.update(dict((0x200 + i, (self.frame_count, RobotUpdate(Yellow, i, {}))) for i in xrange(12)))
+
+    def filter_updates(self, updates):
+        self.frame_count += 1
+        for u in updates:
+            if isinstance(u, RobotUpdate):
+                self.last_seen[u.uid()] = (self.frame_count, u)
+
+        # check long unseens
+        for uid, (frame_count, u) in self.last_seen.iteritems():
+            delta_frames = self.frame_count - frame_count
+            #print self, u.i, uid, delta_frames
+            if delta_frames > self.frames:
+                # that robot is no longer here, we should remove it
+                u.deactivate = True
+                updates.append(RobotUpdate(u.team_color, u.i, deactivate=True))
+
+
+class IgnoreSide(Filter):
+
+    def __init__(self, side_to_ignore='+'):
+        self.side_to_ignore = side_to_ignore
+        super(IgnoreSide, self).__init__()
+
+    def filter_updates(self, updates):
+        sign = -1 if self.side_to_ignore == '-' else 1
+        to_be_removed = []
+        for u in updates:
+            if 'x' in u.data:
+                if u.data['x'] * sign > 0:
+                    to_be_removed.append(u)
+        for u in to_be_removed:
+            updates.remove(u)
