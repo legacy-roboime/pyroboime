@@ -7,13 +7,7 @@ from ..communication import sslrefbox
 STOP_TIMEOUT = 1
 
 
-#if robot.has_touched_ball:
-#    for r in robot.team:
-#        r.is_last_toucher = False
-#        r.has_touched_ball = False
-#    robot.is_last_toucher = True
-#    robot.has_touched_ball = False
-class Update(object):
+class Update(dict):
 
     def __init__(self, data):
         """
@@ -41,10 +35,10 @@ class Update(object):
         ...     },
         ... }
         """
-        self.data = data
+        super(Update, self).__init__(data)
 
     def apply(self, world):
-        for prop, value in self.data.iteritems():
+        for prop, value in self.iteritems():
             if prop in ('blue_team', 'yellow_team'):
                 team = getattr(world, prop)
 
@@ -55,8 +49,8 @@ class Update(object):
                     # let's check if we have robot data
                     if team_prop == '__robots__':
                         for robot_id, robot_data in team_value.iteritems():
-                            robot = team[team_prop]
-                            robot_data = team_value
+                            robot = team[robot_id]
+                            #robot_data = team_value
 
                             # if instead of a dict the data is __delete__ it's used to signale
                             # that the robot is not seen anymore and should be deactivated
@@ -67,17 +61,20 @@ class Update(object):
                                 robot.active = True
                                 # x and y properties have a caveat, they cannot be set directly
                                 # thus they must be set through the update method
-                                robot.update(robot_data.pop('x'), robot_data.pop('y'))
+                                robot.update(robot_data['x'], robot_data['y'])
 
-                                for robot_prop, robot_prop_value in robot_data.iteritems():
-                                    setattr(robot, robot_prop, robot_prop_value)
+                                # set all other properties the natuarl way
+                                for prop, val in robot_data.iteritems():
+                                    if prop not in ('x', 'y'):
+                                        setattr(robot, prop, val)
 
-                                    if robot.has_touched_ball:
-                                        for r in robot.team:
-                                            r.is_last_toucher = False
-                                            r.has_touched_ball = False
-                                        robot.is_last_toucher = True
-                                        robot.has_touched_ball = False
+                                #FIXME find the right place to do this:
+                                if robot.has_touched_ball:
+                                    for r in robot.team:
+                                        r.is_last_toucher = False
+                                        r.has_touched_ball = False
+                                    robot.is_last_toucher = True
+                                    robot.has_touched_ball = False
 
 
                     else:
@@ -94,9 +91,10 @@ class Update(object):
                 #TODO somehow support for multiple balls
                 if len(value) > 0:
                     ball_data = value[0]
-                    world.ball.update(ball_data.pop('x'), ball_data.pop('y'))
+                    world.ball.update(ball_data['x'], ball_data['y'])
                     for ball_prop, ball_prop_value in ball_data.iteritems():
-                        setattr(world.ball, ball_prop, ball_prop_value)
+                        if ball_prop not in ('x', 'y'):
+                            setattr(world.ball, ball_prop, ball_prop_value)
 
             # ignore some metadata
             elif prop.startswith('__'):
@@ -112,39 +110,49 @@ class Update(object):
             world.inited = True
 
 
-    def __str__(self):
-        return "<{}: data={}>".format(type(self), self.data)
+    #def __str__(self):
+    #    return "<{}: data={}>".format(type(self), super(Update, self))
 
     def has_detection_data(self):
-        return '__detection_data__' in self.data
+        return '__detection_data__' in self
 
     def has_geometry_data(self):
-        return '__geometry_data__' in self.data
+        return '__geometry_data__' in self
 
     def has_referee_data(self):
-        return '__referee_data__' in self.data
-
-    def urobots(self):
-        for uid, robot_data in self.data['blue_team']['__robots__'].iteritems():
-            yield (uid + 0x100, robot_data)
-        for uid, robot_data in self.data['yellow_team']['__robots__'].iteritems():
-            yield (uid + 0x200, robot_data)
+        return '__referee_data__' in self
 
     def robots(self):
-        for robot in self.data['blue_team']['__robots__'].iteritems():
+        for robot in self['blue_team']['__robots__'].iteritems():
             yield robot
-        for robot in self.data['yellow_team']['__robots__'].iteritems():
+        for robot in self['yellow_team']['__robots__'].iteritems():
             yield robot
 
     def balls(self):
-        for ball in self.data['balls']:
-            yield ('ball', ball)
+        for ball_data in self['balls'].iteritems():
+            yield ball_data
 
     def objects(self):
         for ball_data in self.balls():
             yield ball_data
         for robot_data in self.robots():
             yield robot_data
+
+    def urobots(self):
+        for uid, robot_data in self['blue_team']['__robots__'].iteritems():
+            yield (('blue_team', uid), robot_data)
+        for uid, robot_data in self['yellow_team']['__robots__'].iteritems():
+            yield (('yellow_team', uid), robot_data)
+
+    def uballs(self):
+        for uid, ball_data in self['balls'].iteritems():
+            yield (('balls', uid), ball_data)
+
+    def uobjects(self):
+        for uball in self.uballs():
+            yield uball
+        for urobot in self.urobots():
+            yield urobot
 
 
 class Updater(Process):
@@ -176,7 +184,7 @@ class Updater(Process):
             self.terminate()
 
     def receive(self):
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class VisionUpdater(Updater):
@@ -219,12 +227,12 @@ class VisionUpdater(Updater):
                 '__detection_data__': 1,
                 'yellow_team': {'__robots__': {}},
                 'blue_team': {'__robots__': {}},
-                'balls': [],
+                'balls': {},
             })
 
             balls = data['balls']
-            for b in packet.detection.balls:
-                balls.append({'ball': {
+            for i, b in enumerate(packet.detection.balls):
+                balls.update({i: {
                     'x': b.x,
                     'y': b.y,
                 }})

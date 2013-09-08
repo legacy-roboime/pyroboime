@@ -78,11 +78,10 @@ class Interface(Process):
                     if up.queue.empty():
                         break
                 for fi in reversed(self.filters):
-                    _uu = fi.filter_updates(uu)
+                    _uu = fi.filter_update(uu)
                     if _uu is not None:
                         uu = _uu
-                for u in uu:
-                    u.apply(self.world)
+                uu.apply(self.world)
 
             ##with up.queue_lock:
             ##    print 'Queue size: ', up.queue.qsize()
@@ -107,7 +106,7 @@ class Interface(Process):
                 if r.action is not None:
                     actions.append(r.action)
             for fi in self.filters:
-                _actions = fi.filter_commands(actions)
+                _actions = fi.filter_command(actions)
                 if _actions is not None:
                     actions = _actions
 
