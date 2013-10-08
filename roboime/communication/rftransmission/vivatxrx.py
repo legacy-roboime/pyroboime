@@ -15,7 +15,7 @@ class VIVATxRx(Transmitter):
             self.transmitter = None
         if self.transmitter is not None:
             self.transmitter.set_configuration()
-        self.is_working = self.transmitter is None
+        self.is_working = self.transmitter is not None
 
     def send(self, array):
         print self.is_busy
