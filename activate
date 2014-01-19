@@ -1,5 +1,4 @@
-#!/bin/bash
-# source this file to enter virtualenv
+# source this file to enter virtualenv:
 #
 #     source activate
 #
