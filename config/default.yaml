@@ -1,0 +1,19 @@
+# this is the default configuration
+# usually you do NOT want to modify this file
+# you can roll your own development.yaml
+interface:
+  debug: false
+  sim:
+    vision-addr: 224.5.23.2
+    vision-port: 11002
+    referee-addr: 224.5.23.1
+    referee-port: 11003
+    grsim-addr: 127.0.0.1
+    grsim-port: 20011
+  tx:
+    vision-addr: 224.5.23.2
+    vision-port: 10002
+    referee-addr: 224.5.23.1
+    referee-port: 10003
+cli:
+  debug: false

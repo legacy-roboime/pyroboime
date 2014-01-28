@@ -1,3 +1,16 @@
+#
+# Copyright (C) 2013 RoboIME
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
 import usb.core
 
 from . import Transmitter
@@ -7,18 +20,22 @@ class VIVATxRx(Transmitter):
     This class implements a thin wrapper around the RF12 USB transmitter
     we currently (as of july 2013) use to transmit commands to the robots.
     '''
-    def __init__(self, id_vendor=5824, id_product=1500):
+    def __init__(self, id_vendor=5824, id_product=1500, verbose=False):
         super(VIVATxRx, self).__init__()
         try:
             self.transmitter = usb.core.find(idVendor=id_vendor, idProduct=id_product)
+        except AttributeError:
+            self.transmitter = None
         except ValueError:
             self.transmitter = None
         if self.transmitter is not None:
             self.transmitter.set_configuration()
         self.is_working = self.transmitter is not None
+        self.verbose = verbose
 
     def send(self, array):
-        print self.is_busy
+        if self.verbose:
+            print self.is_busy
         if (not self.is_busy) and self.is_working:
             return self.transmitter.ctrl_transfer(5696, 3, 0, 0, array)
         else:

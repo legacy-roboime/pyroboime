@@ -3,3 +3,5 @@ shapely
 flake8
 numpy
 pyusb
+pyzmq
+pyyaml

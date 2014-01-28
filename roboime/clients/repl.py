@@ -11,18 +11,17 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-from .. import Skill
+from .cli import CLI
 
 
-class Halt(Skill):
-    """
-    This skill will stop the robot by setting its action target
-    to its current position.
-    """
+class Repl(CLI):
 
-    def __init__(self, robot, deterministic=True, **kwargs):
-        super(Halt, self).__init__(robot, deterministic=deterministic, **kwargs)
+    def read(self):
+        cmdlist = raw_input('> ').split()
+        return {
+            'cmd': cmdlist[0],
+            'args': cmdlist[1:],
+        }
 
-    def _step(self):
-        self.robot.action.absolute_speeds = (0, 0, 0)
-        self.robot.skill = self
+    def write(self, text, ok=True):
+        print text
