@@ -60,7 +60,7 @@ class Tx2013Commander(Commander):
     The main difference from this one to the Tx2012Commander are that this one does not require
     the usage of a separate program to actually execute the radio transmission.
     '''
-    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, verbose=False, **kwargs):
+    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, verbose=False, **kwargs):
         super(Tx2013Commander, self).__init__(**kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
@@ -312,11 +312,10 @@ class TxCommander(Commander):
 
 class SimCommander(Commander):
 
-    def __init__(self, team, **kwargs):
+    def __init__(self, team, address, **kwargs):
         super(SimCommander, self).__init__(**kwargs)
         self.team = team
-        #self.sender = grsim.grSimSender(('200.20.120.133', 20011))
-        self.sender = grsim.grSimSender()
+        self.sender = grsim.grSimSender(address)
 
     def send(self, actions):
         packet = self.sender.new_packet()

@@ -218,18 +218,6 @@ class VisionUpdater(Updater):
         return updates
 
 
-class RealVisionUpdater(VisionUpdater):
-
-    def __init__(self):
-        VisionUpdater.__init__(self, ('224.5.23.2', 10002))
-
-
-class SimVisionUpdater(VisionUpdater):
-
-    def __init__(self):
-        VisionUpdater.__init__(self, ('224.5.23.2', 11002))
-
-
 class RefereeUpdater(Updater):
 
     def __init__(self, address):
@@ -270,15 +258,3 @@ class RefereeUpdater(Updater):
             'goalie': referee.yellow.goalie,
         }))
         return updates
-
-
-class RealRefereeUpdater(RefereeUpdater):
-
-    def __init__(self):
-        RefereeUpdater.__init__(self, ('224.5.23.1', 10003))
-
-
-class SimRefereeUpdater(RefereeUpdater):
-
-    def __init__(self):
-        RefereeUpdater.__init__(self, ('224.5.23.1', 11003))
