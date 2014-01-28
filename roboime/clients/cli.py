@@ -218,8 +218,14 @@ class CLI(Thread):
         self.world = World()
 
         # initial interface:
-        self.interface = SimulationInterface(self.world)
-        #self.interface = TxInterface(self.world)
+        default_interface = config['interface']['default']
+        if default_interface == 'sim':
+            self.interface = SimulationInterface(self.world)
+        elif default_interface == 'tx':
+            self.interface = TxInterface(self.world)
+        else:
+            #TODO: proper exception
+            raise RuntimeError('interface {} not recognized'.format(default_interface))
 
         # Magic (grab attrs that do not begin with _)
         commands = filter(lambda i: not i.startswith('_'), dir(_commands))
