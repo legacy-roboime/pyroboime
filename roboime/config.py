@@ -1,3 +1,8 @@
+"""
+Import this config from this module to get access to the configurations.
+To edit your configurations refer to the config/default.yaml there's more
+stuff there.
+"""
 from os import path
 import json
 import yaml

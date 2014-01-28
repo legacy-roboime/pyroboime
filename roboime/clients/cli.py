@@ -30,6 +30,7 @@ from ..core.plays import stop
 from ..core.plays import obeyreferee
 from ..core.plays import halt
 from ..core.plays import ifrit
+from ..config import config
 
 
 # Commands
@@ -90,6 +91,10 @@ class Commands(object):
 
 
 
+    def hello(self):
+        self.write('world')
+
+
 class CLI(Thread):
 
     PLAY = 'play'
@@ -97,6 +102,7 @@ class CLI(Thread):
 
     def __init__(self):
         super(CLI, self).__init__()
+        self.debug = config['cli']['debug']
         self.quit = False
         self.world = World()
 
@@ -178,8 +184,8 @@ class CLI(Thread):
         """
         while True:
             try:
-                cmdict = self.read()
-                cmd, args = cmdict['cmd'], cmdict['args']
+                _cmd = self.read()
+                cmd, args = _cmd['cmd'], _cmd['args']
 
                 if cmd == 'q' or cmd == 'quit' or cmd == 'exit':
                     # quit is special because it breaks the loop
@@ -188,12 +194,12 @@ class CLI(Thread):
                     break
                 else:
                     if cmd in self.cmd_dict:
-                        self.write(self.cmd_dict[cmd](self, *args) or '')
+                        self.write(self.cmd_dict[cmd](self, *args) or '', False)
                     else:
-                        self.write('Command {} not recognized.'.format(cmd))
+                        self.write('Command "{}" not recognized.'.format(cmd), False)
 
             except Exception as e:
-                self.write('An exception occured: {}\nQuiting...'.format(e))
+                self.write('An exception occured: {}\nQuiting...'.format(e), False)
                 self.quit = True
                 break
 
