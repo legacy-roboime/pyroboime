@@ -28,3 +28,29 @@ Great Python debugger for Windows users (even though it is meant to be a platfor
 The Qt client requires PyQt4 to work. 64-bit windows users are advised to install the binaries provided by Riverbank.
 
 To use a joystick (xbox controller, attack 3 or maxprint) pygame is required.
+
+Web interface
+-------------
+
+There is an ongoing effort to use [ssl-webclient](https://github.com/roboime/ssl-webclient) as an interface for this
+software.
+Various changes are expected and lots of requirements should be dropped to further simplify this project.
+
+License
+-------
+
+This software is licensed under the [AGPL](http://www.gnu.org/licenses/agpl-3.0.html), a copy of this license can
+be found on the [LICENSE](LICENSE) file.
+
+__There is an aditional clause for using this code on competitions:__
+
+- Any derived work from this software must be released under the same license and terms at least before the next
+  instance of the competition which it was used. For example if you use this project for the 10th competition of
+  the X league you must release the derived software used on that competition. This applies for any number of
+  competitions, regardless of the frequency of those competitions. Note however that your only required to release
+  the version of the derived software which was used on the competition, there is no need to release more recent
+  software.
+
+The reason for the term above is to promote collaboration, help starting teams and also maintain competitiveness.
+
+This is an experimental clause that may be modified in the future, any critique is appreciated.

@@ -1,3 +1,16 @@
+#
+# Copyright (C) 2013 RoboIME
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
 from multiprocessing import Process, Queue, Event, Lock
 
 from ..communication import sslvision
@@ -256,18 +269,6 @@ class VisionUpdater(Updater):
         return Update(data)
 
 
-class RealVisionUpdater(VisionUpdater):
-
-    def __init__(self):
-        VisionUpdater.__init__(self, ('224.5.23.2', 10002))
-
-
-class SimVisionUpdater(VisionUpdater):
-
-    def __init__(self):
-        VisionUpdater.__init__(self, ('224.5.23.2', 11004))
-
-
 class RefereeUpdater(Updater):
 
     def __init__(self, address):
@@ -312,15 +313,3 @@ class RefereeUpdater(Updater):
         }
 
         return Update(data)
-
-
-class RealRefereeUpdater(RefereeUpdater):
-
-    def __init__(self):
-        RefereeUpdater.__init__(self, ('224.5.23.1', 10003))
-
-
-class SimRefereeUpdater(RefereeUpdater):
-
-    def __init__(self):
-        RefereeUpdater.__init__(self, ('224.5.23.1', 11003))

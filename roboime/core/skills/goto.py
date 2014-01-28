@@ -1,3 +1,16 @@
+#
+# Copyright (C) 2013 RoboIME
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
 from numpy import array
 from numpy.linalg import norm
 
@@ -179,7 +192,7 @@ class Goto(Skill):
         mi = 0.1
         a_max = mi * g
         v_max = r.max_speed
-        cte = (10 * a_max / (v_max * v_max))
+        cte = (6 * a_max / (v_max * v_max))
         out = v_max * (1 - exp(-cte * r.distance(f_t)))
         # v is the speed vector resulting from that equation
         if self.avoid_collisions:
