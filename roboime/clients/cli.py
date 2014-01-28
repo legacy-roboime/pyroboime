@@ -5,8 +5,8 @@ from ..utils.geom import Point
 
 from ..interface import SimulationInterface
 from ..interface import TxInterface
-from ..base import World, Yellow, Blue
-from ..core import Dummy 
+from ..base import World
+from ..core import Dummy
 from ..core.skills import goto
 from ..core.skills import gotoavoid
 from ..core.skills import drivetoobject
@@ -34,71 +34,169 @@ from ..core.plays import halt
 from ..core.plays import ifrit
 from ..config import config
 
+_individuals = {
+    'dummy': lambda r: Dummy(),
+    'goto': lambda r: goto.Goto(r, target=Point(0, 0)),
+    'goto_avoid': lambda r: gotoavoid.GotoAvoid(r, target=Point(0, 0), avoid=r.world.ball),
+    'drive_to_object': lambda r: drivetoobject.DriveToObject(r, lookpoint=r.enemy_goal, point=r.world.ball),
+    'drive_to_ball': lambda r: drivetoball.DriveToBall(r, lookpoint=r.enemy_goal),
+    'sampled_driblle': lambda r: sampleddribble.SampledDribble(r, lookpoint=r.enemy_goal),
+    'sampled_kick': lambda r: sampledkick.SampledKick(r, lookpoint=r.enemy_goal),
+    'follow_and_cover': lambda r: followandcover.FollowAndCover(r, follow=r.goal, cover=r.world.ball),
+    'sampled_chip_kick': lambda r: sampledchipkick.SampledChipKick(r, lookpoint=r.enemy_goal),
+    'kick_to': lambda r: kickto.KickTo(r, lookpoint=Point(0, 0)),
+    'blocker': lambda r: blocker.Blocker(r, arc=0),
+    'goalkeeper': lambda r: goalkeeper.Goalkeeper(r, angle=30, aggressive=True),
+    'zickler43': lambda r: zickler43.Zickler43(r),
+    'defender': lambda r: defender.Defender(r, enemy=r.world.ball),
+    'dummy_receive_pass': lambda r: receivepass.ReceivePass(r, Point(0,0)),
+}
+if joystick is not None:
+    _individuals['joystick'] = lambda r: joystick.Joystick(r)
+
+_plays = {
+    'dummy': lambda t: Dummy(),
+    'halt': lambda t: halt.Halt(t),
+    'stop': lambda t: stop.Stop(t),
+    'auto_retaliate': lambda t: autoretaliate.AutoRetaliate(t),
+    'indirect_kick': lambda t: indirectkick.IndirectKick(t),
+    'ifrit': lambda t: ifrit.Ifrit(t),
+    'obey': lambda t: obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(t)),
+}
+
+def _get_team(self, team):
+    if team == 'blue':
+        return self.world.blue_team
+    elif team == 'yellow':
+        return self.world.yellow_team
+
+def _get_robot(self, team, robot):
+    t = _get_team(self, team)
+    if t is not None:
+        return t[int(robot)]
 
 # Commands
 # ========
 
-# commands should be aware that possible arguments can only be strings
-# furthermore anything returned should also be a string.
 
-
-class Commands(object):
-    """ 
-    self is a reference to an instance of CLI, don't be fooled 
-
-    Example:
-    >>> Commands.use_sim_interface(CLI())
-    """
+class _commands(object):
+    """This class is not to be used directly"""
+    # commands should be aware that possible arguments can only be strings
+    # furthermore should you need to output something use self.write
+    # in all cases self is an instance of CLI, don't be fooled
 
     def __init__(self):
         raise NotImplementedError('This is what you get for trying to instance this class.')
 
     def use_sim_interface(self):
-        """Switch to interfacing with the simnulator."""
+        """use the simulator interface"""
         self.interface.stop()
         self.interface = SimulationInterface(self.world)
         self.interface.start()
+        self.write('ok')
 
     def use_real_interface(self):
-        """Switch to interfacing with the transmission."""
+        """use the real interface"""
         self.interface.stop()
-        self.interface = TxInterface(self.world,
-                                     mapping_yellow=self.id_mapping[Yellow],
-                                     mapping_blue=self.id_mapping[Blue],
-                                     kick_mapping_yellow=self.kick_mapping[Yellow],
-                                     kick_mapping_blue=self.kick_mapping[Blue])
+        self.interface = TxInterface(
+            self.world,
+            mapping_yellow=self.id_mapping["yellow"],
+            mapping_blue=self.id_mapping["blue"],
+            kick_mapping_yellow=self.kick_mapping["yellow"],
+            kick_mapping_blue=self.kick_mapping["blue"],
+        )
         self.interface.start()
+        self.write('ok')
 
     def set_default_mappings(self, team):
-        """ Set id0: 0, id1: 1... for the team.
-            Team is one of base.Blue, base.Yellow """
+        """set_default_mappings <blue|yellow>
+        this is only used for the real interface
+        """
         for i in xrange(10):
             self.id_mapping[team][i] = i;
-        self.write("ok")
+        self.write('ok')
 
-    def set_kick_power(self, team, r_id, power):
-        """ Sets the kick power of a robot. """
-        self.kick_mapping[team][r_id] = power
+    def set_kick_power(self, team, robot, power):
+        """set_kick_power <blue|yellow> robot power
+        this is only used for the real interface
+        """
+        self.kick_mapping[team][int(robot)] = float(power)
+        self.write('ok')
 
+    def set_firmware_id(self, team, robot, firmware_id):
+        """set_firmware_id <blue|yellow> robot firmware_id
+        this is only used for the real interface
+        """
+        self.id_mapping[team][int(robot)] = int(firmware_id)
+        self.write('ok')
 
-    def set_firmware_id(self, team, r_id, firmware_id):
-        """ Sets the firmware id of a robot. """
-        self.id_mapping[team][r_id] = firmware_id
+    def halt(self):
+        """halts both teams, resets all individuals"""
+        self.plays['blue'] = _plays['halt'](self.world.blue_team)
+        self.plays['yellow'] = _plays['halt'](self.world.yellow_team)
+        for indv in self.individuals.itervalues():
+            for i in indv:
+                indv[i] = Dummy()
+        self.write('ok')
 
-    def set_play(self, team, play_id):
-        self.plays[team] = self.available_plays[play_id](self.world.team(team))
+    def stop(self):
+        """stops both teams, resets all individuals"""
+        #XXX: let the previous be gc'ed?
+        self.plays['blue'] = _plays['stop'](self.world.blue_team)
+        self.plays['yellow'] = _plays['stop'](self.world.yellow_team)
+        for indv in self.individuals.itervalues():
+            for i in indv:
+                indv[i] = Dummy()
+        self.write('ok')
 
-    def set_individual(self, team, r_id, play_id):
-        self.individuals[team] = self.available_individuals[play_id](self.world.team(team)[r_id])
+    def plays(self):
+        """list available plays"""
+        self.write('\n'.join(_plays.keys()))
+
+    def individuals(self):
+        """list available individuals"""
+        self.write('\n'.join(_individuals.keys()))
+
+    def set_play(self, team, play):
+        """set_play <blue|yellow> play"""
+        if play in _plays:
+            self.plays[team] = _plays[play](_get_team(self, team))
+            self.write('ok')
+        else:
+            self.write('play {} does not exist'.format(play), ok=False)
+
+    def set_individual(self, team, robot, individual):
+        """set_individual <blue|yellow> robot individual"""
+        if individual in _individuals:
+            self.individuals[team][robot] = _individuals[individual](_get_robot(self, team, robot))
+            self.write('ok')
+        else:
+            self.write('individual {} does not exist'.format(individual), ok=False)
 
     def hello(self):
+        """hello -> world, simplest test of connectivity"""
         self.write('world')
+
+    def help(self, cmd=None):
+        """help [command]"""
+        if cmd is None:
+            self.write(
+                '\n'.join([
+                    'usage: help [command]',
+                    'available commands:',
+                ] + self.cmd_dict.keys() + ['quit'])
+            )
+        else:
+            if cmd == 'quit':
+                self.write('quit: end the intel')
+            elif cmd in self.cmd_dict:
+                cmd_func = self.cmd_dict[cmd].im_func
+                self.write('{0.func_name}: {0.func_doc}'.format(cmd_func).strip())
+            else:
+                self.write('command "{}" not recognized'.format(cmd), ok=False)
 
 
 class CLI(Thread):
-
-    PLAY = 'play'
-    INDIVIDUAL = 'individual'
 
     def __init__(self):
         super(CLI, self).__init__()
@@ -106,53 +204,26 @@ class CLI(Thread):
         self.quit = False
         self.world = World()
 
-        self.run_mode = CLI.PLAY
-
         # initial interface:
         self.interface = SimulationInterface(self.world)
         #self.interface = TxInterface(self.world)
 
-        # Magic
-        commands = filter(lambda i: not i.startswith('_'), dir(Commands))
-
-        self.cmd_dict = { i: getattr(Commands, i) for i in commands }
-        if self.debug:
-            print self.cmd_dict
+        # Magic (grab attrs that do not begin with _)
+        commands = filter(lambda i: not i.startswith('_'), dir(_commands))
+        self.cmd_dict = {i: getattr(_commands, i) for i in commands}
 
         self.available_individuals = lambda robot: OrderedDict([
-            ('', Dummy()),
-            ('Go To', goto.Goto(robot, target=Point(0, 0))),
-            ('Go To Avoid', gotoavoid.GotoAvoid(robot, target=Point(0, 0), avoid=self.world.ball)),
-            ('Drive To Object', drivetoobject.DriveToObject(robot, lookpoint=robot.enemy_goal, point=self.world.ball)),
-            ('Drive To Ball', drivetoball.DriveToBall(robot, lookpoint=robot.enemy_goal)),
-            ('Sampled Dribble', sampleddribble.SampledDribble(robot, lookpoint=robot.enemy_goal)),
-            ('Sampled Kick', sampledkick.SampledKick(robot, lookpoint=robot.enemy_goal)),
-            ('Follow And Cover', followandcover.FollowAndCover(robot, follow=robot.goal, cover=self.world.ball)),
-            ('Sampled Chip Kick', sampledchipkick.SampledChipKick(robot, lookpoint=robot.enemy_goal)),
-            ('Kick To (0,0)', kickto.KickTo(robot, lookpoint=Point(0, 0))),
-            ('Blocker', blocker.Blocker(robot, arc=0)),
-            ('Goalkeeper', goalkeeper.Goalkeeper(robot, angle=30, aggressive=True)),
-            ('Zickler43', zickler43.Zickler43(robot)),
-            ('Defender', defender.Defender(robot, enemy=self.world.ball)),
-            ('Dummy Receive Pass', receivepass.ReceivePass(robot, Point(0,0))),
-            ('Joystick', joystick.Joystick(robot)) if joystick is not None else (('Joystick not available'), Dummy()),
         ])
 
         self.available_plays = lambda team: OrderedDict([
-            ('', Dummy()),
-            ('Auto Retaliate', autoretaliate.AutoRetaliate(team)),
-            ('Ifrit', ifrit.Ifrit(team)),
-            ('Stop', stop.Stop(team)),
-            ('Indirect Kick', indirectkick.IndirectKick(team)),
-            ('Obey Referee', obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(team))),
-            ('Halt', halt.Halt(team)),
         ])
 
-        self.id_mapping = { Blue: {}, Yellow: {} }
-        self.kick_mapping = { Blue: defaultdict(lambda: 100), Yellow: defaultdict(lambda: 100) }
+        self.id_mapping = {"blue": {}, "yellow": {}}
+        self.kick_mapping = {"blue": defaultdict(lambda: 100), "yellow": defaultdict(lambda: 100)}
 
-        self.plays = { Yellow: Dummy(), Blue: Dummy() }
-        self.individuals = { Yellow: [Dummy() for i in self.world.yellow_team], Blue: [Dummy() for i in self.world.blue_team] }
+        max_robots = 12
+        self.plays = {"yellow": Dummy(), "blue": Dummy()}
+        self.individuals = {"blue": {i: Dummy() for i in range(max_robots)}, "yellow": {i: Dummy() for i in range(max_robots)}}
 
 
     def read(self):
@@ -165,18 +236,19 @@ class CLI(Thread):
         self.interface.start()
         super(CLI, self).start()
 
+        # finished initializing, welcome the user with a message:
+        self.write("hello, intel is up!")
+
     def stop(self):
         self.interface.stop()
 
     def step(self):
         self.interface.step()
-        if self.run_mode == CLI.PLAY:
-            for p in self.plays.itervalues():
-                p.step()
-        if self.run_mode == CLI.INDIVIDUAL:
-            for l in self.individuals.itervalues():
-                for t in l:
-                    t.step()
+        for p in self.plays.itervalues():
+            p.step()
+        for t in self.individuals.itervalues():
+            for i in t.itervalues():
+                i.step()
 
     def run(self):
         """
@@ -184,25 +256,26 @@ class CLI(Thread):
         The main purpose is to wait for input and iterpretate the given commands without blocking the main loop.
         """
         while True:
-            try:
-                _cmd = self.read()
-                cmd, args = _cmd['cmd'], _cmd['args']
+            _cmd = self.read()
+            cmd, args = _cmd['cmd'], _cmd['args']
 
-                if cmd == 'q' or cmd == 'quit' or cmd == 'exit':
-                    # quit is special because it breaks the loop
-                    self.quit = True
-                    self.write('bye...')
-                    break
-                else:
-                    if cmd in self.cmd_dict:
-                        self.cmd_dict[cmd].im_func(self, *args)
-                    else:
-                        self.write('command "{}" not recognized.'.format(cmd), False)
-
-            except Exception as e:
-                self.write('an exception occured: {}\nQuiting...'.format(e), False)
+            if cmd == 'q' or cmd == 'quit' or cmd == 'exit':
+                # quit is special because it breaks the loop
                 self.quit = True
+                self.write('bye...')
                 break
+            else:
+                if cmd in self.cmd_dict:
+                    cmd_func = self.cmd_dict[cmd].im_func
+                    try:
+                        cmd_func(self, *args)
+                    except TypeError as e:
+                        self.write('{}: {}'.format(e.__class__.__name__, e), ok=False)
+                        self.write('{0.func_name}: {0.func_doc}'.format(cmd_func), ok=False)
+                    except Exception as e:
+                        self.write('{}: {}'.format(e.__class__.__name__, e), ok=False)
+                else:
+                    self.write('command "{}" not recognized'.format(cmd), ok=False)
 
     def mainloop(self):
         try:
