@@ -1,5 +1,5 @@
 from os import path
-
+import json
 import yaml
 
 from .utils.dict_merge import dict_merge
@@ -7,8 +7,14 @@ from .utils.dict_merge import dict_merge
 # files to scan
 _files = [
     'default.yaml',
+    'default.yml',
+    'default.json',
     'development.yaml',
+    'development.yml',
+    'development.json',
     'production.yaml',
+    'production.yml',
+    'production.json',
 ]
 
 # default is blank if nothing is found
@@ -19,4 +25,6 @@ for fname in _files:
         with open(fpath) as f:
             if fpath.endswith('.yaml') or fpath.endswith('.yml'):
                 partial_conf = yaml.load(f)
+            elif fpath.endswith('.json'):
+                partial_conf = json.load(f)
             config = dict_merge(config, partial_conf)
