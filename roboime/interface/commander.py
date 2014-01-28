@@ -135,7 +135,7 @@ class Tx2013Commander(Commander):
                     continue
 
                 robot_packet.extend([self.prepare_byte(i) for i in self.omniwheel_speeds(vx, vy, -va)])
-                robot_packet.append(int(a.dribble or 0.))
+                robot_packet.append(int((a.dribble or 0) * 255))
                 if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:
                     robot_packet.append(self.prepare_byte(a.kick * 100 / self.kicking_power_dict[a.uid] or 0.0, 1))
                 elif a.chipkick > 0 and self.kicking_power_dict[a.uid] > 0:
