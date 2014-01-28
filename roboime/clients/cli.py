@@ -86,8 +86,8 @@ class CLI(Thread):
         """
         while True:
             try:
-                raw_cmd = self.read().split() or ['']
-                cmd, args = raw_cmd[0], raw_cmd[1:]
+                cmdict = self.read()
+                cmd, args = cmdict['cmd'], cmdict['args']
 
                 if cmd == 'q' or cmd == 'quit' or cmd == 'exit':
                     # quit is special because it breaks the loop
