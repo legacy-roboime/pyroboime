@@ -131,7 +131,7 @@ class TxInterface(Interface):
             world,
             updaters=[
                 updater.VisionUpdater(vision_address),
-                updater.RealRefereeUpdater(referee_address),
+                updater.RefereeUpdater(referee_address),
             ],
             commanders=[
                 commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug),
