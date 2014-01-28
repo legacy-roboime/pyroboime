@@ -2,7 +2,7 @@ from multiprocessing import Process, Event
 from . import updater
 from . import commander
 from . import filter
-#from .. import options
+from ..config import config
 
 
 def _update_loop(queue, updater):
@@ -123,16 +123,19 @@ class Interface(Process):
 
 class TxInterface(Interface):
 
-    def __init__(self, world, filters=[], transmission_ipaddr='127.0.0.1', transmission_port=9050, mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None,**kwargs):
+    def __init__(self, world, filters=[], mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None, **kwargs):
+        debug = config['interface']['debug']
+        vision_address = (config['interface']['tx']['vision-addr'], config['interface']['tx']['vision-port'])
+        referee_address = (config['interface']['tx']['referee-addr'], config['interface']['tx']['referee-port'])
         super(TxInterface, self).__init__(
             world,
             updaters=[
-                updater.RealVisionUpdater(),
-                updater.RealRefereeUpdater(),
+                updater.VisionUpdater(vision_address),
+                updater.RealRefereeUpdater(referee_address),
             ],
             commanders=[
-                commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, ipaddr=transmission_ipaddr, kicking_power_dict=kick_mapping_blue, port=transmission_port, verbose=True),
-                commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, ipaddr=transmission_ipaddr, port=transmission_port, verbose=True),
+                commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug),
+                commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug),
             ],
             filters=filters + [
                 filter.DeactivateInactives(),
@@ -149,15 +152,19 @@ class TxInterface(Interface):
 class SimulationInterface(Interface):
 
     def __init__(self, world, filters=[], **kwargs):
+        #debug = config['interface']['debug']
+        vision_address = (config['interface']['sim']['vision-addr'], config['interface']['sim']['vision-port'])
+        referee_address = (config['interface']['sim']['referee-addr'], config['interface']['sim']['referee-port'])
+        grsim_address = (config['interface']['sim']['grsim-addr'], config['interface']['sim']['grsim-port'])
         super(SimulationInterface, self).__init__(
             world,
             updaters=[
-                updater.SimVisionUpdater(),
-                updater.SimRefereeUpdater(),
+                updater.VisionUpdater(vision_address),
+                updater.RefereeUpdater(referee_address),
             ],
             commanders=[
-                commander.SimCommander(world.blue_team),
-                commander.SimCommander(world.yellow_team),
+                commander.SimCommander(world.blue_team, grsim_address),
+                commander.SimCommander(world.yellow_team, grsim_address),
             ],
             filters=filters + [
                 #filter.PositionLog(options.position_log_filename), #should be last, to have all data available
