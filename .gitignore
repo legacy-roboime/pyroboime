@@ -7,3 +7,5 @@
 *~
 /*-venv
 .virtualenv*
+config/development.*
+config/production.*
