@@ -1,5 +1,7 @@
 from threading import Thread
 from collections import defaultdict
+from collections import OrderedDict
+from ..utils.geom import Point
 
 from ..interface import SimulationInterface
 from ..interface import TxInterface
@@ -22,7 +24,7 @@ from ..core.tactics import blocker
 from ..core.tactics import defender
 from ..core.tactics import goalkeeper
 from ..core.tactics import zickler43
-from ..core.tactics import executepass
+#from ..core.tactics import executepass
 from ..core.tactics import receivepass
 from ..core.plays import autoretaliate
 from ..core.plays import indirectkick
@@ -72,7 +74,7 @@ class Commands(object):
             Team is one of base.Blue, base.Yellow """
         for i in xrange(10):
             self.id_mapping[team][i] = i;
-        return "OK"
+        self.write("ok")
 
     def set_kick_power(self, team, r_id, power):
         """ Sets the kick power of a robot. """
@@ -88,8 +90,6 @@ class Commands(object):
 
     def set_individual(self, team, r_id, play_id):
         self.individuals[team] = self.available_individuals[play_id](self.world.team(team)[r_id])
-
-
 
     def hello(self):
         self.write('world')
@@ -116,7 +116,8 @@ class CLI(Thread):
         commands = filter(lambda i: not i.startswith('_'), dir(Commands))
 
         self.cmd_dict = { i: getattr(Commands, i) for i in commands }
-        print self.cmd_dict
+        if self.debug:
+            print self.cmd_dict
 
         self.available_individuals = lambda robot: OrderedDict([
             ('', Dummy()),
@@ -134,7 +135,7 @@ class CLI(Thread):
             ('Zickler43', zickler43.Zickler43(robot)),
             ('Defender', defender.Defender(robot, enemy=self.world.ball)),
             ('Dummy Receive Pass', receivepass.ReceivePass(robot, Point(0,0))),
-            ('Joystick', joystick.Joystick(robot)) if joystick is not None else dummy,
+            ('Joystick', joystick.Joystick(robot)) if joystick is not None else (('Joystick not available'), Dummy()),
         ])
 
         self.available_plays = lambda team: OrderedDict([
@@ -190,16 +191,16 @@ class CLI(Thread):
                 if cmd == 'q' or cmd == 'quit' or cmd == 'exit':
                     # quit is special because it breaks the loop
                     self.quit = True
-                    self.write('Bye...')
+                    self.write('bye...')
                     break
                 else:
                     if cmd in self.cmd_dict:
-                        self.write(self.cmd_dict[cmd](self, *args) or '', False)
+                        self.cmd_dict[cmd].im_func(self, *args)
                     else:
-                        self.write('Command "{}" not recognized.'.format(cmd), False)
+                        self.write('command "{}" not recognized.'.format(cmd), False)
 
             except Exception as e:
-                self.write('An exception occured: {}\nQuiting...'.format(e), False)
+                self.write('an exception occured: {}\nQuiting...'.format(e), False)
                 self.quit = True
                 break
 

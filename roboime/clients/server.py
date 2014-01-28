@@ -24,7 +24,7 @@ class Server(CLI):
             print json_data
 
         # confirm the command was received:
-        self.write(' '.join([json_data['cmd']] + json_data['args'] or []))
+        self.write(' '.join([json_data['cmd']] + json_data['args'] or []), None)
 
         return json_data
 
