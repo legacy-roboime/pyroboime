@@ -18,3 +18,8 @@ interface:
     referee-port: 10003
 cli:
   debug: false
+zmq:
+  # you should subscribe to this:
+  pub: tcp://*:6665
+  # and push to this:
+  pull: tcp://localhost:6664
