@@ -104,10 +104,14 @@ class Update(dict):
                 #TODO somehow support for multiple balls
                 if len(value) > 0:
                     ball_data = value[0]
-                    world.ball.update(ball_data['x'], ball_data['y'])
-                    for ball_prop, ball_prop_value in ball_data.iteritems():
-                        if ball_prop not in ('x', 'y'):
-                            setattr(world.ball, ball_prop, ball_prop_value)
+                    if ball_data == '__delete__':
+                        #TODO how should we treat ball deletion?
+                        pass
+                    else:
+                        world.ball.update(ball_data['x'], ball_data['y'])
+                        for ball_prop, ball_prop_value in ball_data.iteritems():
+                            if ball_prop not in ('x', 'y'):
+                                setattr(world.ball, ball_prop, ball_prop_value)
 
             # ignore some metadata
             elif prop.startswith('__'):
