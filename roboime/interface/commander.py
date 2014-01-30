@@ -81,35 +81,16 @@ class Tx2013Commander(Commander):
         self.team = team
         self.verbose = verbose
         self.sender = VIVATxRx()
-        #self.sock = so
-        # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
 
-        # RoboIME 2013
-        #self.wheel_angles = [
-        #    -60.,
-        #    +60.,
-        #    +135.,
-        #    -135.,
-        #]
-        # RoboIME 2013
+        # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
         self.wheel_angles = [
-            -45.,
-            +45.,
-            +120.,
-            -120.,
+            -120., # wheel 2
+            -45.,  # wheel 3
+            +45.,  # wheel 0
+            +120., # wheel 1
         ]
 
-        # RoboIME 2012
-        #self.wheel_angles = [
-        #    -57.,
-        #    +57.,
-        #    +135.,
-        #    -135.,
-        #]
-        #self.wheel_radius = 28.9
-        #self.wheel_distance = 80.6
-
-        #Values in meters.
+        # Values in meters.
         self.wheel_radius = .0289
         self.wheel_distance = .0806
         self.max_speed = 110.
