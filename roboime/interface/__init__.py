@@ -135,20 +135,22 @@ class Interface(Process):
 
 class TxInterface(Interface):
 
-    def __init__(self, world, filters=[], mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None, **kwargs):
+    def __init__(self, world, filters=[], command_blue=True, command_yellow=True, mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None, **kwargs):
         debug = config['interface']['debug']
         vision_address = (config['interface']['tx']['vision-addr'], config['interface']['tx']['vision-port'])
         referee_address = (config['interface']['tx']['referee-addr'], config['interface']['tx']['referee-port'])
+        commanders = []
+        if command_blue:
+            commanders.append(commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug))
+        if command_yellow:
+            commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug))
         super(TxInterface, self).__init__(
             world,
             updaters=[
                 updater.VisionUpdater(vision_address),
                 updater.RefereeUpdater(referee_address),
             ],
-            commanders=[
-                commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug),
-                commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug),
-            ],
+            commanders=commanders,
             filters=filters + [
                 filter.DeactivateInactives(),
                 filter.Acceleration(),

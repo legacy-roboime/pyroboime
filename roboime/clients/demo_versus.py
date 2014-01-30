@@ -32,7 +32,7 @@ class Demo(object):
         if config['interface']['default'] == 'sim':
             self.interface = SimulationInterface(self.world)
         elif config['interface']['default'] == 'tx':
-            self.interface = TxInterface(self.world)
+            self.interface = TxInterface(self.world, command_blue=False)
         self.stuff = {}
 
     def loop(self):
