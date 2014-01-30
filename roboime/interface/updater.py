@@ -158,7 +158,8 @@ class Updater(Process):
 
     def stop(self):
         self._exit.set()
-        self.join(STOP_TIMEOUT)
+        # This leaves the process hanging on Windows
+        #self.join(STOP_TIMEOUT)
         if self.is_alive():
             #TODO make a nicer warning
             print 'Terminating updater:', self
