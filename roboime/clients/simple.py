@@ -138,7 +138,7 @@ class Simple(object):
 
     def mainloop(self):
         self.interface.start()
-        self.t0 = time()
+        #self.t0 = time()
         try:
             while True:
                 self.loop()
