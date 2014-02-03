@@ -46,6 +46,7 @@ class Interface(Process):
         after the world is updated.
         """
         super(Interface, self).__init__()
+        self.control_active_only = config['interface']['control_active_only']
         #self.updates = []
         #self.commands = []
         self.world = world
@@ -115,7 +116,12 @@ class Interface(Process):
         # TODO filtering
         for co in self.commanders:
             actions = []
-            for r in co.team:
+            # this is used to switch between control all and control active
+            if self.control_active_only:
+                r_iter = co.team
+            else:
+                r_iter = co.team.iterrobots(active=None)
+            for r in r_iter:
                 if r.action is not None:
                     actions.append(r.action)
             for fi in self.filters:

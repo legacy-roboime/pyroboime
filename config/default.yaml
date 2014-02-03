@@ -3,6 +3,7 @@
 # you can roll your own development.yaml
 interface:
   debug: false
+  control_active_only: false
   default: sim
   sim:
     vision-addr: 224.5.23.2

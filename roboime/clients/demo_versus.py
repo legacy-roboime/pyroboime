@@ -16,7 +16,9 @@ from time import time
 from ..base import World
 from ..interface import SimulationInterface
 from ..interface import TxInterface
+from ..core.plays import stop
 from ..core.tactics import goalkeeper
+from ..core.tactics import blocker
 from ..core.tactics import zickler43 as zickler
 from ..core.skills import joystick
 from ..config import config
@@ -35,22 +37,14 @@ class Demo(object):
             self.interface = TxInterface(self.world, command_blue=False)
         self.stuff = {}
 
+        if config['demo']['stop'] == False:
+            self.stuff['atk'] = zickler.Zickler43(self.world.yellow_team[1])
+            self.stuff['joy'] = joystick.Joystick(self.world.yellow_team[2])
+        else:
+            self.stuff['bl1'] = blocker.Blocker(self.world.yellow_team[1], arc=23., distance=0.25)
+            self.stuff['bl2'] = blocker.Blocker(self.world.yellow_team[2], arc=-23., distance=0.25)
+
     def loop(self):
-        if 0 in self.world.blue_team and 'attacker' not in self.stuff:
-            r = self.world.blue_team[1]
-            self.stuff['attacker'] = zickler.Zickler43(r)
-
-        if 0 in self.world.yellow_team and 'joystick' not in self.stuff:
-            r = self.world.yellow_team[1]
-            self.stuff['joystick'] = joystick.Joystick(r)
-
-        if 1 in self.world.blue_team and 'goalkeeper1' not in self.stuff:
-            r = self.world.blue_team[0]
-            self.stuff['goalkeeper1'] = goalkeeper.Goalkeeper(r)
-
-        if 1 in self.world.yellow_team and 'goalkeeper2' not in self.stuff:
-            r = self.world.yellow_team[0]
-            self.stuff['goalkeeper2'] = goalkeeper.Goalkeeper(r)
 
         for s in self.stuff.itervalues():
             s.step()
