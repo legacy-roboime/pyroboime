@@ -25,7 +25,7 @@ class Server(CLI):
         self.publisher = ctx.socket(zmq.PUB)
         self.puller = ctx.socket(zmq.PULL)
         self.publisher.bind(config['zmq']['pub'])
-        self.puller.connect(config['zmq']['pull'])
+        self.puller.bind(config['zmq']['pull'])
         print 'cli publishing to {}'.format(config['zmq']['pub'])
         print 'cli pulling on {}'.format(config['zmq']['pull'])
 
