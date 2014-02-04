@@ -102,7 +102,7 @@ class Update(dict):
 
             elif prop == 'balls':
                 #TODO somehow support for multiple balls
-                if len(value) > 0:
+                if 0 in value:
                     ball_data = value[0]
                     if ball_data == '__delete__':
                         #TODO how should we treat ball deletion?
@@ -194,7 +194,8 @@ class Updater(Process):
 
     def stop(self):
         self._exit.set()
-        self.join(STOP_TIMEOUT)
+        # This leaves the process hanging on Windows
+        #self.join(STOP_TIMEOUT)
         if self.is_alive():
             #TODO make a nicer warning
             print 'Terminating updater:', self

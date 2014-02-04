@@ -46,6 +46,7 @@ class Interface(Process):
         after the world is updated.
         """
         super(Interface, self).__init__()
+        self.control_active_only = config['interface']['control_active_only']
         #self.updates = []
         #self.commands = []
         self.world = world
@@ -115,7 +116,12 @@ class Interface(Process):
         # TODO filtering
         for co in self.commanders:
             actions = []
-            for r in co.team:
+            # this is used to switch between control all and control active
+            if self.control_active_only:
+                r_iter = co.team
+            else:
+                r_iter = co.team.iterrobots(active=None)
+            for r in r_iter:
                 if r.action is not None:
                     actions.append(r.action)
             for fi in self.filters:
@@ -135,20 +141,22 @@ class Interface(Process):
 
 class TxInterface(Interface):
 
-    def __init__(self, world, filters=[], mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None, **kwargs):
+    def __init__(self, world, filters=[], command_blue=True, command_yellow=True, mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None, **kwargs):
         debug = config['interface']['debug']
         vision_address = (config['interface']['tx']['vision-addr'], config['interface']['tx']['vision-port'])
         referee_address = (config['interface']['tx']['referee-addr'], config['interface']['tx']['referee-port'])
+        commanders = []
+        if command_blue:
+            commanders.append(commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug))
+        if command_yellow:
+            commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug))
         super(TxInterface, self).__init__(
             world,
             updaters=[
                 updater.VisionUpdater(vision_address),
                 updater.RefereeUpdater(referee_address),
             ],
-            commanders=[
-                commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug),
-                commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug),
-            ],
+            commanders=commanders,
             filters=filters + [
                 filter.DeactivateInactives(),
                 filter.Acceleration(),

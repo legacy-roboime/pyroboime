@@ -17,7 +17,7 @@ from .cli import CLI
 class Repl(CLI):
 
     def read(self):
-        cmdlist = raw_input('> ').split()
+        cmdlist = raw_input('> ').split() or ['']
         return {
             'cmd': cmdlist[0],
             'args': cmdlist[1:],

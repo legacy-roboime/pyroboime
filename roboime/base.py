@@ -197,6 +197,9 @@ class Robot(geom.Point):
 
         self.current_tactic = Steppable()
 
+        # update some components
+        self.update((0.0, 0.0))
+
     def __eq__(self, other):
         return self.uuid == other.uuid
 
@@ -378,6 +381,7 @@ class Team(keydefaultdict):
         return self.color == Yellow
 
     def iterrobots(self, active=True):
+        """active: True, only active; False, only inactive; None, both."""
         for r in self.itervalues():
             if active is not None:
                 if r.active == active:
