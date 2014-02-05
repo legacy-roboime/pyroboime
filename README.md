@@ -45,11 +45,9 @@ be found on the [LICENSE](LICENSE) file.
 __There is an aditional clause for using this code on competitions:__
 
 - Any derived work from this software must be released under the same license and terms at least before the next
-  instance of the competition which it was used. For example if you use this project for the 10th competition of
-  the X league you must release the derived software used on that competition. This applies for any number of
-  competitions, regardless of the frequency of those competitions. Note however that your only required to release
-  the version of the derived software which was used on the competition, there is no need to release more recent
-  software.
+  instance of the competition which it was used.
+  For example, if you use this project for the 10th Foo competition you must release the derived software
+  used on that competition before the 11th Foo competition.
 
 The reason for the term above is to promote collaboration, help starting teams and also maintain competitiveness.
 
