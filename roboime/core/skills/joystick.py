@@ -29,11 +29,12 @@ class Joystick(Skill):
     power_ratio = 1.0
     deadzone = 0.2
 
-    def __init__(self, robot, **kwargs):
+    def __init__(self, robot, relative=True, **kwargs):
         super(Joystick, self).__init__(robot, deterministic=True, **kwargs)
         pygame.init()
         pygame.joystick.init()
         self.check_joysticks()
+        self.relative = relative
 
     def check_joysticks(self, index=0):
         if pygame.joystick.get_count() == 0:
@@ -156,9 +157,15 @@ class Joystick(Skill):
                         x *= self.turbo_ratio
                         y *= self.turbo_ratio
                 if self.joystick.get_button(self.straffe_button):
-                    self.robot.action.speeds = y * self.speed_ratio, -x * self.speed_ratio, 0.0
+                    if self.relative:
+                        self.robot.action.speeds = y * self.speed_ratio, -x * self.speed_ratio, 0.0
+                    else:
+                        self.robot.action.absolute_speeds = y * self.speed_ratio, -x * self.speed_ratio, 0.0
                 else:
-                    self.robot.action.speeds = y * self.speed_ratio, 0.0, -x * self.angle_ratio
+                    if self.relative:
+                        self.robot.action.speeds = y * self.speed_ratio, 0.0, -x * self.angle_ratio
+                    else:
+                        self.robot.action.absolute_speeds = y * self.speed_ratio, 0.0, -x * self.angle_ratio
 
             # 'straffe-ready' joysticks have straffe_button == -1
             else:
@@ -174,7 +181,10 @@ class Joystick(Skill):
                 a = a if abs(a) > self.deadzone else 0
                 power = power if abs(power) > self.deadzone else 0
 
-                self.robot.action.speeds = y * self.speed_ratio, x * self.speed_ratio, a * 300
+                if self.relative:
+                    self.robot.action.speeds = y * self.speed_ratio, x * self.speed_ratio, a * 300
+                else:
+                    self.robot.action.absolute_speeds = y * self.speed_ratio, x * self.speed_ratio, a * 300
 
                 if self.joystick.get_button(self.kick_button):
                     self.robot.action.kick = power
@@ -191,29 +201,53 @@ class Joystick(Skill):
             if pressed[pygame.K_w] and pressed[pygame.K_a]:    # '\
                 self.robot.action.speeds = speed, speed, 0
             elif pressed[pygame.K_s] and pressed[pygame.K_a]:  # ./
-                self.robot.action.speeds = -speed, speed, 0
+                if self.relative:
+                    self.robot.action.speeds = -speed, speed, 0
+                else:
+                    self.robot.action.absolute_speeds = -speed, speed, 0
             elif pressed[pygame.K_s] and pressed[pygame.K_d]:  # \.
                 self.robot.action.speeds = -speed, -speed, 0
             elif pressed[pygame.K_w] and pressed[pygame.K_d]:  # /'
-                self.robot.action.speeds = speed, -speed, 0
+                if self.relative:
+                    self.robot.action.speeds = speed, -speed, 0
+                else:
+                    self.robot.action.absolute_speeds = speed, -speed, 0
             elif pressed[pygame.K_s]:              # v
                 self.robot.action.speeds = -speed, 0, 0
             elif pressed[pygame.K_a]:              # <-o
-                self.robot.action.speeds = 0, speed, 0
+                if self.relative:
+                    self.robot.action.speeds = 0, speed, 0
+                else:
+                    self.robot.action.absolute_speeds = 0, speed, 0
             elif pressed[pygame.K_w]:              # ^
                 self.robot.action.speeds = speed, 0, 0
             elif pressed[pygame.K_d]:              # o->
-                self.robot.action.speeds = 0, -speed, 0
+                if self.relative:
+                    self.robot.action.speeds = 0, -speed, 0
+                else:
+                    self.robot.action.absolute_speeds = 0, -speed, 0
             else:
-                self.robot.action.speeds = 0, 0, 0
+                if self.relative:
+                    self.robot.action.speeds = 0, 0, 0
+                else:
+                    self.robot.action.absolute_speeds = 0, 0, 0
 
             # Orientation through <- and ->
             if pressed[pygame.K_LEFT]:
-                self.robot.action.speeds = self.robot.action.speeds[:-1] + (self.angle_ratio,)
+                if self.relative:
+                    self.robot.action.speeds = self.robot.action.speeds[:-1] + (self.angle_ratio,)
+                else:
+                    self.robot.action.absolute_speeds = self.robot.action.speeds[:-1] + (self.angle_ratio,)
             elif pressed[pygame.K_RIGHT]:
-                self.robot.action.speeds = self.robot.action.speeds[:-1] + (-self.angle_ratio,)
+                if self.relative:
+                    self.robot.action.speeds = self.robot.action.speeds[:-1] + (-self.angle_ratio,)
+                else:
+                    self.robot.action.absolute_speeds = self.robot.action.speeds[:-1] + (-self.angle_ratio,)
             else:
-                self.robot.action.speeds = self.robot.action.speeds[:-1] + (0,)
+                if self.relative:
+                    self.robot.action.speeds = self.robot.action.speeds[:-1] + (0,)
+                else:
+                    self.robot.action.absolute_speeds = self.robot.action.speeds[:-1] + (0,)
 
             # Chipkicking, kicking and dribbling
             if pressed[pygame.K_SPACE] and pressed[pygame.K_LCTRL]:
