@@ -101,7 +101,27 @@ class Joystick(Skill):
                     self.straffe_axis = 5  # s
                     self.angle_axis = 4    # a
                     self.turbo_button = None
+                    # locks
+                    self.lock_x = None
+                    self.lock_y = None
                 elif this_joystick == available_templates['attack3']:
+                    # ATTACK3 Template:
+                    # --- Buttons:
+                    # 1: 0
+                    # 2: 1
+                    # 3: 2
+                    # 4: 3
+                    # 5: 4
+                    # 6: 5
+                    # 7: 6
+                    # 8: 7
+                    # 9: 8
+                    # 10: 9
+                    # 11: 10
+                    # --- Axis:
+                    # x: 0
+                    # y: 1
+                    # +: 2
                     self.chipkick_button = 3
                     self.kick_button = 0
                     self.dribble_button = 2
@@ -110,6 +130,9 @@ class Joystick(Skill):
                     self.aux_axis = 0
                     self.power_axis = 2
                     self.turbo_button = None
+                    # locks
+                    self.lock_x = 7
+                    self.lock_y = 8
                 elif this_joystick == available_templates['maxprint']:
                     self.kick_button = 2
                     self.chipkick_button = 1
@@ -123,12 +146,31 @@ class Joystick(Skill):
                     self.angle_ratio = 30
                     self.speed_ratio = 0.5
                     self.power_ratio = 4.0
+                    # locks
+                    self.lock_x = None
+                    self.lock_y = None
                 else:
                     print 'ERROR: Unrecognized joystick template.'
                     # fallback to nojoysticks if we have no bindings
                     self.joystick_found = False
             else:
                 print 'ERROR: Joystick index not found.'
+
+    def set_speeds(self, speeds):
+        if self.relative:
+            self.robot.action.speeds = speeds
+        else:
+            self.robot.action.absolute_speeds = speeds
+
+    def locked_x(self):
+        if self.lock_x is None:
+            return False
+        return self.joystick.get_button(self.lock_x) == 1
+
+    def locked_y(self):
+        if self.lock_y is None:
+            return False
+        return self.joystick.get_button(self.lock_y) == 1
 
     def _step(self):
         if self.joystick_found:
@@ -145,6 +187,10 @@ class Joystick(Skill):
             if self.straffe_button != -1:
                 x = self.joystick.get_axis(self.aux_axis)
                 y = -self.joystick.get_axis(self.normal_axis)
+                if self.locked_x():
+                    y = 0
+                if self.locked_y():
+                    x = 0
                 power = (1 - self.joystick.get_axis(self.power_axis)) / 2
                 if self.joystick.get_button(self.kick_button):
                     self.robot.action.kick = power * self.power_ratio
@@ -157,20 +203,18 @@ class Joystick(Skill):
                         x *= self.turbo_ratio
                         y *= self.turbo_ratio
                 if self.joystick.get_button(self.straffe_button):
-                    if self.relative:
-                        self.robot.action.speeds = y * self.speed_ratio, -x * self.speed_ratio, 0.0
-                    else:
-                        self.robot.action.absolute_speeds = y * self.speed_ratio, -x * self.speed_ratio, 0.0
+                    self.set_speeds((y * self.speed_ratio, -x * self.speed_ratio, 0.0))
                 else:
-                    if self.relative:
-                        self.robot.action.speeds = y * self.speed_ratio, 0.0, -x * self.angle_ratio
-                    else:
-                        self.robot.action.absolute_speeds = y * self.speed_ratio, 0.0, -x * self.angle_ratio
+                    self.set_speeds((y * self.speed_ratio, 0.0, -x * self.angle_ratio))
 
             # 'straffe-ready' joysticks have straffe_button == -1
             else:
                 x = -self.joystick.get_axis(self.aux_axis)
                 y = -self.joystick.get_axis(self.normal_axis)
+                if self.locked_x():
+                    y = 0
+                if self.locked_y():
+                    x = 0
                 #s = self.joystick.get_axis(self.straffe_axis)
                 a = -self.joystick.get_axis(self.angle_axis)
                 power = abs(self.joystick.get_axis(self.power_axis))
@@ -181,10 +225,7 @@ class Joystick(Skill):
                 a = a if abs(a) > self.deadzone else 0
                 power = power if abs(power) > self.deadzone else 0
 
-                if self.relative:
-                    self.robot.action.speeds = y * self.speed_ratio, x * self.speed_ratio, a * 300
-                else:
-                    self.robot.action.absolute_speeds = y * self.speed_ratio, x * self.speed_ratio, a * 300
+                self.set_speeds(y * self.speed_ratio, x * self.speed_ratio, a * 300)
 
                 if self.joystick.get_button(self.kick_button):
                     self.robot.action.kick = power
@@ -199,55 +240,31 @@ class Joystick(Skill):
 
             # Displacement through asdw
             if pressed[pygame.K_w] and pressed[pygame.K_a]:    # '\
-                self.robot.action.speeds = speed, speed, 0
+                self.set_speeds(speed, speed, 0)
             elif pressed[pygame.K_s] and pressed[pygame.K_a]:  # ./
-                if self.relative:
-                    self.robot.action.speeds = -speed, speed, 0
-                else:
-                    self.robot.action.absolute_speeds = -speed, speed, 0
+                self.set_speeds(-speed, speed, 0)
             elif pressed[pygame.K_s] and pressed[pygame.K_d]:  # \.
-                self.robot.action.speeds = -speed, -speed, 0
+                self.set_speeds(-speed, -speed, 0)
             elif pressed[pygame.K_w] and pressed[pygame.K_d]:  # /'
-                if self.relative:
-                    self.robot.action.speeds = speed, -speed, 0
-                else:
-                    self.robot.action.absolute_speeds = speed, -speed, 0
+                self.set_speeds(speed, -speed, 0)
             elif pressed[pygame.K_s]:              # v
-                self.robot.action.speeds = -speed, 0, 0
+                self.set_speeds(-speed, 0, 0)
             elif pressed[pygame.K_a]:              # <-o
-                if self.relative:
-                    self.robot.action.speeds = 0, speed, 0
-                else:
-                    self.robot.action.absolute_speeds = 0, speed, 0
+                self.set_speeds(0, speed, 0)
             elif pressed[pygame.K_w]:              # ^
-                self.robot.action.speeds = speed, 0, 0
+                self.set_speeds(speed, 0, 0)
             elif pressed[pygame.K_d]:              # o->
-                if self.relative:
-                    self.robot.action.speeds = 0, -speed, 0
-                else:
-                    self.robot.action.absolute_speeds = 0, -speed, 0
+                self.set_speeds(0, -speed, 0)
             else:
-                if self.relative:
-                    self.robot.action.speeds = 0, 0, 0
-                else:
-                    self.robot.action.absolute_speeds = 0, 0, 0
+                self.set_speeds(0, 0, 0)
 
             # Orientation through <- and ->
             if pressed[pygame.K_LEFT]:
-                if self.relative:
-                    self.robot.action.speeds = self.robot.action.speeds[:-1] + (self.angle_ratio,)
-                else:
-                    self.robot.action.absolute_speeds = self.robot.action.speeds[:-1] + (self.angle_ratio,)
+                self.set_speeds(self.robot.action.speeds[:-1] + (self.angle_ratio,))
             elif pressed[pygame.K_RIGHT]:
-                if self.relative:
-                    self.robot.action.speeds = self.robot.action.speeds[:-1] + (-self.angle_ratio,)
-                else:
-                    self.robot.action.absolute_speeds = self.robot.action.speeds[:-1] + (-self.angle_ratio,)
+                self.set_speeds(self.robot.action.speeds[:-1] + (-self.angle_ratio,))
             else:
-                if self.relative:
-                    self.robot.action.speeds = self.robot.action.speeds[:-1] + (0,)
-                else:
-                    self.robot.action.absolute_speeds = self.robot.action.speeds[:-1] + (0,)
+                self.set_speeds(self.robot.action.speeds[:-1] + (0,))
 
             # Chipkicking, kicking and dribbling
             if pressed[pygame.K_SPACE] and pressed[pygame.K_LCTRL]:
