@@ -429,8 +429,7 @@ class Intelligence(QtCore.QThread):
         self.kick_mapping_yellow = defaultdict(lambda: 100)
 
         self.tx_interface = TxInterface(self.world, filters=[], mapping_yellow=self.mapping_yellow, mapping_blue=self.mapping_blue,
-                                        kick_mapping_yellow=self.kick_mapping_yellow, kick_mapping_blue=self.kick_mapping_blue,
-                                        transmission_ipaddr='127.0.0.1', transmission_port=9050)
+                                        kick_mapping_yellow=self.kick_mapping_yellow, kick_mapping_blue=self.kick_mapping_blue)
         self.interface = SimulationInterface(self.world)
 
         dummy = ('(none)', Dummy())
