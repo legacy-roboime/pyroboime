@@ -14,8 +14,9 @@
 from threading import Thread
 from collections import defaultdict
 from collections import OrderedDict
-from ..utils.geom import Point
+from time import sleep
 
+from ..utils.geom import Point
 from ..interface import SimulationInterface
 from ..interface import TxInterface
 from ..base import World
