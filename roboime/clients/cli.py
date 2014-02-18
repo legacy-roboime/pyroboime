@@ -186,6 +186,56 @@ class _commands(object):
         else:
             self.write('individual {} does not exist'.format(individual), ok=False)
 
+    def set_goto_param(self, param, value):
+        """set_goto_param param value
+
+        ## default parameter values
+
+        # attraction coefificients
+        attraction_factor = 6.0
+        attraction_power = 2.3
+        attraction_floor = 80.0
+
+        # repulsion coefificients
+        repulsion_factor = 8.0
+        repulsion_power = 3.3
+        repulsion_floor = 0.0
+
+        # magnetic coefificients
+        magnetic_factor = 9.0
+        magnetic_power = 3.1
+        magnetic_floor = 0.0
+
+        # delta_speed coefificients
+        delta_speed_factor = 2.0
+        delta_speed_power = 1.4
+        delta_speed_floor = 0.0
+
+        # minimum distance to use on the equation
+        # anything smaller is capped to this
+        min_distance = 1e-5
+
+        # ignore other forces if attraction
+        # force is as least this high:
+        min_force_to_ignore_others = 100000
+
+        # control params
+        g = 9.80665
+        mi = 0.1
+        exp_k = 6
+        """
+        if hasattr(goto.Goto, param):
+            try:
+                setattr(goto.Goto, param, float(value))
+                #self.write('ok')
+                self.write('new value is {}'.format(getattr(goto.Goto, param)))
+            except ValueError:
+                self.write('invalid value {}'.format(value), ok=False)
+        else:
+            self.write('invalid param {}'.format(param), ok=False)
+
+    #def print_goto_params(self):
+
     def hello(self):
         """hello -> world, simplest test of connectivity"""
         self.write('world')
@@ -255,9 +305,6 @@ class CLI(Thread):
         self.interface.start()
         super(CLI, self).start()
 
-        # finished initializing, welcome the user with a message:
-        self.write("hello, intel is up!")
-
     def stop(self):
         self.interface.stop()
 
@@ -274,6 +321,11 @@ class CLI(Thread):
         Here lies the non-blocking code that will run on a different thread.
         The main purpose is to wait for input and iterpretate the given commands without blocking the main loop.
         """
+
+        # wait a bit to make sure sockets are listening
+        sleep(1)
+        self.write("hello, intel is up!")
+
         while True:
             _cmd = self.read()
             cmd, args = _cmd['cmd'], _cmd['args']

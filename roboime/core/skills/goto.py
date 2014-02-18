@@ -34,24 +34,34 @@ class Goto(Skill):
     attraction_factor = 6.0
     attraction_power = 2.3
     attraction_floor = 80.0
+
     # repulsion coefificients
     repulsion_factor = 8.0
     repulsion_power = 3.3
     repulsion_floor = 0.0
+
     # magnetic coefificients
     magnetic_factor = 9.0
     magnetic_power = 3.1
     magnetic_floor = 0.0
+
     # delta_speed coefificients
     delta_speed_factor = 2.0
     delta_speed_power = 1.4
     delta_speed_floor = 0.0
+
     # minimum distance to use on the equation
     # anything smaller is capped to this
     min_distance = 1e-5
+
     # ignore other forces if attraction
     # force is as least this high:
     min_force_to_ignore_others = 100000
+
+    # control params
+    g = 9.80665
+    mi = 0.1
+    exp_k = 6
 
     #def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
     def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=False, **kwargs):
@@ -188,11 +198,9 @@ class Goto(Skill):
             gradient += sum(map(sum, self.other_forces()))
 
         # some crazy equation that makes the robot converge to the target point
-        g = 9.80665
-        mi = 0.1
-        a_max = mi * g
+        a_max = self.mi * self.g
         v_max = r.max_speed
-        cte = (6 * a_max / (v_max * v_max))
+        cte = (self.exp_k * a_max / (v_max * v_max))
         out = v_max * (1 - exp(-cte * r.distance(f_t)))
         # v is the speed vector resulting from that equation
         if self.avoid_collisions:
