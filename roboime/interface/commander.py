@@ -98,7 +98,11 @@ class Tx2013Commander(Commander):
     def omniwheel_speeds(self, vx, vy, va):
         if isnan(vx) or isnan(vy) or isnan(va):
             return [0., 0., 0., 0.]
-        return [(vy * cos(a) - vx * sin(a) + va * self.wheel_distance) / self.wheel_radius for a in self.wheel_angles]
+        speeds = [(vy * cos(a) - vx * sin(a) + va * self.wheel_distance) / self.wheel_radius for a in self.wheel_angles]
+        largest = max(abs(x) for x in speeds)
+        if largest > self.max_speed:
+            speeds = [x / largest for x in speeds]
+        return speeds
 
     def prepare_byte(self, x, max_speed=None):
         if max_speed == None:
