@@ -1,3 +1,4 @@
+<<Non-Windows OS>>
 Python 2.7
     # it's not known if it'll work on 2.6-
     apt-get install python
@@ -29,6 +30,33 @@ pygame (optional)
     # windows users are advised to get the binaries from pygame official site
     # mac os users should install it via ports or homebrew
     pip install pygame
+
+<<Windows OS>>
+Python 2.7
+    www.python.org/download
+
+PIP
+    http://www.lfd.uci.edu/~gohlke/pythonlibs/#pip
+
+Protobuf
+    # download latest version for win32
+    https://code.google.com/p/protobuf/downloads/list
+
+Shapely
+    pip install shapely
+
+PyQt4
+    http://www.lfd.uci.edu/~gohlke/pythonlibs/#pyqt
+
+pygame
+    http://www.lfd.uci.edu/~gohlke/pythonlibs/#pygame
+
+pyUSB
+    pip install pyusb
+
+pyYAML
+    pip install pyyaml
+
 
 #TODO:
     create smart dependencies file so one can
