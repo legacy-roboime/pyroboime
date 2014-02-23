@@ -54,6 +54,10 @@ class Goto(Skill):
     # anything smaller is capped to this
     min_distance = 1e-5
 
+    # distance to consider target arrival
+    arrive_distance = 1e-3
+    max_angle_error = 1.0
+
     # ignore other forces if attraction
     # force is as least this high:
     min_force_to_ignore_others = 100000
@@ -87,6 +91,12 @@ class Goto(Skill):
         self.final_target = final_target
         self.referential = referential
         self.avoid_collisions = avoid_collisions
+
+    def arrived(self):
+        return norm(array(self.robot) - array(self.target)) <= self.arrive_distance
+
+    def oriented(self):
+        return (180 + self.angle - self.robot.angle) % 360 - 180 <= self.max_angle_error
 
     @property
     def angle(self):

@@ -38,6 +38,7 @@ from ..core.tactics import blocker
 from ..core.tactics import defender
 from ..core.tactics import goalkeeper
 from ..core.tactics import zickler43
+from ..core.tactics import zigzag
 #from ..core.tactics import executepass
 from ..core.tactics import receivepass
 from ..core.plays import autoretaliate
@@ -64,6 +65,7 @@ _individuals = {
     'zickler43': lambda r: zickler43.Zickler43(r),
     'defender': lambda r: defender.Defender(r, enemy=r.world.ball),
     'dummy_receive_pass': lambda r: receivepass.ReceivePass(r, Point(0,0)),
+    'zigzag': lambda r: zigzag.ZigZag(r, Point(0, 1.0), Point(0, -1.0)),
 }
 if joystick is not None:
     _individuals['joystick'] = lambda r: joystick.Joystick(r)
