@@ -210,7 +210,7 @@ class Tx2012Commander(Commander):
         return [(vy * cos(a) - vx * sin(a) + va * self.wheel_distance) / self.wheel_radius for a in self.wheel_angles]
 
     def send(self, actions):
-        actions_dict = defaultdict(lambda:['0','0','0','0','0','0','0'])
+        actions_dict = defaultdict(lambda:['0', '0', '0', '0', '0', '0', '0'])
         dirty = False
         if len(actions) > 0:
             for a in actions:
@@ -235,7 +235,7 @@ class Tx2012Commander(Commander):
                     string_list.append('0')
                 elif a.chipkick > 0 and self.kicking_power_dict[a.uid] > 0:
                     string_list.append('0')
-                    string_list.append(str((a.chipkick * 100 /self.kicking_power_dict[a.uid] or 0.0)))
+                    string_list.append(str((a.chipkick * 100 / self.kicking_power_dict[a.uid] or 0.0)))
                     #string_list.append(str((a.chipkick or 0.0)))
                 else:
                     string_list.append('0')
@@ -252,13 +252,13 @@ class Tx2012Commander(Commander):
 
                 if packet:
                     if self.verbose:
-                        pass#print self.kicking_power_dict
+                        # print self.kicking_power_dict
                         print packet
                     self.sender.send(packet)
 
 
 class TxCommander(Commander):
-    '''
+    """
     Sends commands as strings via unicast UDP to the C# transmitter process that will dispatch commands
     via RF to the robots. Since the robots' firmware IDs are not the same as the UIDs sent by the
     VisionUpdater, a function mapping the UIDs to the firmware IDs should be provided. If it is not provided,
@@ -270,7 +270,7 @@ class TxCommander(Commander):
 
     - Not passing wheel velocities directly, sending instead the triplet vx, vy, theta;
     - Chip kick.
-    '''
+    """
     def __init__(self, team, mapping_dict=None, ipaddr='127.0.0.1', port=9050, verbose=False, **kwargs):
         super(TxCommander, self).__init__(**kwargs)
         self.default_map = mapping_dict is None

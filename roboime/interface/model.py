@@ -38,13 +38,13 @@ class Model(object):
         self.current_state_estimate = numpy.matrix(numpy.zeros((3, 1)))  # initial state x_0
         self.current_prob_estimate = numpy.matrix(numpy.eye(3))  # Initial error probability P matrix
         self.Q = numpy.matrix([  # Q Matrix: estimated error in process.
-            [options.Q, 0., 0.],
-            [0., options.Q, 0.],
-            [0., 0., options.Q]])  # TODO: make different matrix for ball
+            [options.Q, 0.0, 0.0],
+            [0.0, options.Q, 0.0],
+            [0.0, 0.0, options.Q]])  # TODO: make different matrix for ball
         self.R = numpy.matrix([  # R Matrix: estimated error in measurements.
-            [options.R_var_x, 0, 0],
-            [0, options.R_var_y, 0],
-            [0, 0, options.R_var_angle]])  # TODO: make different matrix for ball
+            [options.R_var_x, 0.0, 0.0],
+            [0.0, options.R_var_y, 0.0],
+            [0.0, 0.0, options.R_var_angle]])  # TODO: make different matrix for ball
 
     def new_speed(self, speeds):
         """
@@ -70,16 +70,17 @@ class Model(object):
             timedelta = 25e-3  # Estimated loop time (used if unavailable)
             self.time = data['timestamp']
         if timedelta == 0:
-            pass#raise ValueError, "timedelta == 0"
+            #raise ValueError, "timedelta == 0"
+            pass
         # Per-step variable vectors
         #timedelta = 25e-3
         B = numpy.eye(3) * timedelta  # control matrix B
         # control vector u_n
-#        data['speeds_cmd'] = self.speeds # FIXME: use commands when available
-        self.speeds = data.get('speed', (0.,0.,0.))
+        # data['speeds_cmd'] = self.speeds # FIXME: use commands when available
+        self.speeds = data.get('speed', (0.0, 0.0, 0.0))
         control_vector = numpy.matrix(self.speeds).transpose()  # Helps predict based on model
         # measurement vector z_n
-        measurement_vector = numpy.matrix([[data['x']], [data['y']], [data.get('angle', 0.)]])
+        measurement_vector = numpy.matrix([[data['x']], [data['y']], [data.get('angle', 0.0)]])
 
         ####### Kalman Step #######
         #---------------------------Prediction step-----------------------------
