@@ -141,7 +141,7 @@ class Interface(Process):
 
 class TxInterface(Interface):
 
-    def __init__(self, world, filters=[], command_blue=True, command_yellow=True, mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None, **kwargs):
+    def __init__(self, world, filters=[], command_blue=config['interface']['command-blue'], command_yellow=config['interface']['command-yellow'], mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None, **kwargs):
         debug = config['interface']['debug']
         vision_address = (config['interface']['tx']['vision-addr'], config['interface']['tx']['vision-port'])
         referee_address = (config['interface']['tx']['referee-addr'], config['interface']['tx']['referee-port'])

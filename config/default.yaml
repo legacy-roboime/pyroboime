@@ -5,6 +5,8 @@ interface:
   debug: false
   control_active_only: false
   default: sim
+  command-yellow: true
+  command-blue: true
   sim:
     vision-addr: 224.5.23.2
     vision-port: 11002
