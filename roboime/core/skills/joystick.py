@@ -100,7 +100,7 @@ class Joystick(Skill):
                     self.kick_button = 5
                     self.dribble_button = 3
                     # if there's no need for a straffe, we set it as -1
-                    self.straffe_button = -1
+                    self.straffe_button = 9
                     self.normal_axis = 1   # y
                     self.aux_axis = 0      # x
                     self.power_axis = 2    # power
