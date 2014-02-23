@@ -5,6 +5,7 @@ interface:
   debug: false
   control_active_only: false
   default: sim
+  log-file: "interface.log"
   command-yellow: true
   command-blue: true
   sim:

@@ -18,7 +18,8 @@ from math import pi
 from collections import defaultdict
 from time import time
 from math import isnan
-#from ..base import World
+
+from ..config import config
 from ..communication.network import unicast
 from ..communication import grsim
 from ..utils.mathutils import sin, cos
@@ -45,7 +46,17 @@ class Commander(object):
         #self._recvr, self._sendr = Pipe()
         #self.conn = None
         #self._exit = Event()
+        if config['interface']['debug']:
+            self._log = True
+            self._log_file = open(config['interface']['log-file'], 'a')
+        else:
+            self._log = False
         pass
+
+    def log(self, message):
+       if self._log:
+           self._log_file.write(str(message))
+           self._log_file.write('\n')
 
     #def start(self):
     #    super(Commander, self).start()
@@ -151,10 +162,8 @@ class Tx2013Commander(Commander):
                 packet.append(55)
                 if packet:
                     if self.verbose:
-                        print packet
-                        print self.sender.send(packet)
-                    else:
-                        self.sender.send(packet)
+                        self.log('|'.join('{:03d}'.format(x) for x in packet))
+                    self.sender.send(packet)
 
 class Tx2012Commander(Commander):
     '''
