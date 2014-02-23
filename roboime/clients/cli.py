@@ -68,7 +68,7 @@ _individuals = {
     'zickler43': lambda r: zickler43.Zickler43(r),
     'defender': lambda r: defender.Defender(r, enemy=r.world.ball),
     'dummy_receive_pass': lambda r: receivepass.ReceivePass(r, Point(0,0)),
-    'zigzag': lambda r: zigzag.ZigZag(r, Point(0, 1.0), Point(0, -1.0)),
+    'zigzag': lambda r: zigzag.ZigZag(r, Point(-0.7, 1.0), Point(-0.7, -1.0)),
 }
 if joystick is not None:
     _individuals['joystick'] = lambda r: joystick.Joystick(r)
