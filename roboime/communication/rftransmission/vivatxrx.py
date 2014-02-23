@@ -41,6 +41,14 @@ class VIVATxRx(Transmitter):
         else:
             return -1
 
+    def receive(self):
+        if self.verbose:
+            print self.is_busy
+        sizev =  self.transmitter.ctrl_transfer(5824, 4, 3, 0, 8)
+        payload_length = sizev[1]
+        data = self.transmitter.ctrl_transfer(5824, 5, payload_length, 0, payload_length)
+        return data
+
     @property
     def is_busy(self):
         if not self.is_working:
