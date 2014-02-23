@@ -30,15 +30,18 @@ for fun in dir(math):
     else:
         exec '{0} = math.{0}'.format(fun)
 
+
 def norm(vector):
     """ Returns the norm (length) of the vector."""
     # note: this is a very hot function, hence the odd optimization
     # Unoptimized it is: return np.sqrt(np.sum(np.square(vector)))
     return np.sqrt(np.dot(vector, vector))
 
+
 def unit_vector(vector):
     """ Returns the unit vector of the vector.  """
     return vector / norm(vector)
+
 
 def angle_between(v1, v2):
     """ Returns the angle in radians between vectors 'v1' and 'v2'::
