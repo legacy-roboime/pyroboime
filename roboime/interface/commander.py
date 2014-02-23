@@ -102,9 +102,9 @@ class Tx2013Commander(Commander):
         ]
 
         # Values in meters.
-        self.wheel_radius = .0289
-        self.wheel_distance = .0806
-        self.max_speed = 110.
+        self.wheel_radius = 0.0289
+        self.wheel_distance = 0.0806
+        self.max_speed = 64.0
 
     def omniwheel_speeds(self, vx, vy, va):
         if isnan(vx) or isnan(vy) or isnan(va):
