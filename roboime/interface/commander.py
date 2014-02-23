@@ -95,20 +95,20 @@ class Tx2013Commander(Commander):
 
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
         self.wheel_angles = [
-            -120., # wheel 2
-            -45.,  # wheel 3
             +45.,  # wheel 0
             +120., # wheel 1
+            -120., # wheel 2
+            -45.,  # wheel 3
         ]
 
         # Values in meters.
+        self.wheel_distance = 0.0850
         self.wheel_radius = 0.0289
-        self.wheel_distance = 0.0806
         self.max_speed = 64.0
 
     def omniwheel_speeds(self, vx, vy, va):
         if isnan(vx) or isnan(vy) or isnan(va):
-            return [0., 0., 0., 0.]
+            return [0.0, 0.0, 0.0, 0.0]
         speeds = [(vy * cos(a) - vx * sin(a) + va * self.wheel_distance) / self.wheel_radius for a in self.wheel_angles]
         largest = max(abs(x) for x in speeds)
         if largest > self.max_speed:
@@ -143,7 +143,7 @@ class Tx2013Commander(Commander):
                 else:
                     continue
 
-                robot_packet.extend([self.prepare_byte(i) for i in self.omniwheel_speeds(vx, vy, -va)])
+                robot_packet.extend([self.prepare_byte(-i) for i in self.omniwheel_speeds(vx, vy, va)])
                 robot_packet.append(int((a.dribble or 0) * 255))
                 if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:
                     robot_packet.append(self.prepare_byte(a.kick * 100 / self.kicking_power_dict[a.uid] or 0.0, 1))
@@ -176,10 +176,10 @@ class SimCommander(Commander):
 
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
         self.wheel_angles = [
-            240.0,
-            315.0,
-            45.0,
-            120.0,
+            +45.,  # wheel 0
+            +120., # wheel 1
+            -120., # wheel 2
+            -45.,  # wheel 3
         ]
         self.wheel_distance = 0.0850
         self.wheel_radius = 0.0289
