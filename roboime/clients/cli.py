@@ -12,9 +12,12 @@
 # GNU Affero General Public License for more details.
 #
 from threading import Thread
+from threading import Lock
 from collections import defaultdict
 from collections import OrderedDict
 from time import sleep
+from datetime import datetime
+from numpy import mean
 
 from ..utils.geom import Point
 from ..interface import SimulationInterface
@@ -176,7 +179,8 @@ class _commands(object):
     def set_play(self, team, play):
         """set_play <blue|yellow> play"""
         if play in _plays:
-            self.plays[team] = _plays[play](_get_team(self, team))
+            with self.step_lock:
+                self.plays[team] = _plays[play](_get_team(self, team))
             self.write('ok')
         else:
             self.write('play {} does not exist'.format(play), ok=False)
@@ -184,7 +188,8 @@ class _commands(object):
     def set_individual(self, team, robot, individual):
         """set_individual <blue|yellow> robot individual"""
         if individual in _individuals:
-            self.individuals[team][robot] = _individuals[individual](_get_robot(self, team, robot))
+            with self.step_lock:
+                self.individuals[team][robot] = _individuals[individual](_get_robot(self, team, robot))
             self.write('ok')
         else:
             self.write('individual {} does not exist'.format(individual), ok=False)
@@ -261,8 +266,56 @@ class _commands(object):
             else:
                 self.write('command "{}" not recognized'.format(cmd), ok=False)
 
+    def set_step_delay(self, delay):
+        """set_step_delay delay (ms)"""
+        try:
+            self.step_delay = float(delay)
+            self.write('delay set to {}'.format(self.step_delay))
+        except ValueError:
+            self.write('invalid delay {}'.format(delat), ok=False)
+
+    def print_deltas(self):
+        """shows interface, stp and total deltas"""
+        self.write(
+            'interface delta:     {0.tdelta_interface}\n'
+            'interface delta avg: {0.avg_tdelta_interface}\n'
+            'interface delta max: {0.max_tdelta_interface}\n'
+            'stp delta:           {0.tdelta_stp}\n'
+            'stp delta avg:       {0.avg_tdelta_stp}\n'
+            'stp delta max:       {0.max_tdelta_stp}\n'
+            'total delta:         {0.tdelta_step}\n'
+            'total delta avg:     {0.avg_tdelta_step}\n'
+            'total delta max:     {0.max_tdelta_step}'.format(self)
+        )
+
+    def print_max_deltas(self):
+        """shows interface, stp and total deltas"""
+        self.write('interface delta: {}\nstp delta: {}\ntotal delta: {}'.format(self.max_tdelta_interface, self.max_tdelta_stp, self.max_tdelta_step))
+
+    def set_max_speed(self, team, robot, speed):
+        """set_max_speed <blue|yellow> robot speed (m/s)"""
+        try:
+            _get_robot(self, team, robot).max_speed = float(speed)
+            self.write('ok')
+        except ValueError:
+            self.write('invalid speed {}'.format(speed), ok=False)
+
 
 class CLI(Thread):
+
+    step_delay = 0
+    tdelta_interface = 0
+    tdelta_stp = 0
+    tdelta_step = 0
+    max_tdelta_interface = 0
+    max_tdelta_stp = 0
+    max_tdelta_step = 0
+    window_tdelta_interface = [0] * 1000
+    window_tdelta_stp = [0] * 1000
+    window_tdelta_step = [0] * 1000
+    avg_tdelta_interface = 0
+    avg_tdelta_stp = 0
+    avg_tdelta_step = 0
 
     def __init__(self):
         super(CLI, self).__init__()
@@ -296,6 +349,7 @@ class CLI(Thread):
         max_robots = 12
         self.plays = {"yellow": Dummy(), "blue": Dummy()}
         self.individuals = {"blue": {i: Dummy() for i in range(max_robots)}, "yellow": {i: Dummy() for i in range(max_robots)}}
+        self.step_lock = Lock()
 
 
     def read(self):
@@ -312,12 +366,34 @@ class CLI(Thread):
         self.interface.stop()
 
     def step(self):
+        t0 = datetime.now()
         self.interface.step()
-        for p in self.plays.itervalues():
-            p.step()
-        for t in self.individuals.itervalues():
-            for i in t.itervalues():
-                i.step()
+        t1 = datetime.now()
+        with self.step_lock:
+            for p in self.plays.itervalues():
+                p.step()
+            for t in self.individuals.itervalues():
+                for i in t.itervalues():
+                    i.step()
+        t2 = datetime.now()
+        self.tdelta_interface = (t1 - t0).microseconds / 1000.0
+        self.tdelta_stp = (t2 - t1).microseconds / 1000.0
+        self.tdelta_step = (t2 - t0).microseconds / 1000.0
+        if self.tdelta_interface > self.max_tdelta_interface:
+            self.max_tdelta_interface = self.tdelta_interface
+        if self.tdelta_stp > self.max_tdelta_stp:
+            self.max_tdelta_stp = self.tdelta_stp
+        if self.tdelta_step > self.max_tdelta_step:
+            self.max_tdelta_step = self.tdelta_step
+        self.window_tdelta_interface.pop(0)
+        self.window_tdelta_interface.append(self.tdelta_interface)
+        self.avg_tdelta_interface = mean(self.window_tdelta_interface)
+        self.window_tdelta_stp.pop(0)
+        self.window_tdelta_stp.append(self.tdelta_stp)
+        self.avg_tdelta_stp = mean(self.window_tdelta_stp)
+        self.window_tdelta_step.pop(0)
+        self.window_tdelta_step.append(self.tdelta_step)
+        self.avg_tdelta_step = mean(self.window_tdelta_step)
 
     def run(self):
         """
@@ -355,6 +431,7 @@ class CLI(Thread):
         try:
             self.start()
             while True:
+                sleep(self.step_delay / 1000)
                 self.step()
                 if self.quit:
                     self.stop()
