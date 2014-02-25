@@ -95,10 +95,10 @@ class Tx2013Commander(Commander):
 
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
         self.wheel_angles = [
-            +45.,  # wheel 0
-            +120., # wheel 1
-            -120., # wheel 2
-            -45.,  # wheel 3
+            +60.0,  # wheel 0
+            +135.0, # wheel 1
+            -135.0, # wheel 2
+            -60.0,  # wheel 3
         ]
 
         # Values in meters.
@@ -143,7 +143,7 @@ class Tx2013Commander(Commander):
                 else:
                     continue
 
-                robot_packet.extend([self.prepare_byte(-i) for i in self.omniwheel_speeds(vx, vy, va)])
+                robot_packet.extend([self.prepare_byte(-x) for x in self.omniwheel_speeds(vx, vy, va)])
                 robot_packet.append(int((a.dribble or 0) * 255))
                 if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:
                     robot_packet.append(self.prepare_byte(a.kick * 100 / self.kicking_power_dict[a.uid] or 0.0, 1))
@@ -168,7 +168,7 @@ class Tx2013Commander(Commander):
 
 class SimCommander(Commander):
 
-    def __init__(self, team, address, send_omni=False, **kwargs):
+    def __init__(self, team, address, send_omni=True, **kwargs):
         super(SimCommander, self).__init__(**kwargs)
         self.team = team
         self.sender = grsim.grSimSender(address)
@@ -176,10 +176,10 @@ class SimCommander(Commander):
 
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
         self.wheel_angles = [
-            +45.,  # wheel 0
-            +120., # wheel 1
-            -120., # wheel 2
-            -45.,  # wheel 3
+            +60.0,  # wheel 0
+            +135.0, # wheel 1
+            -135.0, # wheel 2
+            -60.0,  # wheel 3
         ]
         self.wheel_distance = 0.0850
         self.wheel_radius = 0.0289
