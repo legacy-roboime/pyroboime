@@ -16,6 +16,7 @@ from . import updater
 from . import commander
 from . import filter
 from ..config import config
+from ..utils.profile import Profile
 
 
 def _update_loop(queue, updater):
@@ -32,7 +33,7 @@ def _command_loop(queue, commander):
             commander.send(latest_actions)
 
 
-class Interface(Process):
+class Interface(Process, Profile):
     """ This class is used to manage a single interface channel
 
     More specifically, this class will instantiate a set of updaters,
@@ -84,6 +85,8 @@ class Interface(Process):
     def step(self):
         #print "I'm stepping the interface."
         # updates injection phase
+        self.profile_reset()
+        self.profile_stamp()
         for up in self.updaters:
             if not up.queue.empty():
                 #uu = up.queue.get_nowait()
@@ -114,6 +117,7 @@ class Interface(Process):
 
         # actions extraction phase
         # TODO filtering
+        self.profile_stamp()
         for co in self.commanders:
             actions = []
             # this is used to switch between control all and control active
@@ -131,6 +135,8 @@ class Interface(Process):
 
             #co.queue.put(actions)
             co.send(actions)
+
+        self.profile_stamp()
 
     def processes(self):
         for up in self.updaters:

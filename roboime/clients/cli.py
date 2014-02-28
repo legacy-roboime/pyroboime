@@ -272,20 +272,23 @@ class _commands(object):
             self.step_delay = float(delay)
             self.write('delay set to {}'.format(self.step_delay))
         except ValueError:
-            self.write('invalid delay {}'.format(delat), ok=False)
+            self.write('invalid delay {}'.format(delay), ok=False)
 
-    def print_deltas(self):
+    def print_profile(self):
         """shows interface, stp and total deltas"""
         self.write(
-            'interface delta:     {0.tdelta_interface}\n'
-            'interface delta avg: {0.avg_tdelta_interface}\n'
-            'interface delta max: {0.max_tdelta_interface}\n'
-            'stp delta:           {0.tdelta_stp}\n'
-            'stp delta avg:       {0.avg_tdelta_stp}\n'
-            'stp delta max:       {0.max_tdelta_stp}\n'
-            'total delta:         {0.tdelta_step}\n'
-            'total delta avg:     {0.avg_tdelta_step}\n'
-            'total delta max:     {0.max_tdelta_step}'.format(self)
+            'interface delta:     {0.tdelta_interface: 8.3f}\n'
+            'interface delta avg: {0.avg_tdelta_interface: 8.3f}\n'
+            #'interface delta max: {0.max_tdelta_interface: 8.3f}\n'
+            '  updater delta:     {1[0]: 8.3f}\n'
+            '  commander delta:   {1[1]: 8.3f}\n'
+            'stp delta:           {0.tdelta_stp: 8.3f}\n'
+            'stp delta avg:       {0.avg_tdelta_stp: 8.3f}\n'
+            #'stp delta max:       {0.max_tdelta_stp: 8.3f}\n'
+            'total delta:         {0.tdelta_step: 8.3f}\n'
+            'total delta avg:     {0.avg_tdelta_step: 8.3f}\n'
+            #'total delta max:     {0.max_tdelta_step: 8.3f}'
+            .format(self, self.interface.profile_deltas)
         )
 
     def print_max_deltas(self):
