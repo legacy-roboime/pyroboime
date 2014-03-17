@@ -322,6 +322,7 @@ class CLI(Thread):
 
     def __init__(self):
         super(CLI, self).__init__()
+        self.cli_main = config['cli']['main_thread']
         self.debug = config['cli']['debug']
         self.quit = False
         self.world = World()
@@ -361,13 +362,6 @@ class CLI(Thread):
     def write(self, text):
         raise NotImplementedError('This is what you get for trying to instance an abstract class.')
 
-    def start(self):
-        self.interface.start()
-        super(CLI, self).start()
-
-    def stop(self):
-        self.interface.stop()
-
     def step(self):
         t0 = datetime.now()
         self.interface.step()
@@ -398,7 +392,7 @@ class CLI(Thread):
         self.window_tdelta_step.append(self.tdelta_step)
         self.avg_tdelta_step = mean(self.window_tdelta_step)
 
-    def run(self):
+    def cli_loop(self):
         """
         Here lies the non-blocking code that will run on a different thread.
         The main purpose is to wait for input and iterpretate the given commands without blocking the main loop.
@@ -430,14 +424,37 @@ class CLI(Thread):
                 else:
                     self.write('command "{}" not recognized'.format(cmd), ok=False)
 
+    def interface_loop(self):
+        while True:
+            sleep(self.step_delay / 1000)
+            self.step()
+            if self.quit:
+                self.stop()
+                break
+
+    def start(self):
+        self.interface.start()
+        super(CLI, self).start()
+        if self.cli_main:
+            self.cli_loop()
+        else:
+            self.interface_loop()
+
+    def run(self):
+        if self.cli_main:
+            self.interface_loop()
+        else:
+            self.cli_loop()
+
+    def stop(self):
+        self.interface.stop()
+
     def mainloop(self):
         try:
             self.start()
-            while True:
-                sleep(self.step_delay / 1000)
-                self.step()
-                if self.quit:
-                    self.stop()
-                    break
         except KeyboardInterrupt:
+            pass
+        except:
+            raise
+        finally:
             self.stop()

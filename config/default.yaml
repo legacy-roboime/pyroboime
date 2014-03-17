@@ -22,6 +22,7 @@ interface:
     referee-port: 10003
 cli:
   debug: false
+  main_thread: true
 zmq:
   # you should subscribe to this:
   pub: tcp://*:6665
