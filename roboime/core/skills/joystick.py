@@ -108,8 +108,8 @@ class Joystick(Skill):
                     self.angle_axis = 4    # a
                     self.turbo_button = None
                     # locks
-                    self.lock_x = None
-                    self.lock_y = None
+                    self.lock_x = 1
+                    self.lock_y = 0
                 elif template == 'attack3':
                     # ATTACK3 Template:
                     # --- Buttons:
