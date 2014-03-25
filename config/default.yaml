@@ -8,6 +8,9 @@ interface:
   log-file: "interface.log"
   command-yellow: true
   command-blue: true
+  oldtx: false
+  oldtx_addr: 127.0.0.1
+  oldtx_port: 9050
   sim:
     vision-addr: 224.5.23.2
     vision-port: 11002
@@ -28,3 +31,5 @@ zmq:
   pub: tcp://*:6665
   # and push to this:
   pull: tcp://*:6664
+robot:
+  max_speed: 2.0

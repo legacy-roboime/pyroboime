@@ -19,6 +19,7 @@ class IRIS(CLI):
 
     def __init__(self):
         super(IRIS, self).__init__()
+        globals()['world'] = self.world
         for cmd, func in self.cmd_dict.iteritems():
             # XXX: creating a closure to avoid sharing references
             def _closure_hack():

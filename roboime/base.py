@@ -32,6 +32,9 @@ from .utils import geom
 from .utils.mathutils import cos, sin
 from .utils.keydefaultdict import keydefaultdict
 from .communication.protos.referee_pb2 import SSL_Referee as ref
+from .config import config
+
+MAX_ROBOT_SPEED = config['robot']['max_speed']
 
 
 # this codes are used to compute the uid
@@ -143,7 +146,7 @@ class Action(object):
 
 class Robot(geom.Point):
 
-    def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None, max_speed=2.0, max_ang_speed=10.0):
+    def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None, max_speed=MAX_ROBOT_SPEED, max_ang_speed=10.0):
         """This class represents a robot, regardless of the team.
 
         Remember to set max_speed and max_ang_speed to reasonable limits.

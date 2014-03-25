@@ -152,10 +152,18 @@ class TxInterface(Interface):
         vision_address = (config['interface']['tx']['vision-addr'], config['interface']['tx']['vision-port'])
         referee_address = (config['interface']['tx']['referee-addr'], config['interface']['tx']['referee-port'])
         commanders = []
-        if command_blue:
-            commanders.append(commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug))
-        if command_yellow:
-            commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug))
+        if config['interface']['oldtx']:
+            ipaddr = config['interface']['oldtx_addr']
+            port = config['interface']['oldtx_port']
+            if command_blue:
+                commanders.append(commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug, ipaddr=ipaddr, port=port))
+            if command_yellow:
+                commanders.append(commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug, ipaddr=ipaddr, port=port))
+        else:
+            if command_blue:
+                commanders.append(commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug))
+            if command_yellow:
+                commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug))
         super(TxInterface, self).__init__(
             world,
             updaters=[
