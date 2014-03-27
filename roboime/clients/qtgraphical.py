@@ -195,7 +195,7 @@ class QtGraphicalClient(object):
         uid = self.ui.cmbRobotID.currentIndex()
         team = w.blue_team if self.ui.cmbRobotTeam.currentText() == 'Azul' else w.yellow_team
         robot = team[uid]
-        self.ui.txtRobotPosition.setText('{: 6.2f}, {: 6.2f}'.format(robot.x, robot.y))
+        #self.ui.txtRobotPosition.setText('{: 6.2f}, {: 6.2f}'.format(robot.x, robot.y))
         if robot.angle is None:
             self.ui.txtRobotAngle.setText('--')
         else:
