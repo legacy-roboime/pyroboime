@@ -16,6 +16,7 @@ from . import updater
 from . import commander
 from . import filter
 from ..config import config
+from ..utils.profile import Profile
 
 
 def _update_loop(queue, updater):
@@ -32,7 +33,7 @@ def _command_loop(queue, commander):
             commander.send(latest_actions)
 
 
-class Interface(Process):
+class Interface(Process, Profile):
     """ This class is used to manage a single interface channel
 
     More specifically, this class will instantiate a set of updaters,
@@ -84,6 +85,8 @@ class Interface(Process):
     def step(self):
         #print "I'm stepping the interface."
         # updates injection phase
+        self.profile_reset()
+        self.profile_stamp()
         for up in self.updaters:
             if not up.queue.empty():
                 #uu = up.queue.get_nowait()
@@ -114,6 +117,7 @@ class Interface(Process):
 
         # actions extraction phase
         # TODO filtering
+        self.profile_stamp()
         for co in self.commanders:
             actions = []
             # this is used to switch between control all and control active
@@ -132,6 +136,8 @@ class Interface(Process):
             #co.queue.put(actions)
             co.send(actions)
 
+        self.profile_stamp()
+
     def processes(self):
         for up in self.updaters:
             yield up
@@ -141,15 +147,23 @@ class Interface(Process):
 
 class TxInterface(Interface):
 
-    def __init__(self, world, filters=[], command_blue=True, command_yellow=True, mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None, **kwargs):
+    def __init__(self, world, filters=[], command_blue=config['interface']['command-blue'], command_yellow=config['interface']['command-yellow'], mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None, **kwargs):
         debug = config['interface']['debug']
         vision_address = (config['interface']['tx']['vision-addr'], config['interface']['tx']['vision-port'])
         referee_address = (config['interface']['tx']['referee-addr'], config['interface']['tx']['referee-port'])
         commanders = []
-        if command_blue:
-            commanders.append(commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug))
-        if command_yellow:
-            commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug))
+        if config['interface']['oldtx']:
+            ipaddr = config['interface']['oldtx_addr']
+            port = config['interface']['oldtx_port']
+            if command_blue:
+                commanders.append(commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug, ipaddr=ipaddr, port=port))
+            if command_yellow:
+                commanders.append(commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug, ipaddr=ipaddr, port=port))
+        else:
+            if command_blue:
+                commanders.append(commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug))
+            if command_yellow:
+                commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug))
         super(TxInterface, self).__init__(
             world,
             updaters=[
@@ -161,8 +175,12 @@ class TxInterface(Interface):
                 filter.DeactivateInactives(),
                 filter.Acceleration(),
                 filter.Speed(), # second speed is more precise due to Kalman, size=2
+                #filter.CommandUpdateLog(options.cmdupd_filename),
                 filter.Kalman(),
                 filter.Speed(3), # first speed used to predict speed for Kalman
+                #Noise should be enabled during simulation, to allow real noise simulation
+                #filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
+                filter.RegisterPosition("input"),
                 filter.Scale(),
             ],
             **kwargs

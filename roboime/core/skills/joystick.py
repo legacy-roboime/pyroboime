@@ -36,6 +36,9 @@ class Joystick(Skill):
         self.check_joysticks()
         self.relative = relative
 
+    def __del__(self):
+        pygame.quit() 
+
     def check_joysticks(self, index=0):
         if pygame.joystick.get_count() == 0:
             self.joystick_found = False
@@ -53,9 +56,10 @@ class Joystick(Skill):
                 # Available joysticks: ADD NEW JOYSTICK TEMPLATES HERE!
                 # name_of_joystick = (numaxes, numhats, numbuttons)
                 available_templates = {
-                    'xbox': (5, 1, 10),
-                    'attack3': (3, 0, 11),
-                    'maxprint': (5, 1, 12),
+                    (5, 1, 10): 'xbox',
+                    (6, 0, 15): 'xbox',
+                    (3, 0, 11): 'attack3',
+                    (5, 1, 12): 'maxprint',
                 }
 
                 # Yes, we do have a joystick.
@@ -67,10 +71,12 @@ class Joystick(Skill):
                 # self.fishingrod = FishingRod(self.robot, b_angle=0)
 
                 # Acquires the actual template of the joystick
-                this_joystick = (self.joystick.get_numaxes(), self.joystick.get_numhats(), self.joystick.get_numbuttons())
+                joystick_topology = (self.joystick.get_numaxes(), self.joystick.get_numhats(), self.joystick.get_numbuttons())
+                template = available_templates.get(joystick_topology)
+                print 'template:', template
 
                 # Available joysticks: ADD NEW JOYSTICK KEYMAPS HERE!
-                if this_joystick == available_templates['xbox']:
+                if template == 'xbox':
                     # XBOX Template:
                     # --- Buttons:
                     # A: 0
@@ -94,7 +100,7 @@ class Joystick(Skill):
                     self.kick_button = 5
                     self.dribble_button = 3
                     # if there's no need for a straffe, we set it as -1
-                    self.straffe_button = -1
+                    self.straffe_button = 9
                     self.normal_axis = 1   # y
                     self.aux_axis = 0      # x
                     self.power_axis = 2    # power
@@ -102,9 +108,9 @@ class Joystick(Skill):
                     self.angle_axis = 4    # a
                     self.turbo_button = None
                     # locks
-                    self.lock_x = None
-                    self.lock_y = None
-                elif this_joystick == available_templates['attack3']:
+                    self.lock_x = 1
+                    self.lock_y = 0
+                elif template == 'attack3':
                     # ATTACK3 Template:
                     # --- Buttons:
                     # 1: 0
@@ -133,7 +139,7 @@ class Joystick(Skill):
                     # locks
                     self.lock_x = 7
                     self.lock_y = 8
-                elif this_joystick == available_templates['maxprint']:
+                elif template == 'maxprint':
                     self.kick_button = 2
                     self.chipkick_button = 1
                     self.dribble_button = 0
@@ -225,7 +231,7 @@ class Joystick(Skill):
                 a = a if abs(a) > self.deadzone else 0
                 power = power if abs(power) > self.deadzone else 0
 
-                self.set_speeds(y * self.speed_ratio, x * self.speed_ratio, a * 300)
+                self.set_speeds((y * self.speed_ratio, x * self.speed_ratio, a * 300))
 
                 if self.joystick.get_button(self.kick_button):
                     self.robot.action.kick = power
@@ -240,23 +246,23 @@ class Joystick(Skill):
 
             # Displacement through asdw
             if pressed[pygame.K_w] and pressed[pygame.K_a]:    # '\
-                self.set_speeds(speed, speed, 0)
+                self.set_speeds((speed, speed, 0))
             elif pressed[pygame.K_s] and pressed[pygame.K_a]:  # ./
-                self.set_speeds(-speed, speed, 0)
+                self.set_speeds((-speed, speed, 0))
             elif pressed[pygame.K_s] and pressed[pygame.K_d]:  # \.
-                self.set_speeds(-speed, -speed, 0)
+                self.set_speeds((-speed, -speed, 0))
             elif pressed[pygame.K_w] and pressed[pygame.K_d]:  # /'
-                self.set_speeds(speed, -speed, 0)
+                self.set_speeds((speed, -speed, 0))
             elif pressed[pygame.K_s]:              # v
-                self.set_speeds(-speed, 0, 0)
+                self.set_speeds((-speed, 0, 0))
             elif pressed[pygame.K_a]:              # <-o
-                self.set_speeds(0, speed, 0)
+                self.set_speeds((0, speed, 0))
             elif pressed[pygame.K_w]:              # ^
-                self.set_speeds(speed, 0, 0)
+                self.set_speeds((speed, 0, 0))
             elif pressed[pygame.K_d]:              # o->
-                self.set_speeds(0, -speed, 0)
+                self.set_speeds((0, -speed, 0))
             else:
-                self.set_speeds(0, 0, 0)
+                self.set_speeds((0, 0, 0))
 
             # Orientation through <- and ->
             if pressed[pygame.K_LEFT]:

@@ -89,7 +89,6 @@ class Update(dict):
                                     robot.is_last_toucher = True
                                     robot.has_touched_ball = False
 
-
                     else:
                         setattr(team, team_prop, team_value)
 
@@ -125,7 +124,6 @@ class Update(dict):
             world.right_goal.update((world.length / 2, 0.0))
             world.left_goal.update((-world.length / 2, 0.0))
             world.inited = True
-
 
     #def __str__(self):
     #    return "<{}: data={}>".format(type(self), super(Update, self))

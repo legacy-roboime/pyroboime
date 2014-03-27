@@ -27,9 +27,8 @@ PyQt4 (optional)
     pip install PyQt
 
 pygame (optional)
-    # windows users are advised to get the binaries from pygame official site
-    # mac os users should install it via ports or homebrew
-    pip install pygame
+    # pygame 1.9.2 is recommended, it's not much easy to install
+    # this is only needed for using a joystick
 
 <<Windows OS>>
 Python 2.7

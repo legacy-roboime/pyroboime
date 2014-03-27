@@ -5,6 +5,7 @@
 *.suo
 *.pyproj
 *~
+*.log
 /*-venv
 .virtualenv*
 config/development.*
