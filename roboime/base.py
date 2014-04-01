@@ -146,7 +146,11 @@ class Action(object):
 
 class Robot(geom.Point):
 
-    def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None, max_speed=MAX_ROBOT_SPEED, max_ang_speed=10.0):
+    max_speed = MAX_ROBOT_SPEED
+    max_speed_dribbling = MAX_ROBOT_SPEED * 0.75
+    max_ang_speed = 10.0
+
+    def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None, max_speed=None, max_ang_speed=None):
         """This class represents a robot, regardless of the team.
 
         Remember to set max_speed and max_ang_speed to reasonable limits.
@@ -155,9 +159,11 @@ class Robot(geom.Point):
         # TODO make a robot builder/factory to abstract these sizes
         self._radius = 180e-3 / 2
         self.front_cut = self._radius * 0.7
-        self.max_speed = max_speed
-        self.max_ang_speed = max_ang_speed
-        self.max_speed_dribbling = max_speed * 0.75
+        if max_speed is not None:
+            self.max_speed = max_speed
+            self.max_speed_dribbling = max_speed * 0.75
+        if max_ang_speed is not None:
+            self.max_ang_speed = max_ang_speed
 
         # ideally robot should inherit from a class that has an angle
         # and some geometry framework can use that angle
