@@ -27,7 +27,7 @@ class Joystick(Skill):
     turbo_ratio = 2.0  # used to multiply speed_ratio
     angle_ratio = 180.0
     power_ratio = 1.0
-    deadzone = 0.2
+    deadzone = 0.3
 
     def __init__(self, robot, relative=True, **kwargs):
         super(Joystick, self).__init__(robot, deterministic=True, **kwargs)
