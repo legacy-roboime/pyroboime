@@ -27,6 +27,7 @@ from ..interface import SimulationInterface, TxInterface
 from ..core import Dummy
 from ..core.skills import goto
 from ..core.skills import gotoavoid
+from ..core.skills import gotolooking
 from ..core.skills import drivetoobject
 from ..core.skills import drivetoball
 from ..core.skills import sampleddribble
@@ -437,6 +438,7 @@ class Intelligence(QtCore.QThread):
             dummy,
             ('Go To', goto.Goto(robot, target=Point(0, 0))),
             ('Go To Avoid', gotoavoid.GotoAvoid(robot, target=Point(0, 0), avoid=self.world.ball)),
+            ('Go To Looking', gotolooking.GotoLooking(robot,  target=world.ball, lookpoint=world.ball)),
             ('Drive To Object', drivetoobject.DriveToObject(robot, lookpoint=robot.enemy_goal, point=self.world.ball)),
             ('Drive To Ball', drivetoball.DriveToBall(robot, lookpoint=robot.enemy_goal)),
             ('Sampled Dribble', sampleddribble.SampledDribble(robot, lookpoint=robot.enemy_goal)),

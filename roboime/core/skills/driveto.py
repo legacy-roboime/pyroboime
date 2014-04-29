@@ -50,7 +50,7 @@ class DriveTo(Goto):
         """
 
         super(DriveTo, self).__init__(robot, angle=angle, **kwargs)
-        self.should_avoid = False
+        #self.should_avoid = False
         self.robot = robot
         self._base_angle = base_angle
         self._base_point = base_point
