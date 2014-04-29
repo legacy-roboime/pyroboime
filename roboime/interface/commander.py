@@ -115,7 +115,7 @@ class Tx2013Commander(Commander):
         speeds = [(vy * cos(a) - vx * sin(a) + va * self.wheel_distance) / self.wheel_radius for a in self.wheel_angles]
         largest = max(abs(x) for x in speeds)
         if largest > self.max_speed:
-            speeds = [x / largest for x in speeds]
+            speeds = [x * self.max_speed / largest for x in speeds]
         return speeds
 
     def prepare_byte(self, x, max_speed=None):
@@ -145,7 +145,8 @@ class Tx2013Commander(Commander):
                     robot_packet.append(self.mapping_dict[a.uid])
                 else:
                     continue
-
+                #if a.uid == 3:
+                #    print self.omniwheel_speeds(vx, vy, va)
                 robot_packet.extend([self.prepare_byte(-x) for x in self.omniwheel_speeds(vx, vy, va)])
                 robot_packet.append(int((a.dribble or 0) * 255))
                 if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:
@@ -166,6 +167,7 @@ class Tx2013Commander(Commander):
                 if packet:
                     if self.verbose:
                         self.log('|'.join('{:03d}'.format(x) for x in packet))
+                    #print '|'.join('{:03d}'.format(x) for x in packet)
                     self.sender.send(packet)
 
 

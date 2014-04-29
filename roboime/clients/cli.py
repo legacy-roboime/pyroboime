@@ -248,7 +248,7 @@ class _commands(object):
         """hello -> world, simplest test of connectivity"""
         self.write('world')
 
-    def help(self, cmd=None):
+    def mayday(self, cmd=None):
         """help [command]"""
         if cmd is None:
             self.write(

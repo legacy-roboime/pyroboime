@@ -68,7 +68,7 @@ class Goto(Skill):
     exp_k = 6
 
     #def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
-    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=False, **kwargs):
+    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=False, use_norm_pid=False, **kwargs):
         """
         final_target: the ultimate position the robot should attain
         target: the intermediate position you're ACTUALLY sending the robot to
@@ -82,7 +82,9 @@ class Goto(Skill):
         """
         super(Goto, self).__init__(robot, deterministic=deterministic, **kwargs)
         #TODO: find the right parameters
-        self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
+        self.angle_controller = PidController(kp=1.8, ki=0.0, kd=0.0, integ_max=687.55, output_max=360)
+        self.norm_controller = PidController(kp=.8, ki=0.01, kd=0.5, integ_max=5, output_max=.8)
+        self.use_norm_pid = use_norm_pid
         #self.angle_controller = PidController(kp=1.324, ki=0, kd=0, integ_max=6.55, output_max=1000)
         self._angle = angle
         self._target = target
@@ -207,12 +209,20 @@ class Goto(Skill):
         if norm(gradient) < self.min_force_to_ignore_others:
             gradient += sum(map(sum, self.other_forces()))
 
-        # some crazy equation that makes the robot converge to the target point
-        a_max = self.mi * self.g
-        v_max = r.max_speed
-        cte = (self.exp_k * a_max / (v_max * v_max))
-        out = v_max * (1 - exp(-cte * r.distance(f_t)))
+        if self.use_norm_pid:
+            distance = norm(array(f_t) - array(r))
+            self.norm_controller.input = distance
+            self.norm_controller.feedback = 0.
+            self.norm_controller.step()
+            out = self.norm_controller.output
+        else:
+            # some crazy equation that makes the robot converge to the target point
+            a_max = self.mi * self.g
+            v_max = r.max_speed
+            cte = (self.exp_k * a_max / (v_max * v_max))
+            out = v_max * (1 - exp(-cte * r.distance(f_t)))
         # v is the speed vector resulting from that equation
+        #print out
         if self.avoid_collisions:
             v = out * gradient / norm(gradient)
         else:
