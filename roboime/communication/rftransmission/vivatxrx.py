@@ -22,10 +22,11 @@ class VIVATxRx(Transmitter):
     we currently (as of july 2013) use to transmit commands to the robots.
     """
 
-    # XXX: do send a new packet before this delay
+    # XXX: do not send a new packet before this delay
     #      this was made due to too many packets clogging
     #      the usb transmitter
     delay = 0.05
+
 
     def __init__(self, id_vendor=5824, id_product=1500, verbose=False):
         super(VIVATxRx, self).__init__()

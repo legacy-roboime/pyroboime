@@ -34,7 +34,7 @@ class GotoAvoid(Goto):
 
     @property
     def avoid_radius(self):
-        return self.robot.radius + self.world.ball.radius + .04
+        return self.robot.radius + self.world.ball.radius + .08
 
     def _step(self):
         r = self.robot

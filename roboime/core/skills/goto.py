@@ -83,7 +83,7 @@ class Goto(Skill):
         super(Goto, self).__init__(robot, deterministic=deterministic, **kwargs)
         #TODO: find the right parameters
         self.angle_controller = PidController(kp=1.8, ki=0.0, kd=0.0, integ_max=687.55, output_max=360)
-        self.norm_controller = PidController(kp=.8, ki=0.01, kd=0.5, integ_max=5, output_max=.8)
+        self.norm_controller = PidController(kp=.1, ki=0.01, kd=.5, integ_max=5., output_max=.8)
         self.use_norm_pid = use_norm_pid
         #self.angle_controller = PidController(kp=1.324, ki=0, kd=0, integ_max=6.55, output_max=1000)
         self._angle = angle
