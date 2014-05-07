@@ -432,7 +432,7 @@ class DeactivateInactives(Filter):
     This filter will deactivate robots which are not seen after a given time.
     """
 
-    def __init__(self, timeout=6.0):
+    def __init__(self, timeout=1.0):
         self.timeout = timeout
         self.previous = {}
 
