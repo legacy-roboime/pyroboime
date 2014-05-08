@@ -53,7 +53,7 @@ class KickTo(Skill):
         self.minpower = minpower
         self.maxpower = maxpower
         self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
-        self.distance_controller = PidController(kp=.1, ki=0.01, kd=.5, integ_max=5., output_max=.8)
+        self.distance_controller = PidController(kp=1.8, ki=0., kd=0, integ_max=687.55., output_max=360)
 
 
     @property
