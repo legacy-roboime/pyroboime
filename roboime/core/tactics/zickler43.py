@@ -19,6 +19,7 @@ from ...utils.statemachine import Transition
 from ..skills.drivetoball import DriveToBall
 #from ..skills.sampledkick import SampledKick
 from ..skills.kickto import KickTo
+from ..skills.chipkickto import ChipKickTo
 from ..skills.sampleddribble import SampledDribble
 from ..skills.halt import Halt
 from ...utils.geom import Point

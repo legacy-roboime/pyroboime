@@ -54,6 +54,7 @@ class SampledChipKick(DriveToBall):
 
     def _step(self):
         if self.close_enough():
+            self.robot.action.dribble = 1.
             # XXX: This doesn't work. Setting a receiver far enough away makes the robot kick the ball into spaaaaaaaaaaaaaaaaaaaace
             if self.receiver is not None:
                 power = kick_power(self.ball.distance(self.receiver))
@@ -65,7 +66,7 @@ class SampledChipKick(DriveToBall):
             self.robot.action.chipkick = power
 
         # do some pre-dribbling, should we do it?
-        self.robot.action.dribble = 0.5
+        self.robot.action.dribble = 1.
 
         # temporarily decrease the threshold, does it has to be temporary?
         _threshold, self.threshold = self.threshold, 0.05

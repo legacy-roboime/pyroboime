@@ -68,7 +68,7 @@ class Goto(Skill):
     exp_k = 6
 
     #def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
-    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=False, use_norm_pid=False, **kwargs):
+    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=False, use_norm_pid=False, separate_axis_control=False, **kwargs):
         """
         final_target: the ultimate position the robot should attain
         target: the intermediate position you're ACTUALLY sending the robot to

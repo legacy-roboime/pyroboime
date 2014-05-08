@@ -47,7 +47,7 @@ class Goalkeeper(Tactic):
         self.aggressive = aggressive
         self.goto = GotoLooking(robot, lookpoint=robot.world.ball, target=lambda: robot.goal)
         self.kick = KickTo(robot, lookpoint=lambda: robot.enemy_goal)
-        self.chip = SampledChipKick(robot, lookpoint=lambda: robot.enemy_goal)
+        self.chip = ChipKickTo(robot, lookpoint=lambda: robot.enemy_goal)
         self.angle = angle
         # should parametrize these
         # time in seconds to predict future ball position

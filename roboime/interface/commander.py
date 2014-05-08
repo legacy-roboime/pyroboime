@@ -128,7 +128,7 @@ class Tx2013Commander(Commander):
         return int(127 * x) & 255
 
     def send(self, actions):
-        actions_dict = keydefaultdict(lambda x: [0, 0, 0, 0, 0, 0, 0])
+        actions_dict = keydefaultdict(lambda x: [x | 128, 0, 0, 0, 0, 0, 0])
         # Initializes packet with the header.
         dirty = False
         if len(actions) > 0:
