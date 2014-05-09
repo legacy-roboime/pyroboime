@@ -23,6 +23,7 @@ from ...utils.geom import Line, Point
 from .. import Tactic
 from ..skills.gotolooking import GotoLooking
 from ..skills.kickto import KickTo
+from ..skills.chipkickto import ChipKickTo
 from ..skills.sampledchipkick import SampledChipKick
 
 
