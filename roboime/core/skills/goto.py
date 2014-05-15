@@ -84,7 +84,10 @@ class Goto(Skill):
         #TODO: find the right parameters
         self.angle_controller = PidController(kp=1.8, ki=0.0, kd=0.0, integ_max=687.55, output_max=360)
         self.norm_controller = PidController(kp=.1, ki=0.01, kd=.5, integ_max=5., output_max=.8)
+        self.x_controller = PidController(kp=.1, ki=0.01, kd=.5, integ_max=5., output_max=.8)
+        self.y_controller = PidController(kp=.1, ki=0.01, kd=.5, integ_max=5., output_max=.8)
         self.use_norm_pid = use_norm_pid
+        self.separate_axis_control = separate_axis_control
         #self.angle_controller = PidController(kp=1.324, ki=0, kd=0, integ_max=6.55, output_max=1000)
         self._angle = angle
         self._target = target
@@ -208,38 +211,53 @@ class Goto(Skill):
         gradient = self.attraction_force()
         if norm(gradient) < self.min_force_to_ignore_others:
             gradient += sum(map(sum, self.other_forces()))
+        # WTF
+        if self.separate_axis_control:
+            delta = array(f_t) - array(r)
+            ghost_point = norm(delta) * gradient / norm(gradient)
+            print gradient
+            print ghost_point
+            self.x_controller.input = ghost_point[0]
+            self.y_controller.input = ghost_point[1]
+            self.x_controller.feedback = 0.
+            self.y_controller.feedback = 0.
+            self.x_controller.step()
+            self.y_controller.step()
+            r.action.absolute_speeds = self.x_controller.output, self.y_controller.output, va
+            print r.action.absolute_speeds
 
-        if self.use_norm_pid:
-            distance = norm(array(f_t) - array(r))
-            self.norm_controller.input = distance
-            self.norm_controller.feedback = 0.
-            self.norm_controller.step()
-            out = self.norm_controller.output
         else:
-            # some crazy equation that makes the robot converge to the target point
-            a_max = self.mi * self.g
-            v_max = r.max_speed
-            cte = (self.exp_k * a_max / (v_max * v_max))
-            out = v_max * (1 - exp(-cte * r.distance(f_t)))
-        # v is the speed vector resulting from that equation
-        #print out
-        if self.avoid_collisions:
-            v = out * gradient / norm(gradient)
-        else:
-            # v = out * normalized error
-            # must check if error is zero lengthed
-            v = error
-            ne = norm(error)
-            if ne != 0:
-                v *= out / ne
+            if self.use_norm_pid:
+                distance = norm(array(f_t) - array(r))
+                self.norm_controller.input = distance
+                self.norm_controller.feedback = 0.
+                self.norm_controller.step()
+                out = self.norm_controller.output
+            else:
+                # some crazy equation that makes the robot converge to the target point
+                a_max = self.mi * self.g
+                v_max = r.max_speed
+                cte = (self.exp_k * a_max / (v_max * v_max))
+                out = v_max * (1 - exp(-cte * r.distance(f_t)))
+            # v is the speed vector resulting from that equation
+            #print out
+            if self.avoid_collisions:
+                v = out * gradient / norm(gradient)
+            else:
+                # v = out * normalized error
+                # must check if error is zero lengthed
+                v = error
+                ne = norm(error)
+                if ne != 0:
+                    v *= out / ne
 
-        # increase by referential speed
-        # not working, must think about it
-        #if ref is not None:
-        #    v += ref.speed
+            # increase by referential speed
+            # not working, must think about it
+            #if ref is not None:
+            #    v += ref.speed
 
-        # at last set the action accordingly
-        r.action.absolute_speeds = v[0], v[1], va
+            # at last set the action accordingly
+            r.action.absolute_speeds = v[0], v[1], va
 
     @property
     def point_away_from_defense_area(self):

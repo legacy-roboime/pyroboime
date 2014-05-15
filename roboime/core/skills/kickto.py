@@ -37,9 +37,9 @@ class KickTo(Skill):
     """
     #TODO: Change parameter back once we have real control.
     #angle_kick_min_error = 0.5
-    angle_kick_min_error = 15
-    angle_approach_min_error = 15
-    angle_tolerance = 30
+    angle_kick_min_error = 5
+    angle_approach_min_error = 5
+    angle_tolerance = 20
     orientation_tolerance = 0.7
     distance_tolerance = 0.14
     walkspeed = 0.2

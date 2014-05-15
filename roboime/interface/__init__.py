@@ -173,6 +173,8 @@ class TxInterface(Interface):
             commanders=commanders,
             filters=filters + [
                 filter.DeactivateInactives(),
+                # TESTIING
+                filter.LowPass(),
                 filter.Acceleration(),
                 filter.Speed(), # second speed is more precise due to Kalman, size=2
                 #filter.CommandUpdateLog(options.cmdupd_filename),
@@ -206,6 +208,7 @@ class SimulationInterface(Interface):
             ],
             filters=filters + [
                 #filter.PositionLog(options.position_log_filename), #should be last, to have all data available
+                filter.LowPass(),
                 filter.DeactivateInactives(),
                 filter.Acceleration(),
                 filter.Speed(), # second speed is more precise due to Kalman, size=2

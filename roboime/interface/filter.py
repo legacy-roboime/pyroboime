@@ -195,9 +195,9 @@ class LowPass(Filter):
     """
     def __init__(self):
         super(LowPass, self).__init__()
-        self.gain = 6.0
+        self.gain = 2.494054261
         self.last_theta = None
-        self.coef = [3.0, 0.0, -1.0 / 3.0, 0.0]
+        self.coef = [3.0, -0.1314787742, -0.751697685, -1.3609801469]
         self.ux = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
         self.uy = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
         self.vx = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
@@ -243,7 +243,10 @@ class LowPass(Filter):
                     last_theta = self.last_theta
 
                     d_theta = theta - last_theta
-                    d_theta = remainder(d_theta, 360)
+                    while d_theta > 180:
+                        d_theta -= 360
+                    while d_theta < -180:
+                        d_theta += 360
 
                     uo[0] = uo[1]
                     uo[1] = uo[2]
@@ -254,10 +257,12 @@ class LowPass(Filter):
                     vo[2] = vo[3]
                     vo[3] = (uo[0] + uo[3]) + self.coef[0] * (uo[1] + uo[2]) + (self.coef[1] * vo[0]) + (self.coef[2] * vo[1]) + self.coef[3] * vo[2]
 
-                    vo[3] = remainder(vo[3], 360)
-
                     self.last_theta = theta + vo[3]
-                    u['angle'] = vo[3] + theta
+                    while self.last_theta > 180:
+                        self.last_theta -= 360
+                    while self.last_theta < -180:
+                        self.last_theta  += 360
+                    #u['angle'] = self.last_theta
 
 
 class UpdateLog(Filter):

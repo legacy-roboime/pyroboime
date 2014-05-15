@@ -166,7 +166,6 @@ class Ifrit(Play):
         b = self.world.ball
 
         if target is None:
-            #target = self.team.enemy_goal
             target = self.team.enemy_goal
 
         candidate = []
