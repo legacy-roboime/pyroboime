@@ -22,6 +22,9 @@ class IRIS(CLI):
         globals()['world'] = self.world
         for cmd, func in self.cmd_dict.iteritems():
             # XXX: creating a closure to avoid sharing references
+            # Basically what's being done here is: we create a function
+            # that's essentially the original one, (same name, call and
+            # documentation, and inserting that into the closure.
             def _closure_hack():
                 cmd_func = func.im_func
                 global_func = lambda *args: cmd_func(self, *args)
@@ -32,7 +35,7 @@ class IRIS(CLI):
             _closure_hack()
 
     def cli_loop(self):
-        print 'Welcome to IRIS (Interactive RoboIME\'s Intelligence Shell)'
+        print 'Welcome to IRIS (Interactive RoboIME Intelligence Shell)'
         #IPython.start_ipython()
         IPython.embed()
         # quit after ipython exits

@@ -11,7 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-from numpy import pi, sign, array
+from numpy import pi, sign, array, sin
 from numpy.linalg import norm
 
 from ...utils.mathutils import sqrt
@@ -37,9 +37,10 @@ class KickTo(Skill):
     """
     #TODO: Change parameter back once we have real control.
     #angle_kick_min_error = 0.5
+    distance_kick_min_error = 0.7
     angle_kick_min_error = 5
     angle_approach_min_error = 5
-    angle_tolerance = 20
+    angle_tolerance = 5
     orientation_tolerance = 0.7
     distance_tolerance = 0.14
     walkspeed = 0.2
@@ -55,17 +56,6 @@ class KickTo(Skill):
         self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
         self.distance_controller = PidController(kp=1.8, ki=0., kd=0, integ_max=687.55, output_max=360)
 
-
-    @property
-    def lookpoint(self):
-        if callable(self._lookpoint):
-            return self._lookpoint()
-        return self._lookpoint
-
-    @lookpoint.setter
-    def lookpoint(self, value):
-        self._lookpoint = value   
- 
     @property
     def final_target(self):
         return self.lookpoint
@@ -81,6 +71,10 @@ class KickTo(Skill):
     def lookpoint(self, value):
         self._lookpoint = value
 
+    @lookpoint.setter
+    def lookpoint(self, value):
+        self._lookpoint = value
+
     def bad_position(self):
         bad_distance = self.robot.kicker.distance(self.ball) > self.distance_tolerance + .01
         #bad_orientation = abs(self.delta_orientation()) >= self.orientation_tolerance + 3
@@ -89,18 +83,18 @@ class KickTo(Skill):
 
     def good_position(self):
         good_distance = self.robot.kicker.distance(self.ball) <= self.distance_tolerance
-        #good_orientation = abs(self.delta_orientation()) < self.orientation_tolerance       
+        #good_orientation = abs(self.delta_orientation()) < self.orientation_tolerance
         good_angle = abs(self.delta_angle()) < self.angle_tolerance
         return good_distance and good_angle
 
     def delta_angle(self):
-        delta =  self.robot.angle_to_point(self.ball) - self.ball.angle_to_point(self.lookpoint)
+        delta = self.robot.angle_to_point(self.ball) - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
 
     def delta_orientation(self):
-        delta =  self.robot.angle - self.ball.angle_to_point(self.lookpoint)
+        delta = self.robot.angle - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
-        
+
     def _step(self):
         #print 'blasdbflas'
         delta_orientation = self.delta_orientation()
@@ -120,7 +114,8 @@ class KickTo(Skill):
         v = pi * w * d / 180.0
         z = 0.0
 
-        if abs(delta_orientation) < self.angle_kick_min_error:
+        #if abs(delta_orientation) < self.angle_kick_min_error:
+        if abs(sin(delta_orientation) * self.ball.distance(self.lookpoint)) < self.distance_kick_min_error:
             kp = kick_power(self.lookpoint.distance(self.robot))
             kp = min(max(kp, self.minpower), self.maxpower)
             self.robot.action.kick = kp

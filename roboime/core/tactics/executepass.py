@@ -24,6 +24,7 @@ from ..skills.halt import Halt
 from ..skills.kickto import KickTo
 from ...utils.geom import Point
 
+
 class ExecutePass(Tactic):
     '''
     This tactic has the objective of passing the ball to another
@@ -39,7 +40,7 @@ class ExecutePass(Tactic):
     '''
     class Kicker(object):
         def __init__(self):
-            self.kicker = None
+            self.kicker = Point(0, 0)
 
     class CompanionCube(object):
         def __init__(self, robot):
