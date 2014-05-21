@@ -37,8 +37,8 @@ class KickTo(Skill):
     """
     #TODO: Change parameter back once we have real control.
     #angle_kick_min_error = 0.5
-    distance_kick_min_error = 0.7
-    angle_kick_min_error = 5
+    #distance_kick_min_error = 0.8
+    angle_kick_min_error = 10
     angle_approach_min_error = 5
     angle_tolerance = 5
     orientation_tolerance = 0.7
@@ -53,8 +53,8 @@ class KickTo(Skill):
         self.force_kick = force_kick
         self.minpower = minpower
         self.maxpower = maxpower
-        self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
-        self.distance_controller = PidController(kp=1.8, ki=0., kd=0, integ_max=687.55, output_max=360)
+        self.angle_controller = PidController(kp=0.1, ki=0.5, kd=0.05, integ_max=300., output_max=0.8)
+        self.distance_controller = PidController(kp=0.1, ki=0.5, kd=0.05, integ_max=300., output_max=0.8)
 
     @property
     def final_target(self):
@@ -114,8 +114,8 @@ class KickTo(Skill):
         v = pi * w * d / 180.0
         z = 0.0
 
-        #if abs(delta_orientation) < self.angle_kick_min_error:
-        if abs(sin(delta_orientation) * self.ball.distance(self.lookpoint)) < self.distance_kick_min_error:
+        if abs(delta_orientation) < self.angle_kick_min_error:
+        #if abs(sin(delta_orientation) * self.ball.distance(self.lookpoint)) < self.distance_kick_min_error:
             kp = kick_power(self.lookpoint.distance(self.robot))
             kp = min(max(kp, self.minpower), self.maxpower)
             self.robot.action.kick = kp
@@ -123,6 +123,6 @@ class KickTo(Skill):
         else:
             if abs(delta_orientation) < self.angle_approach_min_error:
                 z = self.walkspeed
-            self.robot.action.dribble = 1.0
+            #self.robot.action.dribble = 1.0
 
         self.robot.action.speeds = (z, v, -w)

@@ -62,9 +62,9 @@ class Stop(Play):
         if len(blockers) > 0:
             self.players[blockers[0]]['blocker'].arc = 0
         if len(blockers) > 1:
-            self.players[blockers[1]]['blocker'].arc = 23
+            self.players[blockers[1]]['blocker'].arc = 30
         if len(blockers) > 2:
-            self.players[blockers[2]]['blocker'].arc = -23
+            self.players[blockers[2]]['blocker'].arc = -30
 
         for robot in self.team:
             r_id = robot.uid

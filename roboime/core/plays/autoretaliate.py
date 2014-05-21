@@ -35,7 +35,7 @@ class AutoRetaliate(Play):
         super(AutoRetaliate, self).__init__(team, **kwargs)
         self.players = {}
         self.tactics_factory.update({
-            'goalkeeper': lambda robot: Goalkeeper(robot, aggressive=False, angle=0),
+            'goalkeeper': lambda robot: Goalkeeper(robot, aggressive=True, angle=0.),
             'attacker': lambda robot: Zickler43(robot),
             'blocker': lambda robot: Blocker(robot, arc=0),
             'defender': lambda robot: Defender(robot, enemy=self.ball, distance=0.6),

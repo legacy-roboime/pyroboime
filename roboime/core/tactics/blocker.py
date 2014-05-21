@@ -36,7 +36,7 @@ class Blocker(Tactic):
         super(Blocker, self).__init__(robot, deterministic=True)
         # TODO: implement with follow and cover somehow, needs angle deviantion
         self.blockpoint = self.ball if blockpoint is None else blockpoint
-        self.goto = GotoLooking(self.robot, name='Block!', lookpoint=self.blockpoint)
+        self.goto = GotoLooking(self.robot, name='Block!', lookpoint=lambda: self.blockpoint)
         self.arc = arc
         self.dist = distance
 

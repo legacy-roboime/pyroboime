@@ -786,6 +786,15 @@ class World(object):
         line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
         return line_to_buffer.buffer(defense_area_radius)
 
+    def augmented_defense_area(self, robot, color):
+        goal = self.goal(color)
+        gx, gy = goal.x, goal.y
+        #goal_width = self.goal_width
+        defense_area_radius = self.defense_radius
+        defense_area_stretch = self.defense_stretch
+        line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
+        return line_to_buffer.buffer(defense_area_radius + robot.radius + 0.1)
+
     def closest_robot_to_ball(self, **kwargs):
         return self.closest_robot_to_point(self.ball, **kwargs)
 

@@ -3,8 +3,8 @@
 # you can roll your own development.yaml
 interface:
   debug: false
-  control_active_only: false
-  default: sim
+  control_active_only: true#false
+  default: tx #sim
   log-file: "interface.log"
   command-yellow: true
   command-blue: true
@@ -15,7 +15,7 @@ interface:
     vision-addr: 224.5.23.2
     vision-port: 11002
     referee-addr: 224.5.23.1
-    referee-port: 11003
+    referee-port: 10003
     grsim-addr: 127.0.0.1
     grsim-port: 20011
   tx:

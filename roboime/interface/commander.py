@@ -131,6 +131,7 @@ class Tx2013Commander(Commander):
         actions_dict = keydefaultdict(lambda x: [x | 128, 0, 0, 0, 0, 0, 0])
         # Initializes packet with the header.
         dirty = False
+        actions_now = []
         if len(actions) > 0:
             for a in actions:
                 if not a:
@@ -157,17 +158,25 @@ class Tx2013Commander(Commander):
                     robot_packet.append(0)
 
                 actions_dict[self.mapping_dict[a.uid]] = robot_packet
+                actions_now.append(a.uid)
                 a.reset()
 
             if dirty:
                 packet = [254, 0, 44]
-                for i in xrange(6):
+                i = 0
+                #for uid in actions_now:
+                #    packet.extend(actions_dict[uid])
+                #    i += 1
+                for i in [1, 2, 4, 5, 6, 7]:
                     packet.extend(actions_dict[i])
+                #while i < 6:
+                #    packet.extend(actions_dict[10])
+                #    i += 1
                 packet.append(55)
                 if packet:
                     if self.verbose:
                         self.log('|'.join('{:03d}'.format(x) for x in packet))
-                    #print '|'.join('{:03d}'.format(x) for x in packet)
+                    print '|'.join('{:03d}'.format(x) for x in packet)
                     self.sender.send(packet)
 
 
@@ -309,6 +318,7 @@ class SimCommander(Commander):
                 c = packet.commands.robot_commands.add()
                 c.id = a.uid
                 chip_angle = 45
+                if a.chipkick is not None: a.chipkick = a.chipkick * 3.
                 c.kickspeedz = (a.chipkick or 0.0) * sin(chip_angle)
                 if c.kickspeedz > 0:
                     # XXX FIXME this should be tested,

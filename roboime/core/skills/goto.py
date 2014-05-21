@@ -84,8 +84,8 @@ class Goto(Skill):
         #TODO: find the right parameters
         self.angle_controller = PidController(kp=1.8, ki=0.0, kd=0.0, integ_max=687.55, output_max=360)
         self.norm_controller = PidController(kp=.1, ki=0.01, kd=.5, integ_max=5., output_max=.8)
-        self.x_controller = PidController(kp=.1, ki=0.01, kd=.5, integ_max=5., output_max=.8)
-        self.y_controller = PidController(kp=.1, ki=0.01, kd=.5, integ_max=5., output_max=.8)
+        self.x_controller = PidController(kp=.3, ki=0.01, kd=.05, integ_max=5., output_max=.8)
+        self.y_controller = PidController(kp=.3, ki=0.01, kd=.05, integ_max=5., output_max=.8)
         self.use_norm_pid = use_norm_pid
         self.separate_axis_control = separate_axis_control
         #self.angle_controller = PidController(kp=1.324, ki=0, kd=0, integ_max=6.55, output_max=1000)
@@ -263,7 +263,7 @@ class Goto(Skill):
     def point_away_from_defense_area(self):
         # FIXME: Only works if robot is inside defense area (which, honestly, is the only place you should ever be using this).
         # FIXME: I think I broke it, needs fixing, reviewing and commenting
-        defense_area = self.world.defense_area(self.robot.color).buffer(self.robot.radius + 0.1).boundary
+        defense_area = self.world.augmented_defense_area(self.robot, self.robot.color).boundary
         distance = self.target.distance(defense_area)
         buffered_circumference = self.target.buffer(distance)
         intersection = buffered_circumference.intersection(defense_area).centroid

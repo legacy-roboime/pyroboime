@@ -64,7 +64,7 @@ _individuals = {
     'sampled_chip_kick': lambda r: sampledchipkick.SampledChipKick(r, lookpoint=r.enemy_goal),
     'kick_to': lambda r: kickto.KickTo(r, lookpoint=Point(0, 0)),
     'blocker': lambda r: blocker.Blocker(r, arc=0),
-    'goalkeeper': lambda r: goalkeeper.Goalkeeper(r, angle=30, aggressive=True),
+    'goalkeeper': lambda r: goalkeeper.Goalkeeper(r, angle=20, aggressive=False),
     'zickler43': lambda r: zickler43.Zickler43(r),
     'defender': lambda r: defender.Defender(r, enemy=r.world.ball),
     'dummy_receive_pass': lambda r: receivepass.ReceivePass(r, Point(0,0)),
@@ -243,6 +243,8 @@ class _commands(object):
             self.write('invalid param {}'.format(param), ok=False)
 
     #def print_goto_params(self):
+    def switch_sides(self):
+        self.world.switch_sides()
 
     def hello(self):
         """hello -> world, simplest test of connectivity"""

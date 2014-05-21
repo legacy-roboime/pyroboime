@@ -12,7 +12,6 @@
 # GNU Affero General Public License for more details.
 #
 from numpy import array
-from numpy import remainder
 from numpy.random import normal
 from math import degrees, sqrt
 from collections import defaultdict
@@ -42,6 +41,35 @@ class Filter(object):
 
     def filter_command(self, commands):
         pass
+
+
+class Overlap(Filter):
+    """
+    Removes everything a camera removes betond a certain x position.
+    Designed to reduce camera overlap
+    """
+    def __init__(self):
+        self.x_threshold = 0.04
+
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, u in update['balls'].copy().iteritems():#.objects():
+                if u['x'] > self.x_threshold and update['camera'] == 0:
+                    del update['balls'][uid]
+                if u['x'] < -self.x_threshold and update['camera'] == 1:
+                    del update['balls'][uid]
+
+            for uid, u in update['blue_team']['__robots__'].copy().iteritems():
+                if u['x'] > self.x_threshold and update['camera'] == 0:
+                    del update['blue_team']['__robots__'][uid]
+                if u['x'] < -self.x_threshold and update['camera'] == 1:
+                    del update['blue_team']['__robots__'][uid]
+
+            for uid, u in update['yellow_team']['__robots__'].copy().iteritems():
+                if u['x'] > self.x_threshold and update['camera'] == 0:
+                    del update['yellow_team']['__robots__'][uid]
+                if u['x'] < -self.x_threshold and update['camera'] == 1:
+                    del update['yellow_team']['__robots__'][uid]
 
 
 class Scale(Filter):
@@ -185,6 +213,39 @@ class Acceleration(Filter):
             self.remember_update(update)
 
 
+class MovingAverage(Filter):
+    """
+    Averages the last 2 positions to get the current one. This is fucking stupid
+    """
+    def __init__(self):
+        super(MovingAverage, self).__init__()
+        self.lx = defaultdict(lambda: 0.0)
+        self.ly = defaultdict(lambda: 0.0)
+        self.lo = defaultdict(lambda: 0.0)
+
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, u in update.uobjects():
+                cx = self.lx[uid]
+                cy = self.ly[uid]
+                co = self.lo[uid]
+
+                self.lx[uid], self.ly[uid] = u['x'], u['y']
+
+                u['x'], u['y'] = (cx + self.lx[uid]) / 2, (cy + self.ly[uid]) / 2
+                if 'angle' in u:
+                    self.lo[uid] = u['angle']
+                    while co > 180:
+                        co -= 360
+                    while co < -180:
+                        co += 360
+                    while self.lo[uid] > 180:
+                        self.lo[uid] -= 360
+                    while self.lo[uid] < -180:
+                        self.lo[uid] += 360
+                    u['angle'] = (co + self.lo[uid]) / 2
+
+
 class LowPass(Filter):
     """
     This is a stub for a 4th order low-pass filter that eliminates high-frequency
@@ -261,7 +322,7 @@ class LowPass(Filter):
                     while self.last_theta > 180:
                         self.last_theta -= 360
                     while self.last_theta < -180:
-                        self.last_theta  += 360
+                        self.last_theta += 360
                     #u['angle'] = self.last_theta
 
 

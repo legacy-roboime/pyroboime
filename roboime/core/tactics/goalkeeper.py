@@ -46,7 +46,7 @@ class Goalkeeper(Tactic):
 
         super(Goalkeeper, self).__init__(robot, deterministic=True)
         self.aggressive = aggressive
-        self.goto = GotoLooking(robot, lookpoint=robot.world.ball, target=lambda: robot.goal)
+        self.goto = GotoLooking(robot, lookpoint=robot.world.ball, target=lambda: robot.goal, avoid_collisions=True)
         self.kick = KickTo(robot, lookpoint=lambda: robot.enemy_goal)
         self.chip = ChipKickTo(robot, lookpoint=lambda: robot.enemy_goal)
         self.angle = angle
@@ -144,10 +144,11 @@ class Goalkeeper(Tactic):
         #}
 
         # middle of the largest gap:
+        """
         p = self.point_to_defend()
         if p is not None:
             self.goto.target = self.point_to_defend()
-
+        """
         # continue stepping the last strategy
         self.goto.step()
 
