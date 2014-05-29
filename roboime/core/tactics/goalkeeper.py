@@ -25,6 +25,7 @@ from ..skills.gotolooking import GotoLooking
 from ..skills.kickto import KickTo
 from ..skills.chipkickto import ChipKickTo
 from ..skills.sampledchipkick import SampledChipKick
+from ..tactics.zickler43 import Zickler43
 
 
 class Goalkeeper(Tactic):
@@ -47,12 +48,13 @@ class Goalkeeper(Tactic):
         super(Goalkeeper, self).__init__(robot, deterministic=True)
         self.aggressive = aggressive
         self.goto = GotoLooking(robot, lookpoint=robot.world.ball, target=lambda: robot.goal, avoid_collisions=True)
-        self.kick = KickTo(robot, lookpoint=lambda: robot.enemy_goal)
-        self.chip = ChipKickTo(robot, lookpoint=lambda: robot.enemy_goal)
+        #self.kick = KickTo(robot, lookpoint=lambda: robot.enemy_goal)
+        self.chip = Zickler43(robot, always_force=True, always_chip=True)
+        #self.chip = ChipKickTo(robot, lookpoint=lambda: robot.enemy_goal, force_kick=True)
         self.angle = angle
         # should parametrize these
         # time in seconds to predict future ball position
-        self.look_ahead_time = 2.0
+        self.look_ahead_time = 4.0
         self.domination_radius = 0.135
         #self.safety_ratio = 0.9
         self.safety_ratio = 2.0
@@ -71,7 +73,7 @@ class Goalkeeper(Tactic):
         #
 
         # Sets the ratio between the perpendicular distance of the homeline to the goal and the GK's radius
-        radius = (self.robot.radius + 2 * self.ball.radius) * self.safety_ratio
+        radius = (self.robot.radius)  #+ 2 * self.ball.radius) * self.safety_ratio
 
         # Compute home line ends
         p1 = Point(array(self.goal.p1) + radius * array((cos(self.angle) * -sign(self.goal.x), -sin(self.angle))))
@@ -104,11 +106,11 @@ class Goalkeeper(Tactic):
         # TODO: get the chain of badguys, (badguy and who can it pass to)
 
         # if the badguy has closest reach to the ball then watch it's orientation
-        danger_bot = self.world.closest_robot_to_ball()
+        danger_bot = self.world.closest_robot_to_ball(color=self.team.enemy_team.color)
 
         # If dangerBot is an enemy, we shall watch his orientation. If he's a friend, we move on to a more
         # appropriate strategy
-        if danger_bot is not None and danger_bot.is_enemy(self.robot) and danger_bot.distance(self.ball) < self.domination_radius:
+        if danger_bot is not None:  # and danger_bot.distance(self.ball) < self.domination_radius:
             # Line starting from the dangerBot spanning twice the width of the field (just to be sure)
             # to the goal with the desired orientation.
             future_point = Point(array(danger_bot) + array((cos(danger_bot.angle), sin(danger_bot.angle))) * 2 * self.world.width)
@@ -123,6 +125,7 @@ class Goalkeeper(Tactic):
                 return self.goto.step()
             else:
                 self.goto.target = p1 if future_point.y > 0 else p2
+
         # else:
         # Otherwise, try to close the largest gap
         #Point blBestPoint = pointToKeep(), hlBestPoint;

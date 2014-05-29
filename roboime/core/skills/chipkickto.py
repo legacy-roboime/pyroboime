@@ -35,9 +35,9 @@ class ChipKickTo(Skill):
     This class is an alternative to SampledKick.
     Meanwhile it's experimental, depending on the results it'll stay or not.
     """
-    angle_kick_min_error = 15
-    angle_approach_min_error = 15
-    angle_tolerance = 30
+    angle_kick_min_error = 10
+    angle_approach_min_error = 5
+    angle_tolerance = 5
     orientation_tolerance = 0.7
     distance_tolerance = 0.14
     walkspeed = 0.2
@@ -50,8 +50,8 @@ class ChipKickTo(Skill):
         self.force_kick = force_kick
         self.minpower = minpower
         self.maxpower = maxpower
-        self.angle_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
-        self.distance_controller = PidController(kp=1.8, ki=0, kd=0, integ_max=687.55, output_max=360)
+        self.angle_controller = PidController(kp=0.1, ki=1., kd=0.05, integ_max=300., output_max=0.8)
+        self.distance_controller = PidController(kp=0.1, ki=1., kd=0.05, integ_max=300., output_max=0.8)
 
     @property
     def lookpoint(self):
@@ -81,15 +81,14 @@ class ChipKickTo(Skill):
         return good_distance and good_angle
 
     def delta_angle(self):
-        delta =  self.robot.angle_to_point(self.ball) - self.ball.angle_to_point(self.lookpoint)
+        delta = self.robot.angle_to_point(self.ball) - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
 
     def delta_orientation(self):
-        delta =  self.robot.angle - self.ball.angle_to_point(self.lookpoint)
+        delta = self.robot.angle - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
-        
+ 
     def _step(self):
-        #print 'blasdbflas'
         delta_orientation = self.delta_orientation()
 
         self.angle_controller.input = delta_orientation
@@ -107,7 +106,7 @@ class ChipKickTo(Skill):
         v = pi * w * d / 180.0
         z = 0.0
 
-        if abs(delta_orientation) < self.angle_kick_min_error:
+        if abs(delta_orientation) < self.angle_kick_min_error or self.force_kick:
             kp = kick_power(self.lookpoint.distance(self.robot))
             kp = min(max(kp, self.minpower), self.maxpower)
             self.robot.action.chipkick = kp

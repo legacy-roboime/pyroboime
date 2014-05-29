@@ -29,7 +29,7 @@ class Stop(Play):
         self.tactics_factory.update({
             'goalkeeper': lambda robot: Goalkeeper(robot, aggressive=False, angle=0),
             'blocker': lambda robot: Blocker(robot, arc=0),
-            'defender': lambda robot: Defender(robot, enemy=self.ball, distance=0.6),
+            'defender': lambda robot: Defender(robot, enemy=self.ball, distance=0.5),
         })
 
     def setup_tactics(self):
@@ -43,6 +43,8 @@ class Stop(Play):
 
         # first 3 are blockers, the rest are defenders
         blockers, defenders = closest_robots[:3], closest_robots[3:]
+        #blockers = [r for d, r in sorted((-self.team[id].y, id) for id in blockers)]
+        #print blockers
 
         # grab the actual list of defenders
         defenders = [self.team[i] for i in defenders]

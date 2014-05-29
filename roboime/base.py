@@ -703,7 +703,7 @@ class World(object):
         self.right_team, self.left_team = self.left_team, self.right_team
 
     def has_clear_shot(self, point_to_kick):
-        shot_line = geom.Line(self.ball, point_to_kick)
+        shot_line = geom.Line(self.ball, point_to_kick).buffer(self.ball.radius)
         for robot in self.iterrobots():
             if shot_line.crosses(robot.body):
                 return False
@@ -773,7 +773,7 @@ class World(object):
 
     def is_in_defense_area(self, robot=None, body=None, color=None):
         if body and color:
-            return not self.defense_area(color).intersection(body).is_empty
+            return (not self.defense_area(color).intersection(body).is_empty)  # or abs(body.centroid.x) > abs(self.goal(color).x)
         elif robot:
             return self.defense_area(robot.color).contains(robot) or not self.defense_area(robot.color).intersection(robot.body).is_empty
 

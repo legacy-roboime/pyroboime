@@ -18,12 +18,13 @@ from .stop import Stop
 from .halt import Halt
 from .penalty import Penalty
 from .penaltydefend import PenaltyDefend
-from .indirectkick import IndirectKick
+from .ifrit import Ifrit
+from .autoretaliate import AutoRetaliate
 from ...base import Referee, Blue, Yellow
 from ...utils.geom import Point
 
 Command = Referee.Command
-TOLERANCE = 0.10
+TOLERANCE = 0.15
 
 
 class ObeyReferee(Play):
@@ -45,7 +46,7 @@ class ObeyReferee(Play):
         self.halt = Halt(self.team)
         self.penalty_us = Penalty(self.team)
         self.penalty_them = PenaltyDefend(self.team)
-        self.indirect_kick = IndirectKick(self.team)
+        self.indirect_kick = AutoRetaliate(self.team) #Ifrit(self.team, allowed_to_kick=False) #IndirectKick(self.team)
         self.referee = self.world.referee
         self.command = self.referee.command
         self.last_command = Command.Halt
@@ -54,12 +55,12 @@ class ObeyReferee(Play):
         self.halt = Halt(self.team)
 
     def step(self):
-        first_time = False
+        self.first_time = False
         if self.command != self.referee.command:
             self.last_command = self.command
             self.command = self.referee.command
             self.last_ball = Point(self.ball)
-            first_time = True
+            self.first_time = True
         ball_distance = self.ball.distance(self.last_ball)
 
         if self.verbose:
@@ -114,12 +115,16 @@ class ObeyReferee(Play):
 
         elif ((self.command == Command.IndirectFreeBlue and self.team.color == Blue) or
                 (self.command == Command.IndirectFreeYellow and self.team.color == Yellow)):
-            if first_time:
-                self.indirect_kick.restart()
-            if self.indirect_kick.current_state == self.indirect_kick.states['end']:
+            if self.first_time:
+                pass
+                #self.indirect_kick.reset()
+
+            #print "Has passed: ", self.indirect_kick.has_passed
+            if True:  # self.indirect_kick.has_passed:
                 self.play.step()
             else:
                 self.indirect_kick.step()
+            #self.play.step()
 
         elif self.command in [Command.PrepareKickoffYellow, Command.PrepareKickoffBlue, Command.Stop, Command.TimeoutYellow, Command.TimeoutBlue]:
             self.stop.step()

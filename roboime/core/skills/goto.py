@@ -11,7 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-from numpy import array
+from numpy import array, sign
 from numpy.linalg import norm
 
 from .. import Skill
@@ -82,8 +82,8 @@ class Goto(Skill):
         """
         super(Goto, self).__init__(robot, deterministic=deterministic, **kwargs)
         #TODO: find the right parameters
-        self.angle_controller = PidController(kp=1.8, ki=0.0, kd=0.0, integ_max=687.55, output_max=360)
-        self.norm_controller = PidController(kp=.1, ki=0.01, kd=.5, integ_max=5., output_max=.8)
+        self.angle_controller = PidController(kp=1., ki=.0, kd=.0, integ_max=.5, output_max=360)
+        self.norm_controller = PidController(kp=.1, ki=0.01, kd=.5, integ_max=50., output_max=1.2)
         self.x_controller = PidController(kp=.3, ki=0.01, kd=.05, integ_max=5., output_max=.8)
         self.y_controller = PidController(kp=.3, ki=0.01, kd=.05, integ_max=5., output_max=.8)
         self.use_norm_pid = use_norm_pid
@@ -192,12 +192,15 @@ class Goto(Skill):
 
         # check whether the point we want to go to will make the robot be in the defense area
         # if so then we'll go to the nearest point that meets that constraint
+        #print "ball is in area?", r.world.is_in_defense_area(body=self.world.ball.buffer(r.radius), color=r.color)
         if not self.robot.is_goalie and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
-            t = self.point_away_from_defense_area
+            self.target = self.point_away_from_defense_area
+            t = self.target
 
         # angle control using PID controller
         if self.angle is not None and self.robot.angle is not None:
             self.angle_controller.input = (180 + self.angle - self.robot.angle) % 360 - 180
+            #self.angle_controller.input = (180 + 0 - self.robot.angle) % 360 - 180
             self.angle_controller.feedback = 0.0
             self.angle_controller.step()
             va = self.angle_controller.output
@@ -268,8 +271,17 @@ class Goto(Skill):
         buffered_circumference = self.target.buffer(distance)
         intersection = buffered_circumference.intersection(defense_area).centroid
         if not intersection.is_empty:
+        #    if abs(self.target.x) < abs(self.world.goal(self.robot.color).x):
+            #print 'case 1'
             error = array(intersection) - array(self.target)
             diff = distance * error / norm(error)
+            #print "returning point from defense area"
             return Point(array(self.target) + diff)
+        #    else:
+        #        print 'case 2'
+        #        return Point(self.target.x - 2 * sign(self.goal.x) * self.world.defense_radius, self.robot.y)
+        #        #diff = -1 * distance * error / norm(error)
+        #        #print "returning point from defense area"
+        #        #return Point(array(self.target) + 2 * diff)
         else:
             return self.target

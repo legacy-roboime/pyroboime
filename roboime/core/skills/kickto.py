@@ -114,15 +114,22 @@ class KickTo(Skill):
         v = pi * w * d / 180.0
         z = 0.0
 
-        if abs(delta_orientation) < self.angle_kick_min_error:
+        if abs(delta_orientation) < self.angle_kick_min_error or self.force_kick:
         #if abs(sin(delta_orientation) * self.ball.distance(self.lookpoint)) < self.distance_kick_min_error:
             kp = kick_power(self.lookpoint.distance(self.robot))
             kp = min(max(kp, self.minpower), self.maxpower)
             self.robot.action.kick = kp
-            z = self.walkspeed
+            self.distance_controller.input = self.robot.kicker.distance(self.ball)
+            self.distance_controller.feedback = 0
+            self.distance_controller.step()
+            z = self.distance_controller.output
+            #z = self.walkspeed
         else:
             if abs(delta_orientation) < self.angle_approach_min_error:
-                z = self.walkspeed
-            #self.robot.action.dribble = 1.0
+                self.distance_controller.input = self.robot.kicker.distance(self.ball)
+                self.distance_controller.feedback = 0
+                self.distance_controller.step()
+                z = self.distance_controller.output
+            self.robot.action.dribble = 1.0
 
         self.robot.action.speeds = (z, v, -w)

@@ -49,28 +49,54 @@ class Overlap(Filter):
     Designed to reduce camera overlap
     """
     def __init__(self):
-        self.x_threshold = 0.04
+        self.x_threshold = 0.0
 
     def filter_update(self, update):
         if update.has_detection_data():
             for uid, u in update['balls'].copy().iteritems():#.objects():
                 if u['x'] > self.x_threshold and update['camera'] == 0:
+                #if update['camera'] == 0:
                     del update['balls'][uid]
                 if u['x'] < -self.x_threshold and update['camera'] == 1:
                     del update['balls'][uid]
 
             for uid, u in update['blue_team']['__robots__'].copy().iteritems():
                 if u['x'] > self.x_threshold and update['camera'] == 0:
+                #if update['camera'] == 0:
                     del update['blue_team']['__robots__'][uid]
                 if u['x'] < -self.x_threshold and update['camera'] == 1:
                     del update['blue_team']['__robots__'][uid]
 
             for uid, u in update['yellow_team']['__robots__'].copy().iteritems():
                 if u['x'] > self.x_threshold and update['camera'] == 0:
+                #if update['camera'] == 0:
                     del update['yellow_team']['__robots__'][uid]
                 if u['x'] < -self.x_threshold and update['camera'] == 1:
                     del update['yellow_team']['__robots__'][uid]
 
+
+class IgnoreCamera(Filter):
+    """
+    Removes everything a camera removes betond a certain x position.
+    Designed to reduce camera overlap
+    """
+    def __init__(self, camId):
+        self.x_threshold = 0.04
+        self.camId = camId
+
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, u in update['balls'].copy().iteritems():
+                if update['camera'] == self.camId:
+                    del update['balls'][uid]
+
+            for uid, u in update['blue_team']['__robots__'].copy().iteritems():
+                if update['camera'] == self.camId:
+                    del update['blue_team']['__robots__'][uid]
+
+            for uid, u in update['yellow_team']['__robots__'].copy().iteritems():
+                if update['camera'] == self.camId:
+                    del update['yellow_team']['__robots__'][uid]
 
 class Scale(Filter):
     """

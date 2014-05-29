@@ -33,6 +33,7 @@ from ..core.skills import sampledkick
 from ..core.skills import followandcover
 from ..core.skills import sampledchipkick
 from ..core.skills import kickto
+from ..core.skills import chipkickto
 try:
     from ..core.skills import joystick
 except ImportError:
@@ -63,8 +64,9 @@ _individuals = {
     'follow_and_cover': lambda r: followandcover.FollowAndCover(r, follow=r.goal, cover=r.world.ball),
     'sampled_chip_kick': lambda r: sampledchipkick.SampledChipKick(r, lookpoint=r.enemy_goal),
     'kick_to': lambda r: kickto.KickTo(r, lookpoint=Point(0, 0)),
+    'chip_to': lambda r: chipkickto.ChipKickTo(r, lookpoint=Point(0, 0)),
     'blocker': lambda r: blocker.Blocker(r, arc=0),
-    'goalkeeper': lambda r: goalkeeper.Goalkeeper(r, angle=20, aggressive=False),
+    'goalkeeper': lambda r: goalkeeper.Goalkeeper(r, angle=20, aggressive=True),
     'zickler43': lambda r: zickler43.Zickler43(r),
     'defender': lambda r: defender.Defender(r, enemy=r.world.ball),
     'dummy_receive_pass': lambda r: receivepass.ReceivePass(r, Point(0,0)),
@@ -80,7 +82,7 @@ _plays = {
     'auto_retaliate': lambda t: autoretaliate.AutoRetaliate(t),
     'indirect_kick': lambda t: indirectkick.IndirectKick(t),
     'ifrit': lambda t: ifrit.Ifrit(t),
-    'obey': lambda t: obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(t)),
+    'obey': lambda t: obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(t))  #autoretaliate.AutoRetaliate(t)),
 }
 
 def _get_team(self, team):

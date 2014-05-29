@@ -40,16 +40,17 @@ class Ifrit(Play):
     The rest is the same as the autoretaliate play.
     """
 
-    def __init__(self, team, **kwargs):
+    def __init__(self, team, allowed_to_kick=True, **kwargs):
         """
         team: duh
         """
         super(Ifrit, self).__init__(team, **kwargs)
         self.players = {}
         self.last_passer = None
+        self.allowed_to_kick = allowed_to_kick
         self.tactics_factory.update({
             'goalkeeper': lambda robot: Goalkeeper(robot, aggressive=False, angle=0),
-            'attacker': lambda robot: Zickler43(robot),
+            'attacker': lambda robot: Zickler43(robot, always_force=True),
             'blocker': lambda robot: Blocker(robot, arc=0),
             'defender': lambda robot: Defender(robot, enemy=self.ball, distance=0.6),
             'passer': lambda robot: ExecutePass(robot),
@@ -57,10 +58,19 @@ class Ifrit(Play):
         })
         self.best_position = None
 
+    def reset(self):
+        self.last_passer = None
+        for attacker in self.team:
+            attacker.is_last_toucher = True
+
+    @property
+    def has_passed(self):
+        return self.last_passer is not None and not self.last_passer.is_last_toucher
+
     def setup_tactics(self):
         # Make sure that the robot receiving the ball keeps kicking it even if its tactic changes.
         for attacker in [self.players[x.uid]['attacker'] for x in self.team]:
-            if attacker.time_of_last_kick + .5 < self.world.timestamp:
+            if attacker.time_of_last_kick + .2 < self.world.timestamp:
                 self.hold_down_passer = self.last_passer
             if attacker.time_of_last_kick < self.world.timestamp + 1. and self.last_passer is not None and self.hold_down_passer is not None:
                 #print self.hold_down_passer.uid
@@ -117,7 +127,8 @@ class Ifrit(Play):
             goal_kick = True
             # Check if we want to pass or if we want to kick.
             if atk_id is not None and pvt_id is not None:
-                if self.world.has_clear_shot(self.players[atk_id]['attacker'].lookpoint):
+                #print self.allowed_to_kick
+                if self.world.has_clear_shot(self.players[atk_id]['attacker'].lookpoint) and self.allowed_to_kick:
                     goal_kick = True
                     self.players[pvt_id]['receiver'].companion = self.players[atk_id]['attacker']
                 #print self.players[pvt_id]['receiver'].companion, self.players[atk_id]['attacker']
