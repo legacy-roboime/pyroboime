@@ -17,6 +17,7 @@ Tactics and Plays.
 Might it be splitted?
 """
 from ..utils.statemachine import State, Machine
+from ..utils import keydefaultdict
 
 
 class Steppable(object):
@@ -57,6 +58,7 @@ class Skill(Steppable, State):
     def __init__(self, robot, deterministic, **kwargs):
         super(Skill, self).__init__(deterministic, **kwargs)
         self.robot = robot
+        self.params = keydefaultdict.keydefaultdict(lambda x: None)
 
     @property
     def world(self):
@@ -86,6 +88,12 @@ class Skill(Steppable, State):
         """One should not override this method, this is the public api, which wraps around _step"""
         self._step()
         self.robot.skill = self
+
+    def mark_skill(self):
+        self.robot.skill = self
+        for param in self.params.iterkeys:
+            pvalue = getattr(self, param)
+            self.params[param] = pvalue
 
 
 class Tactic(Steppable, Machine):

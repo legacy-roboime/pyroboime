@@ -69,7 +69,7 @@ _individuals = {
     'goalkeeper': lambda r: goalkeeper.Goalkeeper(r, angle=20, aggressive=True),
     'zickler43': lambda r: zickler43.Zickler43(r),
     'defender': lambda r: defender.Defender(r, enemy=r.world.ball),
-    'dummy_receive_pass': lambda r: receivepass.ReceivePass(r, Point(0,0)),
+    'dummy_receive_pass': lambda r: receivepass.ReceivePass(r, Point(0, 0)),
     'zigzag': lambda r: zigzag.ZigZag(r, Point(-0.7, 1.0), Point(-0.7, -1.0)),
 }
 if joystick is not None:
@@ -113,6 +113,8 @@ class _commands(object):
         """use the simulator interface"""
         self.interface.stop()
         self.interface = SimulationInterface(self.world)
+        if self.strip_commanders:
+            self.interface.commanders = []
         self.interface.start()
         self.write('ok')
 
@@ -126,6 +128,8 @@ class _commands(object):
             kick_mapping_yellow=self.kick_mapping["yellow"],
             kick_mapping_blue=self.kick_mapping["blue"],
         )
+        if self.strip_commanders:
+            self.interface.commanders = []
         self.interface.start()
         self.write('ok')
 
@@ -324,11 +328,12 @@ class CLI(Thread):
     avg_tdelta_stp = 0
     avg_tdelta_step = 0
 
-    def __init__(self):
+    def __init__(self, strip_commanders=False):
         super(CLI, self).__init__()
         self.cli_main = config['cli']['main_thread']
         self.debug = config['cli']['debug']
         self.quit = False
+        self.strip_commanders = strip_commanders
         self.world = World()
 
         # initial interface:
@@ -340,6 +345,8 @@ class CLI(Thread):
         else:
             #TODO: proper exception
             raise RuntimeError('interface {} not recognized'.format(default_interface))
+        if self.strip_commanders:
+            self.interface.commanders = []
 
         # Magic (grab attrs that do not begin with _)
         commands = filter(lambda i: not i.startswith('_'), dir(_commands))

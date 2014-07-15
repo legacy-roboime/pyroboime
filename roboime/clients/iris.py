@@ -17,8 +17,8 @@ from .cli import CLI
 
 class IRIS(CLI):
 
-    def __init__(self):
-        super(IRIS, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(IRIS, self).__init__(*args, **kwargs)
         globals()['world'] = self.world
         for cmd, func in self.cmd_dict.iteritems():
             # XXX: creating a closure to avoid sharing references
