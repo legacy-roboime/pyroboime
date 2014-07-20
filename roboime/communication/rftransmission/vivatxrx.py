@@ -46,7 +46,6 @@ class VIVATxRx(Transmitter):
         now = time.time()
         if now - self.last_sent < self.delay:
             # too soon
-	     		
             return 0
         else:
             self.last_sent = now

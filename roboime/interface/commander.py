@@ -13,6 +13,7 @@
 #
 from math import pi
 import struct
+import sys
 
 #import socket
 #from multiprocessing import Process, Queue, Event, Lock
@@ -48,9 +49,15 @@ class Commander(object):
         #self._recvr, self._sendr = Pipe()
         #self.conn = None
         #self._exit = Event()
-        if config['interface']['debug']:
+        self.debug = config['interface']['debug']
+        if self.debug:
             self._log = True
-            self._log_file = open(config['interface']['log-file'], 'a')
+            if config['interface']['log-file'] == 'STDOUT':
+                self._log_file = sys.stdout
+            elif config['interface']['log-file'] == 'STDERR':
+                self._log_file = sys.stderr
+            else:
+                self._log_file = open(config['interface']['log-file'], 'a')
         else:
             self._log = False
         pass
@@ -88,12 +95,11 @@ class Tx2014Commander(Commander):
     the usage of a separate program to actually execute the radio transmission.
     """
 
-    def __init__(self, mapping_dict=None, kicking_power_dict=None, verbose=False, **kwargs):
+    def __init__(self, mapping_dict=None, kicking_power_dict=None, **kwargs):
         super(Tx2014Commander, self).__init__(**kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
         self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
-        self.verbose = verbose
         self.sender = VIVATxRx()
 
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
@@ -161,7 +167,7 @@ class Tx2014Commander(Commander):
                     else:
                         kick = 0
 
-                    robot_packet = struct.pack('!bbbbbbb', uid, s1, s2, s3, s4, dribble, kick)
+                    robot_packet = struct.pack('!BBBBBBB', uid, s1, s2, s3, s4, dribble, kick)
                     actions_dict[self.mapping_dict[a.uid]] = robot_packet
                     #a.reset()
 
@@ -169,7 +175,7 @@ class Tx2014Commander(Commander):
                     # this is the goto skill that is now implemented in-robot
 
                     tx, ty, ta = a.target
-                    robot_packet = struct.pack('!bHHH', self.mapping_dict[a.uid], tx, ty, ta)
+                    robot_packet = struct.pack('<bHHH', self.mapping_dict[a.uid], 1000 * tx, 1000 * ty, 100 * ta)
                     actions_dict[self.mapping_dict[a.uid]] = robot_packet
                     #a.reset()
 
@@ -182,9 +188,8 @@ class Tx2014Commander(Commander):
                 # tail [55]
                 packet += '\x37'
 
-                if self.verbose:
-                    #TODO: update this visualization, it's broken now
-                    self.log('|'.join('{:03d}'.format(x) for x in packet))
+                if self.debug:
+                    self.log(' '.join(map(lambda i: '{:02x}'.format(i), map(ord, packet))))
 
                 self.sender.send(packet)
 
@@ -200,12 +205,11 @@ class Tx2013Commander(Commander):
     the usage of a separate program to actually execute the radio transmission.
     """
 
-    def __init__(self, mapping_dict=None, kicking_power_dict=None, verbose=False, **kwargs):
+    def __init__(self, mapping_dict=None, kicking_power_dict=None, **kwargs):
         super(Tx2013Commander, self).__init__(**kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
         self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
-        self.verbose = verbose
         self.sender = VIVATxRx()
 
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
@@ -279,7 +283,7 @@ class Tx2013Commander(Commander):
                     packet.extend(actions_dict[i])
                 packet.append(55)
                 if packet:
-                    if self.verbose:
+                    if self.debug:
                         self.log('|'.join('{:03d}'.format(x) for x in packet))
                     #print '|'.join('{:03d}'.format(x) for x in packet)
                     self.sender.send(packet)
@@ -296,12 +300,11 @@ class Tx2012Commander(Commander):
     This might be deprecated soon. Or not.
     """
 
-    def __init__(self, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, verbose=False, **kwargs):
+    def __init__(self, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, **kwargs):
         super(Tx2012Commander, self).__init__(**kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
         self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
-        self.verbose = verbose
         self.sender = unicast.UnicastSender(address=(ipaddr, port))
         #self.sock = so
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
@@ -380,7 +383,7 @@ class Tx2012Commander(Commander):
                 packet = ' '.join(string_list)
 
                 if packet:
-                    #if self.verbose:
+                    #if self.debug:
                     #    # print self.kicking_power_dict
                     #    print packet
                     self.sender.send(packet)
