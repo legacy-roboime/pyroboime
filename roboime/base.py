@@ -313,6 +313,14 @@ class Robot(geom.Point):
     def has_touched_ball(self, value):
         self._has_touched = value
 
+    def on_enemy_side(self):
+        if self.enemy_goal is not None:
+            return True if self.x * self.enemy_goal.x > 0 else False
+
+    def on_ally_side(self):
+        if self.enemy_goal is not None:
+            return False if self.x * self.enemy_goal.x > 0 else True
+
     def step(self):
         if self._skill is not None:
             self._skill.step()
