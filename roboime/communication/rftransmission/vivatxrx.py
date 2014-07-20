@@ -54,7 +54,6 @@ class VIVATxRx(Transmitter):
         if self.verbose:
             print self.is_busy
         if (not self.is_busy) and self.is_working:
-	    
             return self.transmitter.ctrl_transfer(5696, 3, 0, 0, array)
         else:
             return -1
