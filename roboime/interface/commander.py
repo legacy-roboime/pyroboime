@@ -42,13 +42,14 @@ class Commander(object):
     not this is going to be a thread in and of itself running in the main window
     """
 
-    def __init__(self, maxsize=15):
+    def __init__(self, team, maxsize=15):
         #self.world = World()
         #self.action_queue = Queue()
         super(Commander, self).__init__()
         #self._recvr, self._sendr = Pipe()
         #self.conn = None
         #self._exit = Event()
+        self.team = team
         self.debug = config['interface']['debug']
         if self.debug:
             self._log = True
@@ -95,8 +96,8 @@ class Tx2014Commander(Commander):
     the usage of a separate program to actually execute the radio transmission.
     """
 
-    def __init__(self, mapping_dict=None, kicking_power_dict=None, **kwargs):
-        super(Tx2014Commander, self).__init__(**kwargs)
+    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, **kwargs):
+        super(Tx2014Commander, self).__init__(team, **kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
         self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
@@ -134,7 +135,7 @@ class Tx2014Commander(Commander):
         return int(127 * x) & 255
 
     def send(self, actions):
-        actions_dict = keydefaultdict(lambda x: [127, 0, 0, 0, 0, 0, 0])
+        actions_dict = keydefaultdict(lambda x: '\x7f\x00\x00\x00\x00\x00\x00')
 
         # Initializes packet with the header.
         has_action = False
@@ -169,7 +170,7 @@ class Tx2014Commander(Commander):
 
                     robot_packet = struct.pack('!BBBBBBB', uid, s1, s2, s3, s4, dribble, kick)
                     actions_dict[self.mapping_dict[a.uid]] = robot_packet
-                    #a.reset()
+                    a.reset()
 
                 else:
                     # this is the goto skill that is now implemented in-robot
@@ -177,7 +178,7 @@ class Tx2014Commander(Commander):
                     tx, ty, ta = a.target
                     robot_packet = struct.pack('<bHHH', self.mapping_dict[a.uid], 1000 * tx, 1000 * ty, 100 * ta)
                     actions_dict[self.mapping_dict[a.uid]] = robot_packet
-                    #a.reset()
+                    a.reset()
 
 
             if has_action:
@@ -205,8 +206,8 @@ class Tx2013Commander(Commander):
     the usage of a separate program to actually execute the radio transmission.
     """
 
-    def __init__(self, mapping_dict=None, kicking_power_dict=None, **kwargs):
-        super(Tx2013Commander, self).__init__(**kwargs)
+    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, **kwargs):
+        super(Tx2013Commander, self).__init__(team, **kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
         self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
@@ -300,8 +301,8 @@ class Tx2012Commander(Commander):
     This might be deprecated soon. Or not.
     """
 
-    def __init__(self, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, **kwargs):
-        super(Tx2012Commander, self).__init__(**kwargs)
+    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, **kwargs):
+        super(Tx2012Commander, self).__init__(team, **kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
         self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
@@ -392,8 +393,7 @@ class Tx2012Commander(Commander):
 class SimCommander(Commander):
 
     def __init__(self, team, address, send_omni=True, **kwargs):
-        super(SimCommander, self).__init__(**kwargs)
-        self.team = team
+        super(SimCommander, self).__init__(team, **kwargs)
         self.sender = grsim.grSimSender(address)
         self.send_omni = send_omni
 

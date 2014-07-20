@@ -102,18 +102,26 @@ class Action(object):
         self.chipkick = None
         self.dribble = None
 
-    @property
-    def target(self):
-        return self.x, self.y, self.angle
-
     def __nonzero__(self):
         """This is used for implicit bool conversion, which answers if the action does something."""
-        return not (self.x is None or self.y is None or self.angle is None) or self._speeds is not None
+        #return not (self.x is None or self.y is None or self.angle is None) or self._speeds is not None
+        return self.has_target or self.has_speeds
+
+    @property
+    def target(self):
+        if self.has_target:
+            return self.x, self.y, self.angle
+        else:
+            return None
 
     @target.setter
     def target(self, t):
         self._speeds = None
-        self.x, self.y, self.angle = t if t is not None else (None, None, None)
+        self.x, self.y, self.angle = t
+
+    @property
+    def has_target(self):
+        return (self.x, self.y, self.angle) is not (None, None, None)
 
     @property
     def has_speeds(self):

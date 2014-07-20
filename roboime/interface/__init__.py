@@ -156,19 +156,19 @@ class TxInterface(Interface):
             ipaddr = config['interface']['oldtx_addr']
             port = config['interface']['oldtx_port']
             if command_blue:
-                commanders.append(commander.Tx2012Commander(mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug, ipaddr=ipaddr, port=port))
+                commanders.append(commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, ipaddr=ipaddr, port=port))
             if command_yellow:
-                commanders.append(commander.Tx2012Commander(mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug, ipaddr=ipaddr, port=port))
+                commanders.append(commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, ipaddr=ipaddr, port=port))
         elif config['interface']['txver'] == 2013:
             if command_blue:
-                commanders.append(commander.Tx2013Commander(mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug))
+                commanders.append(commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue))
             if command_yellow:
-                commanders.append(commander.Tx2013Commander(mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug))
+                commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow))
         else: # 2014, current
             if command_blue:
-                commanders.append(commander.Tx2014Commander(mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, verbose=debug))
+                commanders.append(commander.Tx2014Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue))
             if command_yellow:
-                commanders.append(commander.Tx2014Commander(mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, verbose=debug))
+                commanders.append(commander.Tx2014Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow))
         super(TxInterface, self).__init__(
             world,
             updaters=[
