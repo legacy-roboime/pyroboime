@@ -105,15 +105,15 @@ class Tx2014Commander(Commander):
 
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
         self.wheel_angles = [
-            +60.0,  # wheel 0
-            +135.0, # wheel 1
-            -135.0, # wheel 2
-            -60.0,  # wheel 3
+            +58.0,  # wheel 0
+            +133.0, # wheel 1
+            -133.0, # wheel 2
+            -58.0,  # wheel 3
         ]
 
         # Values in meters.
-        self.wheel_distance = 0.0850
-        self.wheel_radius = 0.0289
+        self.wheel_distance = 0.07521
+        self.wheel_radius = 0.0285
         self.max_speed = 64.0
 
     def omniwheel_speeds(self, vx, vy, va):
