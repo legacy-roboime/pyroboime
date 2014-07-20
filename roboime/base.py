@@ -121,7 +121,7 @@ class Action(object):
 
     @property
     def has_target(self):
-        return (self.x, self.y, self.angle) is not (None, None, None)
+        return (self.x, self.y, self.angle) != (None, None, None)
 
     @property
     def has_speeds(self):

@@ -11,12 +11,16 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
+import sys
+import struct
 from multiprocessing import Process, Event
 from . import updater
 from . import commander
 from . import filter
 from ..config import config
 from ..utils.profile import Profile
+from ..utils import to_short
+from ..utils.keydefaultdict import keydefaultdict
 
 
 def _update_loop(queue, updater):
@@ -31,6 +35,26 @@ def _command_loop(queue, commander):
             latest_actions = queue.get()
         if latest_actions is not None:
             commander.send(latest_actions)
+
+def send_update(commander, world, team):
+        updates_dict = keydefaultdict(lambda x: '\x7f\x00\x00\x00\x00\x00\x00')
+
+        for r in team:
+            robot_packet = struct.pack('<bhhh', commander.mapping_dict[r.uid], to_short(1000 * r.x), to_short(1000 * r.y), to_short(100 * r.angle))
+            #print (r.x, r.y, r.angle)
+            updates_dict[commander.mapping_dict[r.uid]] = robot_packet
+
+        # header [254, 0, 99]
+        packet = '\xfe\x00\x63'
+        for i in xrange(6):
+            packet += updates_dict[i]
+        # tail [55]
+        packet += '\x37'
+
+        #if self.debug:
+        #    self.log(' '.join(map(lambda i: '{:02x}'.format(i), map(ord, packet))))
+
+        commander.sender.send(packet, queue='field')
 
 
 class Interface(Process, Profile):
@@ -56,6 +80,12 @@ class Interface(Process, Profile):
         self.filters = filters
         self.callback = callback
         self._exit = Event()
+
+        # XXX: ugly but what the heck
+        if not hasattr(self, 'blue_commander'):
+            self.blue_commander = None
+        if not hasattr(self, 'yellow_commander'):
+            self.yellow_commander = None
 
     def start(self):
         #super(Interface, self).start()
@@ -87,6 +117,9 @@ class Interface(Process, Profile):
         # updates injection phase
         self.profile_reset()
         self.profile_stamp()
+
+        has_update = False
+
         for up in self.updaters:
             if not up.queue.empty():
                 #uu = up.queue.get_nowait()
@@ -99,6 +132,7 @@ class Interface(Process, Profile):
                     if _uu is not None:
                         uu = _uu
                 uu.apply(self.world)
+                has_update = True
 
             ##with up.queue_lock:
             ##    print 'Queue size: ', up.queue.qsize()
@@ -114,6 +148,14 @@ class Interface(Process, Profile):
 
             #if count > 0:
             #    self.callback()
+
+        # update the robots with their positions
+        if has_update:
+            if self.blue_commander is not None:
+                send_update(self.blue_commander, self.world, self.world.blue_team)
+
+            if self.yellow_commander is not None:
+                send_update(self.yellow_commander, self.world, self.world.yellow_team)
 
         # actions extraction phase
         # TODO filtering
@@ -152,6 +194,8 @@ class TxInterface(Interface):
         vision_address = (config['interface']['tx']['vision-addr'], config['interface']['tx']['vision-port'])
         referee_address = (config['interface']['tx']['referee-addr'], config['interface']['tx']['referee-port'])
         commanders = []
+        self.blue_commander = None
+        self.yellow_commander = None
         if config['interface']['txver'] == 2012:
             ipaddr = config['interface']['oldtx_addr']
             port = config['interface']['oldtx_port']
@@ -166,9 +210,11 @@ class TxInterface(Interface):
                 commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow))
         else: # 2014, current
             if command_blue:
-                commanders.append(commander.Tx2014Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue))
+                self.blue_commander = commander.Tx2014Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue)
+                commanders.append(self.blue_commander)
             if command_yellow:
-                commanders.append(commander.Tx2014Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow))
+                self.yellow_commander = commander.Tx2014Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow)
+                commanders.append(self.yellow_commander)
         super(TxInterface, self).__init__(
             world,
             updaters=[

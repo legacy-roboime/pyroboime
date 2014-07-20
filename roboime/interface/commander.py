@@ -26,6 +26,8 @@ from ..communication import grsim
 from ..communication.network import unicast
 from ..utils.mathutils import sin, cos
 from ..utils.keydefaultdict import keydefaultdict
+from ..utils.log import Log
+from ..utils import to_short
 from ..communication.rftransmission.vivatxrx import VIVATxRx
 
 
@@ -50,23 +52,6 @@ class Commander(object):
         #self.conn = None
         #self._exit = Event()
         self.team = team
-        self.debug = config['interface']['debug']
-        if self.debug:
-            self._log = True
-            if config['interface']['log-file'] == 'STDOUT':
-                self._log_file = sys.stdout
-            elif config['interface']['log-file'] == 'STDERR':
-                self._log_file = sys.stderr
-            else:
-                self._log_file = open(config['interface']['log-file'], 'a')
-        else:
-            self._log = False
-        pass
-
-    def log(self, message):
-       if self._log:
-           self._log_file.write(str(message))
-           self._log_file.write('\n')
 
     #def start(self):
     #    super(Commander, self).start()
@@ -176,7 +161,8 @@ class Tx2014Commander(Commander):
                     # this is the goto skill that is now implemented in-robot
 
                     tx, ty, ta = a.target
-                    robot_packet = struct.pack('<bHHH', self.mapping_dict[a.uid], 1000 * tx, 1000 * ty, 100 * ta)
+                    #print a.target, a.robot.uid, a.robot.skill
+                    robot_packet = struct.pack('<bhhh', self.mapping_dict[a.uid], to_short(1000 * tx), to_short(1000 * ty), to_short(100 * ta))
                     actions_dict[self.mapping_dict[a.uid]] = robot_packet
                     a.reset()
 
@@ -189,9 +175,8 @@ class Tx2014Commander(Commander):
                 # tail [55]
                 packet += '\x37'
 
-                if self.debug:
-                    self.log(' '.join(map(lambda i: '{:02x}'.format(i), map(ord, packet))))
-
+                #if self.debug:
+                #    self.log(' '.join(map(lambda i: '{:02x}'.format(i), map(ord, packet))))
                 self.sender.send(packet)
 
 
@@ -284,8 +269,8 @@ class Tx2013Commander(Commander):
                     packet.extend(actions_dict[i])
                 packet.append(55)
                 if packet:
-                    if self.debug:
-                        self.log('|'.join('{:03d}'.format(x) for x in packet))
+                    #if self.debug:
+                    #    self.log('|'.join('{:03d}'.format(x) for x in packet))
                     #print '|'.join('{:03d}'.format(x) for x in packet)
                     self.sender.send(packet)
 
