@@ -185,6 +185,7 @@ class TxInterface(Interface):
                 #Noise should be enabled during simulation, to allow real noise simulation
                 filter.RegisterPosition("input"),
                 filter.Scale(),
+                #filter.KickoffFix(),
             ],
             **kwargs
         )
@@ -220,6 +221,7 @@ class SimulationInterface(Interface):
                 #filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
                 filter.RegisterPosition("input"),
                 filter.Scale(),
+                #filter.KickoffFix(), # TODO: Use two cameras in grsim
             ],
             **kwargs
         )

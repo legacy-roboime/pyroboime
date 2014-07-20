@@ -33,7 +33,7 @@ class Filter(object):
     will replace the updates or commands for the next call.
 
     Please avoid returning lists, an iterator will generally
-    have better perfomance and memory usage.
+    have better performance and memory usage.
     """
 
     def filter_update(self, updates):
@@ -45,7 +45,7 @@ class Filter(object):
 
 class Overlap(Filter):
     """
-    Removes everything a camera removes betond a certain x position.
+    Removes everything a camera removes beyond a certain x position.
     Designed to reduce camera overlap
     """
     def __init__(self):
@@ -74,10 +74,9 @@ class Overlap(Filter):
                 if u['x'] < -self.x_threshold and update['camera'] == 1:
                     del update['yellow_team']['__robots__'][uid]
 
-
 class IgnoreCamera(Filter):
     """
-    Removes everything a camera removes betond a certain x position.
+    Removes everything a camera removes beyond a certain x position.
     Designed to reduce camera overlap
     """
     def __init__(self, camId):
@@ -563,3 +562,24 @@ class DeactivateInactives(Filter):
 #                    to_be_removed.append(u)
 #        for u in to_be_removed:
 #            updates.remove(u)
+
+class KickoffFix(Filter):
+    """
+    Removes everything a camera removes beyond a certain x position.
+    Designed to reduce camera overlap
+    """
+    def __init__(self):
+        self.x_threshold = 0.10 # TODO: Needs calibration
+        self.old_cam = 0
+
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, u in update['balls'].copy().iteritems():#.objects():
+                if u['x'] < -self.x_threshold and update['camera'] == 1:
+                    del update['balls'][uid]
+                    self.old_cam = 0
+                elif u['x'] > self.x_threshold and update['camera'] == 0:
+                    del update['balls'][uid]
+                    self.old_cam = 1
+                elif u['x'] > -self.x_threshold and u['x'] < self.x_threshold and update['camera'] != self.old_cam:
+                    del update['balls'][uid]
