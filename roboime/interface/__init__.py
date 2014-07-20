@@ -185,7 +185,7 @@ class TxInterface(Interface):
                 #Noise should be enabled during simulation, to allow real noise simulation
                 filter.RegisterPosition("input"),
                 filter.Scale(),
-                #filter.KickoffFix(),
+                filter.KickoffFix(),
             ],
             **kwargs
         )

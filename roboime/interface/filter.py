@@ -575,11 +575,11 @@ class KickoffFix(Filter):
     def filter_update(self, update):
         if update.has_detection_data():
             for uid, u in update['balls'].copy().iteritems():#.objects():
-                if u['x'] < -self.x_threshold and update['camera'] == 1:
-                    del update['balls'][uid]
-                    self.old_cam = 0
-                elif u['x'] > self.x_threshold and update['camera'] == 0:
+                if u['x'] < -self.x_threshold and update['camera'] == 0:
                     del update['balls'][uid]
                     self.old_cam = 1
+                elif u['x'] > self.x_threshold and update['camera'] == 1:
+                    del update['balls'][uid]
+                    self.old_cam = 0
                 elif u['x'] > -self.x_threshold and u['x'] < self.x_threshold and update['camera'] != self.old_cam:
                     del update['balls'][uid]
