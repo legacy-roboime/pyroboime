@@ -46,6 +46,9 @@ class Stop(Play):
         #blockers = [r for d, r in sorted((-self.team[id].y, id) for id in blockers)]
         #print blockers
 
+        # sorting to avoid robot swap
+        blockers = sorted(blockers)
+
         # grab the actual list of defenders
         defenders = [self.team[i] for i in defenders]
 
