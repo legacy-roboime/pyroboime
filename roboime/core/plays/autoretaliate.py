@@ -58,6 +58,8 @@ class AutoRetaliate(Play):
         # order defenders by id to avoid position oscillations
         defenders = sorted(defenders, lambda x, y: x.uid < y.uid)
         # distributing defenders
+        # TODO: make it generic
+        defender_arc = {}
         if len(defenders) == 3:
             defender_arc = {
                 defenders[0].uid: -15.0,
@@ -66,8 +68,8 @@ class AutoRetaliate(Play):
             }
         elif len(defenders) == 2:
             defender_arc = {
-                defenders[0].uid: -7.5,
-                defenders[1].uid: 7.5
+                defenders[0].uid: -10,
+                defenders[1].uid: 10
             }
         elif len(defenders) == 1:
             defender_arc = {
