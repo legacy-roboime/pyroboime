@@ -89,12 +89,12 @@ class Goalkeeper(Tactic):
 
         # Compute home line ends
         p1 = Point(
-            array(self.goal.p1) + radius * array((cos(self.angle) * -sign(self.goal.x),
+            array(self.goal.p1) + (radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
             -sin(self.angle)))
         )
         p2 = Point(
-            array(self.goal.p2) + radius * array((cos(self.angle) * -sign(self.goal.x),
-            sin(self.angle))
+            array(self.goal.p2) + (radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
+            sin(self.angle)))
         )
 
         # Aaaand the home line
@@ -117,7 +117,8 @@ class Goalkeeper(Tactic):
             if point_on_home.geom_type == 'Point':
                 self.goto.target = point_on_home
             else:
-                self.goto.target = p1 if p1.distance_to_line(ball_line) < p2.distance_to_line(ball_line) else p2
+                pass
+                #self.goto.target = p1 if p1.distance_to_line(ball_line) < p2.distance_to_line(ball_line) else p2
             return self.goto.step()
 
         # watch the enemy
@@ -137,15 +138,18 @@ class Goalkeeper(Tactic):
             )
             danger_line = Line(danger_bot, future_point)
 
-            if danger_line.crosses(self.goal.line):
+            #if danger_line.crosses(self.goal.line):
+            if danger_line.crosses(home_line):
                 point_on_home = danger_line.intersection(home_line)
                 if point_on_home.geom_type == 'Point':
                     self.goto.target = point_on_home
                 else:
-                    self.goto.target = p1 if p1.distance_to_line(danger_line) < p2.distance_to_line(danger_line) else p2
+                    pass
+                    # self.goto.target = p1 if p1.distance_to_line(danger_line) < p2.distance_to_line(danger_line) else p2
                 return self.goto.step()
             else:
-                self.goto.target = p1 if future_point.y > 0 else p2
+                pass
+                # self.goto.target = p1 if future_point.y > 0 else p2
 
         # else:
         # Otherwise, try to close the largest gap
@@ -202,7 +206,9 @@ class Goalkeeper(Tactic):
             # to the base line
             return Point(
                 our_goal.x - sign(our_goal.x) * self.robot.radius,
-                (our_goal.x - sign(our_goal.x) * self.robot.radius) * y / our_goal.x
+                y
+                # XXX: no reason for this
+                # (our_goal.x - sign(our_goal.x) * self.robot.radius) * y / our_goal.x
             )
             #return Point(
             #    our_goal.x - sign(our_goal.x) * radius,
