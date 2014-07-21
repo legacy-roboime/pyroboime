@@ -172,7 +172,8 @@ class TxInterface(Interface):
             ],
             commanders=commanders,
             filters=filters + [
-                filter.KickoffFix(),
+                filter.KickoffFixExtended(camera_order=[3,1,2,0]),
+                #filter.KickoffFix(),
                 filter.DeactivateInactives(),
                 # TESTIING
                 #filter.LowPass(),
