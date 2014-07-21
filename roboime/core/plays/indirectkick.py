@@ -13,8 +13,9 @@
 #
 from .stop import Stop
 from ..tactics.zickler43 import Zickler43
-from ..skills.gotolooking import GotoLooking
-from ..skills.sampledchipkick import SampledChipKick
+#from ..skills.sampledchipkick import SampledChipKick
+from ..tactics.executepass import ExecutePass
+from ..tactics.receivepass import ReceivePass
 from ...utils.statemachine import Machine as StateMachine, State, Transition
 
 
@@ -52,8 +53,8 @@ class IndirectKick(Stop, StateMachine):
         self.receiver = None
         self.passer = None
         self.tactics_factory.update({
-            'receiver': lambda robot: GotoLooking(robot, lookpoint=self.world.ball),
-            'passer': lambda robot: SampledChipKick(robot, receiver=self.receiver, lookpoint=self.receiver),
+            'receiver': lambda robot: ReceivePass(robot, point=lambda: self.best_position),
+            'passer': lambda robot: ExecutePass(robot),
             'zickler': lambda robot: Zickler43(robot),
         })
         self.best_position = None
@@ -103,8 +104,11 @@ class IndirectKick(Stop, StateMachine):
             #    robot.current_tactic = Steppable()
 
         elif self.current_state == self.states['go_position']:
-            self.players[self.receiver.uid]['receiver'].target = self.best_position
+            self.players[self.passer.uid]['passer'].companion = self.players[self.receiver.uid]['receiver']
+            self.players[self.receiver.uid]['receiver'].point = self.best_position
+            self.players[self.receiver.uid]['receiver'].companion = self.players[self.passer.uid]['passer']
             self.receiver.current_tactic = self.players[self.receiver.uid]['receiver']
+            print self.receiver.current_tactic
 
             #for robot in self.team:
             #    if robot != self.receiver:
@@ -113,11 +117,12 @@ class IndirectKick(Stop, StateMachine):
         elif self.current_state == self.states['pass']:
             self.best_position = self.team.best_indirect_positions()[0][0]
 
-            self.players[self.passer.uid]['passer'].receiver = self.receiver
-            self.players[self.passer.uid]['passer'].lookpoint = self.receiver
+            self.players[self.passer.uid]['passer'].companion = self.players[self.receiver.uid]['receiver']
+            self.players[self.receiver.uid]['receiver'].companion = self.players[self.passer.uid]['passer']
             self.passer.current_tactic = self.players[self.passer.uid]['passer']
 
-            self.players[self.receiver.uid]['receiver'].target = self.best_position
+            self.players[self.receiver.uid]['receiver'].point = self.best_position
+
             self.receiver.current_tactic = self.players[self.receiver.uid]['receiver']
             #for robot in self.team:
             #    if robot != self.passer and robot != self.receiver:

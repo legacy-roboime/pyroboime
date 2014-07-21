@@ -29,7 +29,7 @@ class Stop(Play):
         self.tactics_factory.update({
             'goalkeeper': lambda robot: Goalkeeper(robot, aggressive=False, angle=0),
             'blocker': lambda robot: Blocker(robot, arc=0),
-            'defender': lambda robot: Defender(robot, enemy=self.ball, distance=0.6),
+            'defender': lambda robot: Defender(robot, enemy=self.ball),
         })
 
     def setup_tactics(self):
@@ -43,18 +43,44 @@ class Stop(Play):
 
         # first 3 are blockers, the rest are defenders
         blockers, defenders = closest_robots[:3], closest_robots[3:]
+        #blockers = [r for d, r in sorted((-self.team[id].y, id) for id in blockers)]
+        #print blockers
+
+        # sorting to avoid robot swap
+        blockers = sorted(blockers)
+
+        # order defenders by id to avoid position oscillations
+        defenders = sorted(defenders)
 
         # grab the actual list of defenders
         defenders = [self.team[i] for i in defenders]
 
+        # distributing defenders
+        if len(defenders) == 3:
+            defender_arc = {
+                defenders[0].uid: -15.0,
+                defenders[1].uid: 0.0,
+                defenders[2].uid: 15.0
+            }
+        elif len(defenders) == 2:
+            defender_arc = {
+                defenders[0].uid: -10,
+                defenders[1].uid: 10
+            }
+        elif len(defenders) == 1:
+            defender_arc = {
+                defenders[0].uid: 0.0
+            }
+
+
         # iterate over list of enemies by proximity to the goal
-        for enemy in self.enemy_team.closest_robots_to_point(self.team.goal):
-            # if there are free defenders, assign the closest to the enemy, to follow it
-            if len(defenders) > 0:
-                defender = enemy.closest_to(defenders)
-                defenders.remove(defender)
-                self.players[defender.uid]['defender'].enemy = enemy
-        # for any remaining defender, let them guard the ball
+        #for enemy in self.enemy_team.closest_robots_to_point(self.team.goal):
+        #    # if there are free defenders, assign the closest to the enemy, to follow it
+        #    if len(defenders) > 0:
+        #        defender = enemy.closest_to(defenders)
+        #        defenders.remove(defender)
+        #        self.players[defender.uid]['defender'].enemy = enemy
+        ## for any remaining defender, let them guard the ball
         for defender in defenders:
             self.players[defender.uid]['defender'].enemy = self.ball
 
@@ -62,9 +88,9 @@ class Stop(Play):
         if len(blockers) > 0:
             self.players[blockers[0]]['blocker'].arc = 0
         if len(blockers) > 1:
-            self.players[blockers[1]]['blocker'].arc = 23
+            self.players[blockers[1]]['blocker'].arc = 30
         if len(blockers) > 2:
-            self.players[blockers[2]]['blocker'].arc = -23
+            self.players[blockers[2]]['blocker'].arc = -30
 
         for robot in self.team:
             r_id = robot.uid
@@ -74,3 +100,4 @@ class Stop(Play):
                 robot.current_tactic = self.players[r_id]['blocker']
             else:
                 robot.current_tactic = self.players[r_id]['defender']
+                robot.current_tactic.arc = defender_arc[r_id]

@@ -17,7 +17,6 @@ from itertools import groupby
 from .. import Tactic
 from ...utils.statemachine import Transition
 from ..skills.drivetoball import DriveToBall
-#from ..skills.sampledkick import SampledKick
 from ..skills.kickto import KickTo
 from ..skills.chipkickto import ChipKickTo
 from ..skills.sampleddribble import SampledDribble
@@ -41,27 +40,39 @@ class Zickler43(Tactic):
 
     conduction_tolerance = 0.6
 
-    def __init__(self, robot, deterministic=True):
+    def __init__(self, robot, deterministic=True, always_force=False, always_chip=False, respect_mid_line=False):
         self._lookpoint = self.point_to_kick
         self._robot = robot
-        self.drive = DriveToBall(robot, name='Get the Ball', lookpoint=self.robot.enemy_goal, deterministic=True, avoid_collisions=True)
+        self.drive = DriveToBall(robot, name='Get the Ball', lookpoint= lambda: self.robot.enemy_goal, deterministic=True, avoid_collisions=True)
         self.dribble = SampledDribble(robot, name='Drag the Ball', deterministic=deterministic, lookpoint=lambda: self.lookpoint, minpower=0.0, maxpower=1.0)
         self.goal_kick = KickTo(robot, name='KICK IT!!!', lookpoint=lambda: self.lookpoint, minpower=0.9, maxpower=1.0)
         self.force_kick = KickTo(robot, name='FUCKING KICK IT ALREADY!!!', force_kick=True, lookpoint=lambda: self.lookpoint, minpower=0.9, maxpower=1.0)
+        self.chip_kick = ChipKickTo(robot, name="Chip", lookpoint=lambda: self.lookpoint, minpower=0.9, maxpower=1.0)
+        self.force_chip = ChipKickTo(robot, name='FUCKING CHIP IT ALREADY!!!', force_kick=True, lookpoint=lambda: self.lookpoint, minpower=0.9, maxpower=1.0)
         self.wait = Halt(robot)
         self.stored_point = None
         self.time_of_last_kick = 0
+        self.always_force = always_force
 
         super(Zickler43, self).__init__(robot, deterministic=deterministic, initial_state=self.drive, transitions=[
-            #Transition(self.drive, self.dribble, condition=lambda: self.drive.close_enough()),
             Transition(self.drive, self.dribble, condition=lambda: self.drive.close_enough(), callback=self.store_point),
             Transition(self.dribble, self.drive, condition=lambda: not self.dribble.close_enough(), callback=self.clear_point),
-            Transition(self.dribble, self.goal_kick, condition=lambda: self.dribble.close_enough()),
-            Transition(self.dribble, self.force_kick, condition=lambda: self.stored_point.distance(self.robot) > self.conduction_tolerance * Rules.max_conduction_distance, callback=self.clear_point),
-            #Transition(self.goal_kick, self.drive, condition=lambda: not self.goal_kick.close_enough()),
+
+            Transition(self.dribble, self.goal_kick, condition=lambda: self.dribble.close_enough() and not self.world.has_clear_shot(self.lookpoint) and (self.robot.on_ally_side() or not self.always_chip)),
+
+            Transition(self.dribble, self.force_kick, condition=lambda: (self.stored_point.distance(self.robot) > self.conduction_tolerance * Rules.max_conduction_distance or self.always_force) and (self.robot.on_ally_side() or not always_chip), callback=self.clear_point),
+
+            Transition(self.dribble, self.force_chip, condition=lambda: (self.robot.on_ally_side() and not respect_mid_line or self.robot.on_enemy_side()) and (self.stored_point.distance(self.robot) > self.conduction_tolerance * Rules.max_conduction_distance or self.always_force) and always_chip, callback=self.clear_point),
+
+            Transition(self.dribble, self.chip_kick, condition=lambda: (self.robot.on_ally_side() and not respect_mid_line or self.robot.on_enemy_side()) and (self.dribble.close_enough() and not self.world.has_clear_shot(self.lookpoint) or always_chip)),
+
             Transition(self.goal_kick, self.drive, condition=lambda: self.goal_kick.bad_position(), callback=lambda: map(lambda a: a(), [self.clear_point, self.set_time])),
+            Transition(self.chip_kick, self.drive, condition=lambda: self.chip_kick.bad_position(), callback=lambda: map(lambda a: a(), [self.clear_point, self.set_time])),
             Transition(self.goal_kick, self.force_kick, condition=lambda: self.stored_point.distance(self.robot) > self.conduction_tolerance * Rules.max_conduction_distance, callback=self.clear_point),
+            Transition(self.chip_kick, self.force_chip, condition=lambda: self.stored_point.distance(self.robot) > self.conduction_tolerance * Rules.max_conduction_distance, callback=self.clear_point),
             Transition(self.force_kick, self.drive, condition=lambda: self.goal_kick.bad_position(), callback=lambda: map(lambda a: a(), [self.clear_point, self.set_time])),
+            Transition(self.force_chip, self.drive, condition=lambda: self.chip_kick.bad_position(), callback=lambda: map(lambda a: a(), [self.clear_point, self.set_time])),
+            Transition(self.chip_kick, self.drive, condition=lambda: self.goal_kick.bad_position(), callback=lambda: map(lambda a: a(), [self.clear_point, self.set_time])),
         ])
 
         self.max_hole_size = -1

@@ -60,7 +60,7 @@ class StageView(QGraphicsView):
         scene.addItem(self.ball)
         self.field = worldviews.FieldView(w)
         scene.addItem(self.field)
-        for i in xrange(6):
+        for i in xrange(10):
             self.robot.append(worldviews.RobotView(w.blue_team[i]))
             scene.addItem(self.robot[-1])
             self.robot.append(worldviews.RobotView(w.yellow_team[i]))

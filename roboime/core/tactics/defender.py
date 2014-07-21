@@ -11,10 +11,15 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
+from numpy import array
 from .. import Tactic
 from ...utils.statemachine import Transition
-from ..skills.drivetoobject import DriveToObject
 from ..skills.followandcover import FollowAndCover
+from ...utils.geom import Point
+from ..skills.gotolooking import GotoLooking
+
+from ...utils.mathutils import sin
+from ...utils.mathutils import cos
 
 
 class Defender(Tactic):
@@ -27,7 +32,7 @@ class Defender(Tactic):
     Remember that you may not only defend the goal, you're allowed
     to defend any point on the field.
     """
-    def __init__(self, robot, enemy, cover=None, distance=0.5, follow_distance=0.3, proximity=3.0, flapping_margin=0.1):
+    def __init__(self, robot, enemy, cover=None, distance=None, follow_distance=0.3, proximity=1.5, flapping_margin=0.1, arc=0.0):
         """
         cover: point or object to cover
         distance: distance to keep from the cover point
@@ -35,13 +40,15 @@ class Defender(Tactic):
         proximity: distance to switch from covering mode to following mode
         flapping_margin: distance margin to avoid flapping between covering and following
         """
+        self._robot = robot
         self.proximity = proximity
         self.cover = robot.goal if cover is None else cover
-        self.distance = distance
+        self.distance = distance if distance is not None else self.world.defense_radius + self.robot.radius + self.world.defense_stretch/2 + 0.05
         self.follow_distance = follow_distance
         self.proximity = proximity
         self.flapping_margin = flapping_margin
         self._enemy = enemy
+        self.arc = arc
         self.follow_and_cover = FollowAndCover(
             robot,
             name='Get the enemy!',
@@ -50,27 +57,44 @@ class Defender(Tactic):
             distance=self.follow_distance,
             referential=self.enemy,
         )
-        self.drive_to_object = DriveToObject(
+        self.goto = GotoLooking(
             robot,
-            name='Cover the goal.',
-            point=self.cover,
-            lookpoint=self.enemy,
-            threshold=-(self.distance + robot.radius),
+            name='Defend!',
+            lookpoint = self.enemy
         )
-        # the following line is so that lambdas can use self.robot instead of robot and keep track of the robot
-        # even if it changes, although tactics are supposed to never change its robot we're trying to keep it
-        # flexible
-        self._robot = robot
+        # the following line is so that lambdas can use self.robot instead of
+        # robot and keep track of the robot
+        # even if it changes, although tactics are supposed to never change its
+        # robot we're trying to keep it flexible
         super(Defender, self).__init__(
             robot,
             deterministic=True,
-            initial_state=self.drive_to_object,
+            initial_state=self.goto,
             transitions=[
-                Transition(self.drive_to_object, self.follow_and_cover, condition=lambda: self.enemy.distance(self.robot.goal) < self.proximity - self.flapping_margin),
-                Transition(self.follow_and_cover, self.drive_to_object, condition=lambda: self.enemy.distance(self.robot.goal) > self.proximity + self.flapping_margin),
+                Transition(
+                    self.goto,
+                    self.follow_and_cover,
+                    condition=lambda: self.enemy.distance(self.cover) <
+                    self.proximity - self.flapping_margin
+                ),
+                Transition(
+                    self.follow_and_cover,
+                    self.goto,
+                    condition=lambda: self.enemy.distance(self.cover) >
+                    self.proximity + self.flapping_margin
+                ),
             ]
         )
 
+    def _step(self):
+        base_angle = self.cover.angle_to_point(self.enemy)
+        self.goto.target = Point(
+            array(
+                (self.distance * cos(base_angle + self.arc),
+                self.distance * sin(base_angle + self.arc))
+            ) + array(self.cover)
+        )
+        super(Defender, self)._step()
     @property
     def enemy(self):
         return self._enemy
@@ -80,4 +104,4 @@ class Defender(Tactic):
         self._enemy = new_enemy
         self.follow_and_cover.follow = new_enemy
         self.follow_and_cover.referential = new_enemy
-        self.drive_to_object.lookpoint = new_enemy
+        self.goto.lookpoint = new_enemy

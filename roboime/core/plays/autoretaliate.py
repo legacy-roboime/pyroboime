@@ -35,10 +35,10 @@ class AutoRetaliate(Play):
         super(AutoRetaliate, self).__init__(team, **kwargs)
         self.players = {}
         self.tactics_factory.update({
-            'goalkeeper': lambda robot: Goalkeeper(robot, aggressive=False, angle=0),
-            'attacker': lambda robot: Zickler43(robot),
+            'goalkeeper': lambda robot: Goalkeeper(robot, aggressive=True, angle=0.),
+            'attacker': lambda robot: Zickler43(robot, always_force=True, always_chip=True, respect_mid_line=True),
             'blocker': lambda robot: Blocker(robot, arc=0),
-            'defender': lambda robot: Defender(robot, enemy=self.ball, distance=0.6),
+            'defender': lambda robot: Defender(robot, enemy=self.ball),
         })
 
     def setup_tactics(self):
@@ -53,19 +53,40 @@ class AutoRetaliate(Play):
         atk_id = closest_robots[0] if len(closest_robots) > 0 else None
         blk_id = closest_robots[1] if len(closest_robots) > 1 else None
 
-        # gather the defenders (not goalkeeper, atacker or blocker)
+        # gather the defenders (not goalkeeper, attacker or blocker)
         defenders = [r for r in self.team if r.uid not in [gk_id, atk_id, blk_id]]
+        # order defenders by id to avoid position oscillations
+        defenders = sorted(defenders, lambda x, y: x.uid < y.uid)
+        # distributing defenders
+        # TODO: make it generic
+        defender_arc = {}
+        if len(defenders) == 3:
+            defender_arc = {
+                defenders[0].uid: -15.0,
+                defenders[1].uid: 0.0,
+                defenders[2].uid: 15.0
+            }
+        elif len(defenders) == 2:
+            defender_arc = {
+                defenders[0].uid: -10,
+                defenders[1].uid: 10
+            }
+        elif len(defenders) == 1:
+            defender_arc = {
+                defenders[0].uid: 0.0
+            }
 
         # iterate over list of enemies by proximity to the goal
-        for enemy in self.enemy_team.closest_robots_to_point(self.team.goal):
-            # if there are free defenders, assign the closest to the enemy, to follow it
-            if len(defenders) > 0:
-                defender = enemy.closest_to(defenders)
-                defenders.remove(defender)
-                self.players[defender.uid]['defender'].enemy = enemy
+        #for enemy in self.enemy_team.closest_robots_to_point(self.team.goal):
+        #    # if there are free defenders, assign the closest to the enemy, to follow it
+        #    if len(defenders) > 0:
+        #        defender = enemy.closest_to(defenders)
+        #        defenders.remove(defender)
+        #        self.players[defender.uid]['defender'].enemy = enemy
+
         # for any remaining defender, let them guard the ball
-        for defender in defenders:
-            self.players[defender.uid]['defender'].enemy = self.ball
+        #for defender in defenders:
+        #    self.players[defender.uid]['defender'].enemy = self.ball
 
         # step'em, this is needed to guarantee we're only stepping active robots
         for robot in self.team:
@@ -78,3 +99,4 @@ class AutoRetaliate(Play):
                 robot.current_tactic = self.players[r_id]['blocker']
             else:
                 robot.current_tactic = self.players[r_id]['defender']
+                robot.current_tactic.arc = defender_arc[r_id]

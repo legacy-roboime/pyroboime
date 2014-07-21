@@ -26,6 +26,7 @@ from ...utils.geom import Point, Line
 
 from numpy import linspace
 
+
 class Ifrit(Play):
     """
     This is the first cooperative play in this project.
@@ -34,33 +35,44 @@ class Ifrit(Play):
     - in case he has a clear shot to the goal - or a passer, if he does not.
 
     We'll have a second robot in a receiving position: a pivot, which will
-    be ready to receive the ball and immediately kick it towards the goal. 
+    be ready to receive the ball and immediately kick it towards the goal.
 
     The rest is the same as the autoretaliate play.
     """
 
-    def __init__(self, team, **kwargs):
+    def __init__(self, team, allowed_to_kick=True, **kwargs):
         """
         team: duh
         """
         super(Ifrit, self).__init__(team, **kwargs)
         self.players = {}
         self.last_passer = None
+        self.allowed_to_kick = allowed_to_kick
         self.tactics_factory.update({
             'goalkeeper': lambda robot: Goalkeeper(robot, aggressive=False, angle=0),
-            'attacker': lambda robot: Zickler43(robot),
+            'attacker': lambda robot: Zickler43(robot, always_force=True),
             'blocker': lambda robot: Blocker(robot, arc=0),
             'defender': lambda robot: Defender(robot, enemy=self.ball, distance=0.6),
             'passer': lambda robot: ExecutePass(robot),
-            'receiver': lambda robot: ReceivePassAndKick(robot),
+            'receiver': lambda robot: ReceivePassAndKick(robot, point=lambda: self.best_position),
         })
+        self.best_position = None
+
+    def reset(self):
+        self.last_passer = None
+        for attacker in self.team:
+            attacker.is_last_toucher = True
+
+    @property
+    def has_passed(self):
+        return self.last_passer is not None and not self.last_passer.is_last_toucher
 
     def setup_tactics(self):
         # Make sure that the robot receiving the ball keeps kicking it even if its tactic changes.
         for attacker in [self.players[x.uid]['attacker'] for x in self.team]:
-            if attacker.time_of_last_kick + .5 < self.world.timestamp:
+            if attacker.time_of_last_kick + .2 < self.world.timestamp:
                 self.hold_down_passer = self.last_passer
-            if attacker.time_of_last_kick + 8 < self.world.timestamp and self.last_passer is not None:
+            if attacker.time_of_last_kick < self.world.timestamp + 1. and self.last_passer is not None and self.hold_down_passer is not None:
                 #print self.hold_down_passer.uid
                 self.hold_down_passer.action.kick = 1
 
@@ -73,21 +85,24 @@ class Ifrit(Play):
 
         atk_id = closest_robots[0] if len(closest_robots) > 0 else None
 
-
-        # Here we split from autoretaliate.         
+        # Here we split from autoretaliate.
         # We'll find now the best position for our pivot to receive a possible pass.
-        best_position = self.best_receiver_positions(self.team[atk_id], self.last_passer)[0][0]
-        robots_closest_to_bathtub = self.team.closest_robots_to_point(point=best_position)
-        if self.team[atk_id] in robots_closest_to_bathtub:
-            robots_closest_to_bathtub.remove(self.team[atk_id])
-        if self.team[gk_id] in robots_closest_to_bathtub:
-            robots_closest_to_bathtub.remove(self.team[gk_id])
-        
-        # Here, we'll get a pivot.
-        pvt_id = robots_closest_to_bathtub[0].uid if len(robots_closest_to_bathtub) > 0 else None
-        if pvt_id in closest_robots: 
-            closest_robots.remove(pvt_id)
-        
+        #self.best_position = self.best_receiver_positions(self.team[atk_id], self.last_passer)[0][0]
+        self.best_position = self.crude_receiver_positions(self.team[atk_id], self.last_passer)[0][0]
+        if self.best_position:
+            robots_closest_to_bathtub = self.team.closest_robots_to_point(point=self.best_position)
+            if self.team[atk_id] in robots_closest_to_bathtub:
+                robots_closest_to_bathtub.remove(self.team[atk_id])
+            if self.team[gk_id] in robots_closest_to_bathtub:
+                robots_closest_to_bathtub.remove(self.team[gk_id])
+
+            # Here, we'll get a pivot.
+            pvt_id = robots_closest_to_bathtub[0].uid if len(robots_closest_to_bathtub) > 0 else None
+            if pvt_id in closest_robots:
+                closest_robots.remove(pvt_id)
+        else:
+            pvt_id = None
+
         blk_id = closest_robots[1] if len(closest_robots) > 1 else None
 
         # gather the defenders (not goalkeeper, attacker, pivot or blocker)
@@ -100,25 +115,29 @@ class Ifrit(Play):
                 defender = enemy.closest_to(defenders)
                 defenders.remove(defender)
                 self.players[defender.uid]['defender'].enemy = enemy
-        
+
         # for any remaining defender, let them guard the ball
         for defender in defenders:
             self.players[defender.uid]['defender'].enemy = self.ball
 
-        # Setting position for the pivot 
-        if pvt_id is not None:
-            self.players[pvt_id]['receiver'].point = best_position
-        goal_kick = True 
-        # Check if we want to pass or if we want to kick.
-        if atk_id is not None and pvt_id is not None:
-            if self.world.has_clear_shot(self.players[atk_id]['attacker'].lookpoint):
-                goal_kick = True
-                self.players[pvt_id]['receiver'].companion = self.players[atk_id]['attacker']
-            #print self.players[pvt_id]['receiver'].companion, self.players[atk_id]['attacker']
-            else:
-                self.players[atk_id]['passer'].companion = self.players[pvt_id]['receiver']
-                self.players[pvt_id]['receiver'].companion = self.players[atk_id]['passer']
-                goal_kick = False
+        # Setting position for the pivot
+        if pvt_id is not None and self.best_position is not None:
+            self.players[pvt_id]['receiver'].point = self.best_position
+        if self.best_position is not None:
+            goal_kick = True
+            # Check if we want to pass or if we want to kick.
+            if atk_id is not None and pvt_id is not None:
+                #print self.allowed_to_kick
+                if self.world.has_clear_shot(self.players[atk_id]['attacker'].lookpoint) and self.allowed_to_kick:
+                    goal_kick = True
+                    self.players[pvt_id]['receiver'].companion = self.players[atk_id]['attacker']
+                #print self.players[pvt_id]['receiver'].companion, self.players[atk_id]['attacker']
+                else:
+                    self.players[atk_id]['passer'].companion = self.players[pvt_id]['receiver']
+                    self.players[pvt_id]['receiver'].companion = self.players[atk_id]['passer']
+                    goal_kick = False
+        else:
+            goal_kick = True
         #print self.is_valid_position(self.team[0], self.team[1], verbose=True)
         # step'em, this is needed to guarantee we're only stepping active robots
         for robot in self.team:
@@ -149,12 +168,26 @@ class Ifrit(Play):
             print angle1, angle2
         return abs(angle1) < 70 and abs(angle2) < 70 and (not Line(point, passer.enemy_goal.p1).crosses(passer.body)) and (not Line(point, passer.enemy_goal.p2).crosses(passer.body))
 
+    def crude_receiver_positions(self, passer, current_position, target=None):
+        """
+        Effectly does what the method below should do, except using a stupid approach.
+
+        It works a lot better.
+        """
+        safety_margin = 0.6
+        if abs(passer.y) > safety_margin:
+            return [(Point(passer.x, -passer.y), 0)]
+        else:
+            return [(Point(passer.x, -sign(passer.y) * (self.world.width / 2 - passer.radius * 2 - 0.1)), 0)]
+
     def best_receiver_positions(self, passer, current_position, target=None, precision=6):
         """
         Discretizes points over the field (respecting a minimum border from the field,
         and without entering none of the defense areas), according to given precision.
         Searches for clear paths between initial position (ball), intermediate position,
         and the target.
+
+        THIS METHOD FUCKING SUCKS BALLS
 
         Returns a sorted list of tuples (Points that are closer to the target come
         first):
@@ -200,9 +233,8 @@ class Ifrit(Play):
                         candidate += [(pt, 0)]
         if not candidate and current_position is not None:
             #goal_point = self.enemy_goal
-            return [(Point(current_position), 0)]
+            return [(None, 0)]
         elif current_position is None:
-            return [(Point(self.team.goal.x - sign(self.team.goal.x)*1.5,self.team.goal.y - 1), 0)]
+            return [(Point(self.team.goal.x - sign(self.team.goal.x) * 1.5, self.team.goal.y - 1), 0)]
         else:
-            return sorted(candidate, key=lambda tup: tup[1])    
-
+            return sorted(candidate, key=lambda tup: tup[1])

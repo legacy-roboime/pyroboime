@@ -244,7 +244,10 @@ class VisionUpdater(Updater):
                 'yellow_team': {'__robots__': {}},
                 'blue_team': {'__robots__': {}},
                 'balls': {},
+                'camera': 0
             })
+
+            data['camera'] = packet.detection.camera_id
 
             balls = data['balls']
             for i, b in enumerate(packet.detection.balls):

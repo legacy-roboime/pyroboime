@@ -209,7 +209,7 @@ class Tx2013Commander(Commander):
         # Values in meters.
         self.wheel_distance = 0.0850
         self.wheel_radius = 0.0289
-        self.max_speed = 64.0
+        self.max_speed = 54. #64.0
 
     def omniwheel_speeds(self, vx, vy, va):
         if isnan(vx) or isnan(vy) or isnan(va):
@@ -234,7 +234,7 @@ class Tx2013Commander(Commander):
 
         # Initializes packet with the header.
         has_action = False
-
+        actions_now = []
         if len(actions) > 0:
             for a in actions:
                 if not a:
@@ -242,7 +242,10 @@ class Tx2013Commander(Commander):
                 has_action = True
                 vx, vy, va = a.speeds
                 # Convert va to angular speed.
+
                 va = va * pi / 180
+                # TESTING
+                #va = 0 
                 robot_packet = []
 
                 if self.default_map or a.uid in self.mapping_dict:
@@ -261,12 +264,20 @@ class Tx2013Commander(Commander):
                     robot_packet.append(0)
 
                 actions_dict[self.mapping_dict[a.uid]] = robot_packet
-                #a.reset()
+                actions_now.append(a.uid)
+                a.reset()
 
             if has_action:
                 packet = [254, 0, 44]
-                for i in xrange(6):
+                i = 0
+                #for uid in actions_now:
+                #    packet.extend(actions_dict[uid])
+                #    i += 1
+                for i in [1, 2, 3, 4, 5, 6]:
                     packet.extend(actions_dict[i])
+                #while i < 6:
+                #    packet.extend(actions_dict[10])
+                #    i += 1
                 packet.append(55)
                 if packet:
                     #if self.debug:
@@ -410,6 +421,7 @@ class SimCommander(Commander):
                 c = packet.commands.robot_commands.add()
                 c.id = a.uid
                 chip_angle = 45
+                if a.chipkick is not None: a.chipkick = a.chipkick * 3.
                 c.kickspeedz = (a.chipkick or 0.0) * sin(chip_angle)
                 if c.kickspeedz > 0:
                     # XXX FIXME this should be tested,

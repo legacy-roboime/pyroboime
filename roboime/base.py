@@ -332,6 +332,14 @@ class Robot(geom.Point):
     def has_touched_ball(self, value):
         self._has_touched = value
 
+    def on_enemy_side(self):
+        if self.enemy_goal is not None:
+            return True if self.x * self.enemy_goal.x > 0 else False
+
+    def on_ally_side(self):
+        if self.enemy_goal is not None:
+            return False if self.x * self.enemy_goal.x > 0 else True
+
     def step(self):
         if self._skill is not None:
             self._skill.step()
@@ -722,7 +730,7 @@ class World(object):
         self.right_team, self.left_team = self.left_team, self.right_team
 
     def has_clear_shot(self, point_to_kick):
-        shot_line = geom.Line(self.ball, point_to_kick)
+        shot_line = geom.Line(self.ball, point_to_kick).buffer(self.ball.radius)
         for robot in self.iterrobots():
             if shot_line.crosses(robot.body):
                 return False
@@ -792,7 +800,7 @@ class World(object):
 
     def is_in_defense_area(self, robot=None, body=None, color=None):
         if body and color:
-            return not self.defense_area(color).intersection(body).is_empty
+            return (not self.defense_area(color).intersection(body).is_empty)  # or abs(body.centroid.x) > abs(self.goal(color).x)
         elif robot:
             return self.defense_area(robot.color).contains(robot) or not self.defense_area(robot.color).intersection(robot.body).is_empty
 
@@ -804,6 +812,15 @@ class World(object):
         defense_area_stretch = self.defense_stretch
         line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
         return line_to_buffer.buffer(defense_area_radius)
+
+    def augmented_defense_area(self, robot, color):
+        goal = self.goal(color)
+        gx, gy = goal.x, goal.y
+        #goal_width = self.goal_width
+        defense_area_radius = self.defense_radius
+        defense_area_stretch = self.defense_stretch
+        line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
+        return line_to_buffer.buffer(defense_area_radius + robot.radius + 0.1)
 
     def closest_robot_to_ball(self, **kwargs):
         return self.closest_robot_to_point(self.ball, **kwargs)

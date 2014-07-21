@@ -197,6 +197,8 @@ class Joystick(Skill):
                     y = 0
                 if self.locked_y():
                     x = 0
+                x = x if abs(x) > self.deadzone else 0
+                y = y if abs(y) > self.deadzone else 0
                 power = (1 - self.joystick.get_axis(self.power_axis)) / 2
                 if self.joystick.get_button(self.kick_button):
                     self.robot.action.kick = power * self.power_ratio
@@ -230,7 +232,7 @@ class Joystick(Skill):
                 y = y if abs(y) > self.deadzone else 0
                 a = a if abs(a) > self.deadzone else 0
                 power = power if abs(power) > self.deadzone else 0
-
+                print y * self.speed_ratio, x * self.speed_ratio, a * 300
                 self.set_speeds((y * self.speed_ratio, x * self.speed_ratio, a * 300))
 
                 if self.joystick.get_button(self.kick_button):

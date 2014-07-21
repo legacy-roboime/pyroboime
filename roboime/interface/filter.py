@@ -12,7 +12,6 @@
 # GNU Affero General Public License for more details.
 #
 from numpy import array
-from numpy import remainder
 from numpy.random import normal
 from math import degrees, sqrt
 from collections import defaultdict
@@ -34,7 +33,7 @@ class Filter(object):
     will replace the updates or commands for the next call.
 
     Please avoid returning lists, an iterator will generally
-    have better perfomance and memory usage.
+    have better performance and memory usage.
     """
 
     def filter_update(self, updates):
@@ -43,6 +42,60 @@ class Filter(object):
     def filter_command(self, commands):
         pass
 
+
+class Overlap(Filter):
+    """
+    Removes everything a camera removes beyond a certain x position.
+    Designed to reduce camera overlap
+    """
+    def __init__(self):
+        self.x_threshold = 0.0
+
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, u in update['balls'].copy().iteritems():#.objects():
+                if u['x'] > self.x_threshold and update['camera'] == 0:
+                #if update['camera'] == 0:
+                    del update['balls'][uid]
+                if u['x'] < -self.x_threshold and update['camera'] == 1:
+                    del update['balls'][uid]
+
+            for uid, u in update['blue_team']['__robots__'].copy().iteritems():
+                if u['x'] > self.x_threshold and update['camera'] == 0:
+                #if update['camera'] == 0:
+                    del update['blue_team']['__robots__'][uid]
+                if u['x'] < -self.x_threshold and update['camera'] == 1:
+                    del update['blue_team']['__robots__'][uid]
+
+            for uid, u in update['yellow_team']['__robots__'].copy().iteritems():
+                if u['x'] > self.x_threshold and update['camera'] == 0:
+                #if update['camera'] == 0:
+                    del update['yellow_team']['__robots__'][uid]
+                if u['x'] < -self.x_threshold and update['camera'] == 1:
+                    del update['yellow_team']['__robots__'][uid]
+
+class IgnoreCamera(Filter):
+    """
+    Removes everything a camera removes beyond a certain x position.
+    Designed to reduce camera overlap
+    """
+    def __init__(self, camId):
+        self.x_threshold = 0.04
+        self.camId = camId
+
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, u in update['balls'].copy().iteritems():
+                if update['camera'] == self.camId:
+                    del update['balls'][uid]
+
+            for uid, u in update['blue_team']['__robots__'].copy().iteritems():
+                if update['camera'] == self.camId:
+                    del update['blue_team']['__robots__'][uid]
+
+            for uid, u in update['yellow_team']['__robots__'].copy().iteritems():
+                if update['camera'] == self.camId:
+                    del update['yellow_team']['__robots__'][uid]
 
 class Scale(Filter):
     """
@@ -185,6 +238,39 @@ class Acceleration(Filter):
             self.remember_update(update)
 
 
+class MovingAverage(Filter):
+    """
+    Averages the last 2 positions to get the current one. This is fucking stupid
+    """
+    def __init__(self):
+        super(MovingAverage, self).__init__()
+        self.lx = defaultdict(lambda: 0.0)
+        self.ly = defaultdict(lambda: 0.0)
+        self.lo = defaultdict(lambda: 0.0)
+
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, u in update.uobjects():
+                cx = self.lx[uid]
+                cy = self.ly[uid]
+                co = self.lo[uid]
+
+                self.lx[uid], self.ly[uid] = u['x'], u['y']
+
+                u['x'], u['y'] = (cx + self.lx[uid]) / 2, (cy + self.ly[uid]) / 2
+                if 'angle' in u:
+                    self.lo[uid] = u['angle']
+                    while co > 180:
+                        co -= 360
+                    while co < -180:
+                        co += 360
+                    while self.lo[uid] > 180:
+                        self.lo[uid] -= 360
+                    while self.lo[uid] < -180:
+                        self.lo[uid] += 360
+                    u['angle'] = (co + self.lo[uid]) / 2
+
+
 class LowPass(Filter):
     """
     This is a stub for a 4th order low-pass filter that eliminates high-frequency
@@ -261,7 +347,7 @@ class LowPass(Filter):
                     while self.last_theta > 180:
                         self.last_theta -= 360
                     while self.last_theta < -180:
-                        self.last_theta  += 360
+                        self.last_theta += 360
                     #u['angle'] = self.last_theta
 
 
@@ -476,3 +562,104 @@ class DeactivateInactives(Filter):
 #                    to_be_removed.append(u)
 #        for u in to_be_removed:
 #            updates.remove(u)
+
+class KickoffFix(Filter):
+    """
+    Removes everything a camera removes beyond a certain x position.
+    Designed to reduce camera overlap
+    """
+    def __init__(self):
+        self.x_threshold = 0.20 # TODO: Needs calibration
+        self.old_cam = 0
+
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, u in update['balls'].copy().iteritems():#.objects():
+                if u == '__delete__':
+                    continue
+                if u['x'] < -self.x_threshold and update['camera'] == 0:
+                    del update['balls'][uid]
+                    self.old_cam = 1
+                elif u['x'] > self.x_threshold and update['camera'] == 1:
+                    del update['balls'][uid]
+                    self.old_cam = 0
+                elif u['x'] > -self.x_threshold and u['x'] < self.x_threshold and update['camera'] != self.old_cam:
+                    del update['balls'][uid]
+                else:
+                    self.old_cam = update['camera']
+
+class KickoffFixExtended(Filter):
+    """
+    Removes everything a camera removes beyond a certain x position.
+    Designed to reduce camera overlap
+    """
+    def __init__(self, camera_order = [0, 1, 2, 3]):
+        self.x_threshold = 0.20 # TODO: Needs calibration
+        self.y_threshold = 0.10 # TODO: Needs calibration
+        self.old_cam = 0
+
+        """
+        -----------------
+        |       |       |
+        |   1   |   0   |
+        |       |       |
+        -----------------
+        |       |       |
+        |   2   |   3   |
+        |       |       |
+        -----------------
+
+        ==> positive x
+
+        /\
+        || positive y
+        """
+        self.camera_order = camera_order;
+
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, u in update['balls'].copy().iteritems():#.objects():
+                if u == '__delete__':
+                    continue
+                if u['x'] < -self.x_threshold:
+                    if u['y'] < -self.y_threshold:
+                        self.old_cam = self.camera_order[2]
+                        if update['camera'] != self.camera_order[2]:
+                            del update['balls'][uid]
+                    elif u['y'] > self.y_threshold:
+                        self.old_cam = self.camera_order[1]
+                        if update['camera'] != self.camera_order[1]:
+                            del update['balls'][uid]
+                    else:
+                        if self.old_cam != self.camera_order[1] and self.old_cam != self.camera_order[2]:
+                            self.old_cam = self.camera_order[1] if u['y'] > 0 else self.camera_order[2]
+                        if update['camera'] != self.old_cam:
+                            del update['balls'][uid]
+                elif u['x'] > self.x_threshold:
+                    if u['y'] < -self.y_threshold:
+                        self.old_cam = self.camera_order[3]
+                        if update['camera'] != self.camera_order[3]:
+                            del update['balls'][uid]
+                    elif u['y'] > self.y_threshold:
+                        self.old_cam = self.camera_order[0]
+                        if update['camera'] != self.camera_order[0]:
+                            del update['balls'][uid]
+                    else:
+                        if self.old_cam != self.camera_order[3] and self.old_cam != self.camera_order[0]:
+                            self.old_cam = self.camera_order[0] if u['y'] > 0 else self.camera_order[3]
+                        if update['camera'] != self.old_cam:
+                            del update['balls'][uid]
+                else:
+                    if u['y'] < -self.y_threshold:
+                        if self.old_cam != self.camera_order[2] and self.old_cam != self.camera_order[3]:
+                            self.old_cam = self.camera_order[3] if u['x'] > 0 else self.camera_order[2]
+                        if update['camera'] != self.old_cam:
+                            del update['balls'][uid]
+                    elif u['y'] > self.y_threshold:
+                        if self.old_cam != self.camera_order[0] and self.old_cam != self.camera_order[1]:
+                            self.old_cam = self.camera_order[0] if u['x'] > 0 else self.camera_order[1]
+                        if update['camera'] != self.old_cam:
+                            del update['balls'][uid]
+                    else:
+                        if update['camera'] != self.old_cam:
+                            del update['balls'][uid]

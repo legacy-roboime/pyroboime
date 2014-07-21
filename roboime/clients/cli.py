@@ -33,6 +33,7 @@ from ..core.skills import sampledkick
 from ..core.skills import followandcover
 from ..core.skills import sampledchipkick
 from ..core.skills import kickto
+from ..core.skills import chipkickto
 try:
     from ..core.skills import joystick
 except ImportError:
@@ -65,11 +66,12 @@ _individuals = {
     'follow_and_cover': lambda r: followandcover.FollowAndCover(r, follow=r.goal, cover=r.world.ball),
     'sampled_chip_kick': lambda r: sampledchipkick.SampledChipKick(r, lookpoint=r.enemy_goal),
     'kick_to': lambda r: kickto.KickTo(r, lookpoint=Point(0, 0)),
+    'chip_to': lambda r: chipkickto.ChipKickTo(r, lookpoint=Point(0, 0)),
     'blocker': lambda r: blocker.Blocker(r, arc=0),
-    'goalkeeper': lambda r: goalkeeper.Goalkeeper(r, angle=30, aggressive=True),
+    'goalkeeper': lambda r: goalkeeper.Goalkeeper(r, angle=20, aggressive=True),
     'zickler43': lambda r: zickler43.Zickler43(r),
     'defender': lambda r: defender.Defender(r, enemy=r.world.ball),
-    'dummy_receive_pass': lambda r: receivepass.ReceivePass(r, Point(0,0)),
+    'dummy_receive_pass': lambda r: receivepass.ReceivePass(r, Point(0, 0)),
     'zigzag': lambda r: zigzag.ZigZag(r, Point(-0.7, 1.0), Point(-0.7, -1.0)),
 }
 if joystick is not None:
@@ -82,7 +84,7 @@ _plays = {
     'auto_retaliate': lambda t: autoretaliate.AutoRetaliate(t),
     'indirect_kick': lambda t: indirectkick.IndirectKick(t),
     'ifrit': lambda t: ifrit.Ifrit(t),
-    'obey': lambda t: obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(t)),
+    'obey': lambda t: obeyreferee.ObeyReferee(autoretaliate.AutoRetaliate(t))  #autoretaliate.AutoRetaliate(t)),
 }
 
 def _get_team(self, team):
@@ -113,6 +115,8 @@ class _commands(object):
         """use the simulator interface"""
         self.interface.stop()
         self.interface = SimulationInterface(self.world)
+        if self.strip_commanders:
+            self.interface.commanders = []
         self.interface.start()
         self.write('ok')
 
@@ -126,6 +130,8 @@ class _commands(object):
             kick_mapping_yellow=self.kick_mapping["yellow"],
             kick_mapping_blue=self.kick_mapping["blue"],
         )
+        if self.strip_commanders:
+            self.interface.commanders = []
         self.interface.start()
         self.write('ok')
 
@@ -245,6 +251,8 @@ class _commands(object):
             self.write('invalid param {}'.format(param), ok=False)
 
     #def print_goto_params(self):
+    def switch_sides(self):
+        self.world.switch_sides()
 
     def hello(self):
         """hello -> world, simplest test of connectivity"""
@@ -322,11 +330,12 @@ class CLI(Thread):
     avg_tdelta_stp = 0
     avg_tdelta_step = 0
 
-    def __init__(self):
+    def __init__(self, strip_commanders=False):
         super(CLI, self).__init__()
         self.cli_main = config['cli']['main_thread']
         self.debug = config['cli']['debug']
         self.quit = False
+        self.strip_commanders = strip_commanders
         self.world = World()
 
         # initial interface:
@@ -338,6 +347,8 @@ class CLI(Thread):
         else:
             #TODO: proper exception
             raise RuntimeError('interface {} not recognized'.format(default_interface))
+        if self.strip_commanders:
+            self.interface.commanders = []
 
         # Magic (grab attrs that do not begin with _)
         commands = filter(lambda i: not i.startswith('_'), dir(_commands))

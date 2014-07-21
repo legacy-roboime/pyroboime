@@ -36,7 +36,7 @@ class Penalty(Play):
         self.players = {}
         self.tactics_factory = lambda robot: {
             'goalkeeper': Goalkeeper(robot, aggressive=False, angle=0),
-            'attacker': Zickler43(robot),
+            'attacker': Zickler43(robot, always_force=True),
             'blocker': Blocker(robot, arc=0, distance=self.team[0].radius + 2 * self.world.ball.radius),
             'goto': Goto(robot),
         }
