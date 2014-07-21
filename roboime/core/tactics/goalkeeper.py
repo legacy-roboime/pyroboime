@@ -94,7 +94,7 @@ class Goalkeeper(Tactic):
         )
         p2 = Point(
             array(self.goal.p2) + radius * array((cos(self.angle) * -sign(self.goal.x),
-            sin(self.angle))
+            sin(self.angle)))
         )
 
         # Aaaand the home line
