@@ -66,24 +66,7 @@ class Interface(Process, Profile):
         for p in self.processes():
             p.stop()
 
-    #def run(self):
-    #    while not self._exit.is_set():
-    #        for up in self.updaters:
-    #            if not up.queue.empty():
-    #                uu = up.queue.get()
-    #                for fi in reversed(self.filters):
-    #                    _uu = fi.filter_updates(uu)
-    #                    if _uu is not None:
-    #                        uu = _uu
-    #                self.updates = uu
-
-    #        for co in self.commanders:
-    #            if self.actions is not None:
-    #                co.send(self.actions)
-    #            #co.send(actions)
-
     def step(self):
-        #print "I'm stepping the interface."
         # updates injection phase
         self.profile_reset()
         self.profile_stamp()
@@ -141,8 +124,6 @@ class Interface(Process, Profile):
     def processes(self):
         for up in self.updaters:
             yield up
-        #for co in self.commanders:
-        #    yield co
 
 
 class TxInterface(Interface):
@@ -174,16 +155,10 @@ class TxInterface(Interface):
             filters=filters + [
                 filter.KickoffFix(),
                 filter.DeactivateInactives(),
-                # TESTIING
-                #filter.LowPass(),
-                #filter.Overlap(),
-                #filter.MovingAverage(),
                 filter.Acceleration(),
-                filter.Speed(), # second speed is more precise due to Kalman, size=2
-                #filter.CommandUpdateLog(options.cmdupd_filename),
+                filter.Speed(),  # second speed is more precise due to Kalman, size=2
                 filter.Kalman(),
-                filter.Speed(3), # first speed used to predict speed for Kalman
-                #Noise should be enabled during simulation, to allow real noise simulation
+                filter.Speed(3),  # first speed used to predict speed for Kalman
                 filter.RegisterPosition("input"),
                 filter.Scale(),
             ],
@@ -213,10 +188,10 @@ class SimulationInterface(Interface):
                 #filter.LowPass(),
                 filter.DeactivateInactives(),
                 filter.Acceleration(),
-                filter.Speed(), # second speed is more precise due to Kalman, size=2
+                filter.Speed(),  # second speed is more precise due to Kalman, size=2
                 #filter.CommandUpdateLog(options.cmdupd_filename),
                 filter.Kalman(),
-                filter.Speed(3), # first speed used to predict speed for Kalman
+                filter.Speed(3),  # first speed used to predict speed for Kalman
                 #Noise should be enabled during simulation, to allow real noise simulation
                 #filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
                 filter.RegisterPosition("input"),
