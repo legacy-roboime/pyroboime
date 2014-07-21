@@ -569,17 +569,20 @@ class KickoffFix(Filter):
     Designed to reduce camera overlap
     """
     def __init__(self):
-        self.x_threshold = 0.10 # TODO: Needs calibration
+        self.x_threshold = 0.20 # TODO: Needs calibration
         self.old_cam = 0
 
     def filter_update(self, update):
         if update.has_detection_data():
-            for uid, u in update['balls'].copy().iteritems():#.objects():
-                if u['x'] < -self.x_threshold and update['camera'] == 0:
-                    del update['balls'][uid]
-                    self.old_cam = 1
-                elif u['x'] > self.x_threshold and update['camera'] == 1:
+            for uid, u in update['balls'].copy().iteritems():
+                if (u == '__delete__'): continue;
+                if u['x'] < -self.x_threshold and update['camera'] == 1:
                     del update['balls'][uid]
                     self.old_cam = 0
+                elif u['x'] > self.x_threshold and update['camera'] == 0:
+                    del update['balls'][uid]
+                    self.old_cam = 1
                 elif u['x'] > -self.x_threshold and u['x'] < self.x_threshold and update['camera'] != self.old_cam:
                     del update['balls'][uid]
+                else:
+                    self.old_cam = update['camera']

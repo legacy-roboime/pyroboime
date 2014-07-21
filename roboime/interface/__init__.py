@@ -172,10 +172,11 @@ class TxInterface(Interface):
             ],
             commanders=commanders,
             filters=filters + [
+                filter.KickoffFix(),
                 filter.DeactivateInactives(),
                 # TESTIING
                 #filter.LowPass(),
-                filter.Overlap(),
+                #filter.Overlap(),
                 #filter.MovingAverage(),
                 filter.Acceleration(),
                 filter.Speed(), # second speed is more precise due to Kalman, size=2
@@ -185,7 +186,6 @@ class TxInterface(Interface):
                 #Noise should be enabled during simulation, to allow real noise simulation
                 filter.RegisterPosition("input"),
                 filter.Scale(),
-                filter.KickoffFix(),
             ],
             **kwargs
         )
