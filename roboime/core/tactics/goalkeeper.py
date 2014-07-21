@@ -40,17 +40,28 @@ class Goalkeeper(Tactic):
         """
         angle: this angle is how much inside the goal the goalkeeper must be
           when 0 it's completely outside, when 90, it's half inside, when 180
-          it's completely inside, naturally values greater than 90 don't make much sense
-        aggressive: this sets the aggressive mode, which means that the goalkeeper
-          will also act as an attacker when it is the closer robot to the ball
+          it's completely inside, naturally values greater than 90 don't make
+          much sense
+        aggressive: this sets the aggressive mode, which means that the
+          goalkeeper will also act as an attacker when it is the closer robot
+          to the ball
         """
 
         super(Goalkeeper, self).__init__(robot, deterministic=True)
         self.aggressive = aggressive
-        self.goto = GotoLooking(robot, lookpoint=robot.world.ball, target=lambda: robot.goal, avoid_collisions=True)
+        self.goto = GotoLooking(
+              robot,
+              lookpoint=robot.world.ball,
+              target=lambda: robot.goal,
+              avoid_collisions=True
+        )
         #self.kick = KickTo(robot, lookpoint=lambda: robot.enemy_goal)
         self.chip = Zickler43(robot, always_force=True, always_chip=True)
-        #self.chip = ChipKickTo(robot, lookpoint=lambda: robot.enemy_goal, force_kick=True)
+        #self.chip = ChipKickTo(
+        #    robot,
+        #    lookpoint=lambda: robot.enemy_goal,
+        #    force_kick=True
+        #)
         self.angle = angle
         # should parametrize these
         # time in seconds to predict future ball position
@@ -72,12 +83,19 @@ class Goalkeeper(Tactic):
         # +-o/_ <- angle
         #
 
-        # Sets the ratio between the perpendicular distance of the homeline to the goal and the GK's radius
-        radius = (self.robot.radius)  #+ 2 * self.ball.radius) * self.safety_ratio
+        # Sets the ratio between the perpendicular distance of the homeline to
+        # the goal and the GK's radius
+        radius = (self.robot.radius) #+ 2 * self.ball.radius) * self.safety_ratio
 
         # Compute home line ends
-        p1 = Point(array(self.goal.p1) + radius * array((cos(self.angle) * -sign(self.goal.x), -sin(self.angle))))
-        p2 = Point(array(self.goal.p2) + radius * array((cos(self.angle) * -sign(self.goal.x), sin(self.angle))))
+        p1 = Point(
+            array(self.goal.p1) + radius * array((cos(self.angle) * -sign(self.goal.x),
+            -sin(self.angle)))
+        )
+        p2 = Point(
+            array(self.goal.p2) + radius * array((cos(self.angle) * -sign(self.goal.x),
+            sin(self.angle))
+        )
 
         # Aaaand the home line
         home_line = Line(p1, p2)
@@ -108,12 +126,15 @@ class Goalkeeper(Tactic):
         # if the badguy has closest reach to the ball then watch it's orientation
         danger_bot = self.world.closest_robot_to_ball(color=self.team.enemy_team.color)
 
-        # If dangerBot is an enemy, we shall watch his orientation. If he's a friend, we move on to a more
-        # appropriate strategy
+        # If dangerBot is an enemy, we shall watch his orientation. If he's a
+        # friend, we move on to a more appropriate strategy
         if danger_bot is not None:  # and danger_bot.distance(self.ball) < self.domination_radius:
-            # Line starting from the dangerBot spanning twice the width of the field (just to be sure)
-            # to the goal with the desired orientation.
-            future_point = Point(array(danger_bot) + array((cos(danger_bot.angle), sin(danger_bot.angle))) * 2 * self.world.width)
+            # Line starting from the dangerBot spanning twice the width of the
+            # field (just to be sure) to the goal with the desired orientation.
+            future_point = Point(
+                array(danger_bot) + array((cos(danger_bot.angle),
+                sin(danger_bot.angle))) * 2 * self.world.width
+            )
             danger_line = Line(danger_bot, future_point)
 
             if danger_line.crosses(self.goal.line):
@@ -160,7 +181,8 @@ class Goalkeeper(Tactic):
         """
         This method comes from Zickler.
 
-        The main difference is that it transfers the point to defend from the goal line to the base line.
+        The main difference is that it transfers the point to defend from the
+        goal line to the base line.
         """
         our_goal = self.team.goal
         max_hole = []
@@ -176,6 +198,13 @@ class Goalkeeper(Tactic):
         if len(max_hole) != 0:
             y = (max_hole[0][0] + max_hole[-1][0]) / 2
             #return Point(our_goal.x, y)
-            # The following calculation transports the point from the goal line to the base line
-            return Point(our_goal.x - sign(our_goal.x) * self.robot.radius, (our_goal.x - sign(our_goal.x) * self.robot.radius) * y / our_goal.x)
-            #return Point(our_goal.x - sign(our_goal.x) * radius, (our_goal.x - sign(our_goal.x) * radius) * y / our_goal.x)
+            # The following calculation transports the point from the goal line
+            # to the base line
+            return Point(
+                our_goal.x - sign(our_goal.x) * self.robot.radius,
+                (our_goal.x - sign(our_goal.x) * self.robot.radius) * y / our_goal.x
+            )
+            #return Point(
+            #    our_goal.x - sign(our_goal.x) * radius,
+            #    (our_goal.x - sign(our_goal.x) * radius) * y / our_goal.x
+            #)

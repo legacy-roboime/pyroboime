@@ -153,7 +153,8 @@ class TxInterface(Interface):
             ],
             commanders=commanders,
             filters=filters + [
-                filter.KickoffFix(),
+                filter.KickoffFixExtended(camera_order=[3,1,2,0]),
+                #filter.KickoffFix(),
                 filter.DeactivateInactives(),
                 filter.Acceleration(),
                 filter.Speed(),  # second speed is more precise due to Kalman, size=2
@@ -196,7 +197,6 @@ class SimulationInterface(Interface):
                 #filter.Noise(options.noise_var_x,options.noise_var_y,options.noise_var_angle),
                 filter.RegisterPosition("input"),
                 filter.Scale(),
-                #filter.KickoffFix(), # TODO: Use two cameras in grsim
             ],
             **kwargs
         )

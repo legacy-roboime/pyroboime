@@ -586,3 +586,79 @@ class KickoffFix(Filter):
                     del update['balls'][uid]
                 else:
                     self.old_cam = update['camera']
+
+class KickoffFixExtended(Filter):
+    """
+    Removes everything a camera removes beyond a certain x position.
+    Designed to reduce camera overlap
+    """
+    def __init__(self, camera_order = [0, 1, 2, 3]):
+        self.x_threshold = 0.20 # TODO: Needs calibration
+        self.y_threshold = 0.10 # TODO: Needs calibration
+        self.old_cam = 0
+
+        """
+        -----------------
+        |       |       |
+        |   1   |   0   |
+        |       |       |
+        -----------------
+        |       |       |
+        |   2   |   3   |
+        |       |       |
+        -----------------
+
+        ==> positive x
+
+        /\
+        || positive y
+        """
+        self.camera_order = camera_order;
+
+    def filter_update(self, update):
+        if update.has_detection_data():
+            for uid, u in update['balls'].copy().iteritems():#.objects():
+                if u == '__delete__':
+                    continue
+                if u['x'] < -self.x_threshold:
+                    if u['y'] < -self.y_threshold:
+                        self.old_cam = self.camera_order[2]
+                        if update['camera'] != self.camera_order[2]:
+                            del update['balls'][uid]
+                    elif u['y'] > self.y_threshold:
+                        self.old_cam = self.camera_order[1]
+                        if update['camera'] != self.camera_order[1]:
+                            del update['balls'][uid]
+                    else:
+                        if self.old_cam != self.camera_order[1] and self.old_cam != self.camera_order[2]:
+                            self.old_cam = self.camera_order[1] if u['y'] > 0 else self.camera_order[2]
+                        if update['camera'] != self.old_cam:
+                            del update['balls'][uid]
+                elif u['x'] > self.x_threshold:
+                    if u['y'] < -self.y_threshold:
+                        self.old_cam = self.camera_order[3]
+                        if update['camera'] != self.camera_order[3]:
+                            del update['balls'][uid]
+                    elif u['y'] > self.y_threshold:
+                        self.old_cam = self.camera_order[0]
+                        if update['camera'] != self.camera_order[0]:
+                            del update['balls'][uid]
+                    else:
+                        if self.old_cam != self.camera_order[3] and self.old_cam != self.camera_order[0]:
+                            self.old_cam = self.camera_order[0] if u['y'] > 0 else self.camera_order[3]
+                        if update['camera'] != self.old_cam:
+                            del update['balls'][uid]
+                else:
+                    if u['y'] < -self.y_threshold:
+                        if self.old_cam != self.camera_order[2] and self.old_cam != self.camera_order[3]:
+                            self.old_cam = self.camera_order[3] if u['x'] > 0 else self.camera_order[2]
+                        if update['camera'] != self.old_cam:
+                            del update['balls'][uid]
+                    elif u['y'] > self.y_threshold:
+                        if self.old_cam != self.camera_order[0] and self.old_cam != self.camera_order[1]:
+                            self.old_cam = self.camera_order[0] if u['x'] > 0 else self.camera_order[1]
+                        if update['camera'] != self.old_cam:
+                            del update['balls'][uid]
+                    else:
+                        if update['camera'] != self.old_cam:
+                            del update['balls'][uid]
