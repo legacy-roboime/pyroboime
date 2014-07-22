@@ -29,7 +29,7 @@ from numpy import linspace
 from shapely import geometry
 
 from .utils import geom
-from .utils.mathutils import cos, sin
+from .utils.mathutils import cos, sin, sqrt
 from .utils.keydefaultdict import keydefaultdict
 from .communication.protos.referee_pb2 import SSL_Referee as ref
 from .config import config
@@ -796,12 +796,25 @@ class World(object):
 
     def augmented_defense_area(self, robot, color):
         goal = self.goal(color)
-        gx, gy = goal.x, goal.y
-        #goal_width = self.goal_width
-        defense_area_radius = self.defense_radius
-        defense_area_stretch = self.defense_stretch
-        line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
-        return line_to_buffer.buffer(defense_area_radius + robot.radius + 0.1)
+        r = self.defense_radius
+        s = self.defense_stretch
+        l = (2 - sqrt(2)) * r
+        return geometry.Polygon((
+            (goal.x, r + s / 2),
+            (goal.x - sign(goal.x) * (r - l), r + s / 2),
+            (goal.x - sign(goal.x) * (r), r + s / 2 - l),
+            (goal.x - sign(goal.x) * (r), l - r - s / 2),
+            (goal.x - sign(goal.x) * (r - l), - r - s / 2),
+            (goal.x, -r - s / 2),
+            (goal.x, r + s / 2)
+        ))
+        #goal = self.goal(color)
+        #gx, gy = goal.x, goal.y
+        ##goal_width = self.goal_width
+        #defense_area_radius = self.defense_radius
+        #defense_area_stretch = self.defense_stretch
+        #line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
+        #return line_to_buffer.buffer(defense_area_radius + robot.radius + 0.1)
 
     def closest_robot_to_ball(self, **kwargs):
         return self.closest_robot_to_point(self.ball, **kwargs)

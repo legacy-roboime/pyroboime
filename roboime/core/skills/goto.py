@@ -11,12 +11,12 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-from numpy import array, sign
+from numpy import array, linspace
 from numpy.linalg import norm
 
 from .. import Skill
 from ...utils.mathutils import exp
-from ...utils.geom import Point
+from ...utils.geom import Point, Line
 from ...utils.pidcontroller import PidController
 
 
@@ -90,14 +90,13 @@ class Goto(Skill):
         self.separate_axis_control = separate_axis_control
         #self.angle_controller = PidController(kp=1.324, ki=0, kd=0, integ_max=6.55, output_max=1000)
         self._angle = angle
-        self._target = target
         self.target = target
         # self.final_target = final_target if final_target is not None else self.target
-        self.final_target = final_target
+        self.final_target = final_target or target
         self.referential = referential
         self.avoid_collisions = avoid_collisions
         self.ignore_defense_area = ignore_defense_area
-        #self.avoid_collisions = False 
+        self.avoid_collisions = False
 
     def arrived(self):
         return norm(array(self.robot) - array(self.target)) <= self.arrive_distance
@@ -186,6 +185,9 @@ class Goto(Skill):
             yield (repulsion_force, magnetic_force, delta_speed_force)
 
     def _step(self):
+        l = Line(self.robot, self.final_target)
+        self.target = self.final_target if l.length < 0.10 else Point(self.robot.x + 0.10 * (l.coords[1][0] - l.coords[0][0]) / l.length, self.robot.y + 0.10 * (l.coords[1][1] - l.coords[0][1]) / l.length)
+
         r = self.robot
         t = self.target
         f_t = self.final_target
@@ -268,17 +270,21 @@ class Goto(Skill):
     def point_away_from_defense_area(self):
         # FIXME: Only works if robot is inside defense area (which, honestly, is the only place you should ever be using this).
         # FIXME: I think I broke it, needs fixing, reviewing and commenting
-        defense_area = self.world.augmented_defense_area(self.robot, self.robot.color).boundary
+        #defense_area = self.world.augmented_defense_area(self.robot, self.robot.color).boundary
+        defense_area = self.world.augmented_defense_area(self.robot, self.robot.color)
         distance = self.target.distance(defense_area)
-        buffered_circumference = self.target.buffer(distance)
+        #buffered_circumference = self.target.buffer(distance)
+        buffered_circumference = self.target.buffer(self.robot.radius)
         intersection = buffered_circumference.intersection(defense_area).centroid
+        l = intersection
         if not intersection.is_empty:
         #    if abs(self.target.x) < abs(self.world.goal(self.robot.color).x):
             #print 'case 1'
             error = array(intersection) - array(self.target)
             diff = distance * error / norm(error)
             #print "returning point from defense area"
-            return Point(array(self.target) + diff)
+            #return Point(array(self.target) + diff)
+            return Point(0, 0)
         #    else:
         #        print 'case 2'
         #        return Point(self.target.x - 2 * sign(self.goal.x) * self.world.defense_radius, self.robot.y)

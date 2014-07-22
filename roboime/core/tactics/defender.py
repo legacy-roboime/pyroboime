@@ -43,7 +43,7 @@ class Defender(Tactic):
         self._robot = robot
         self.proximity = proximity
         self.cover = robot.goal if cover is None else cover
-        self.distance = distance if distance is not None else self.world.defense_radius + self.world.defense_stretch/3 + 0.05
+        self.distance = distance if distance is not None else self.world.defense_radius + self.world.defense_stretch/2 + 0.10
         self.follow_distance = follow_distance
         self.proximity = proximity
         self.flapping_margin = flapping_margin
@@ -75,13 +75,15 @@ class Defender(Tactic):
                     self.goto,
                     self.follow_and_cover,
                     condition=lambda: self.enemy.distance(self.cover) <
-                    self.proximity - self.flapping_margin
+                    self.proximity - self.flapping_margin and
+                    not self.world.defense_area(self.robot.color).contains(self.ball)
                 ),
                 Transition(
                     self.follow_and_cover,
                     self.goto,
                     condition=lambda: self.enemy.distance(self.cover) >
-                    self.proximity + self.flapping_margin
+                    self.proximity + self.flapping_margin or
+                    self.world.defense_area(self.robot.color).contains(self.ball)
                 ),
             ]
         )
