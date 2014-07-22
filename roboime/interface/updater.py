@@ -112,6 +112,10 @@ class Update(dict):
                             if ball_prop not in ('x', 'y'):
                                 setattr(world.ball, ball_prop, ball_prop_value)
 
+            elif prop == 'frame_number':
+                world.frame_skip = value - world.frame_number - 1
+                world.frame_number = value
+
             # ignore some metadata
             elif prop.startswith('__'):
                 pass
@@ -248,6 +252,7 @@ class VisionUpdater(Updater):
             })
 
             data['camera'] = packet.detection.camera_id
+            data['frame_number'] = packet.detection.frame_number
 
             balls = data['balls']
             for i, b in enumerate(packet.detection.balls):

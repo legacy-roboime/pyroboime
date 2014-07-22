@@ -706,6 +706,8 @@ class World(object):
     def __init__(self, right_team=None, left_team=None):
         self.inited = False
         self.timestamp = 0
+        self.frame_number = 0
+        self.frame_skip = 0
 
         # objects
         if right_team is None:

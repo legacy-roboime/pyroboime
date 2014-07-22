@@ -14,8 +14,9 @@
 
 
 def to_short(x):
+    return min(max(x, -32768), 32767)
     # TODO log when it truncates
-    if x == min(max(x, -32768), 32767):
-        return x
-    else:
-        raise RuntimeError('THAT ({}) NUMBER IS TOO DAMN HIGH!!!'.format(x))
+    #if x == min(max(x, -32768), 32767):
+    #    return x
+    #else:
+    #    raise RuntimeError('THAT ({}) NUMBER IS TOO DAMN HIGH!!!'.format(x))

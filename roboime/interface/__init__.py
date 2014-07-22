@@ -13,6 +13,8 @@
 #
 import sys
 import struct
+import math
+
 from multiprocessing import Process, Event
 from . import updater
 from . import commander
@@ -21,6 +23,7 @@ from ..config import config
 from ..utils.profile import Profile
 from ..utils import to_short
 from ..utils.keydefaultdict import keydefaultdict
+import zmq
 
 
 def _update_loop(queue, updater):
@@ -80,6 +83,11 @@ class Interface(Process, Profile):
         self.filters = filters
         self.callback = callback
         self._exit = Event()
+        self.forward_vision = config['interface']['forward_vision']
+        self._forward_vision_on = config['interface']['forward_vision_on']
+        ctx = zmq.Context()
+        self.forward_zmq = ctx.socket(zmq.PUB)
+        self.forward_zmq.bind(self._forward_vision_on)
 
         # XXX: ugly but what the heck
         if not hasattr(self, 'blue_commander'):
@@ -156,6 +164,41 @@ class Interface(Process, Profile):
 
             if self.yellow_commander is not None:
                 send_update(self.yellow_commander, self.world, self.world.yellow_team)
+
+            if self.forward_vision:
+                detection = {
+                    'camera_id': 'intel',
+                    'frame_number': self.world.frame_number,
+                    'balls': [],
+                    'robots_blue': [],
+                    'robots_yellow': [],
+                }
+
+                detection['balls'].append({
+                    'x': 1000 * self.world.ball.x,
+                    'y': 1000 * self.world.ball.y,
+                })
+                for t, k in [(self.world.blue_team, 'robots_blue'), (self.world.yellow_team, 'robots_yellow')]:
+                    for r in t:
+                        robot = {
+                            'robot_id': r.uid,
+                            'x': 1000 * r.x,
+                            'y': 1000 * r.y,
+                            'orientation': math.radians(r.angle),
+                        }
+                        if r.skill is not None:
+                            robot['skill'] = {
+                                'name': r.skill.name,
+                            }
+                        if r.tactic is not None:
+                            robot['tactic'] = {
+                                'name': r.tactic.name,
+                            }
+
+                        detection[k].append(robot)
+
+                self.forward_zmq.send_json({'detection': detection})
+
 
         # actions extraction phase
         # TODO filtering
