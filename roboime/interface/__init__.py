@@ -153,7 +153,8 @@ class TxInterface(Interface):
             ],
             commanders=commanders,
             filters=filters + [
-                filter.KickoffFixExtended(camera_order=[3,1,2,0]),
+                filter.KickoffFixExtended(camera_order=[3, 1, 2, 0]),
+                #filter.IgnoreCamera(0),
                 #filter.KickoffFix(),
                 filter.DeactivateInactives(),
                 filter.Acceleration(),

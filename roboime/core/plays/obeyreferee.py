@@ -19,6 +19,7 @@ from .halt import Halt
 from .penalty import Penalty
 from .penaltydefend import PenaltyDefend
 from .ifrit import Ifrit
+from .indirectkick import IndirectKick
 from .autoretaliate import AutoRetaliate
 from ...base import Referee, Blue, Yellow
 from ...utils.geom import Point
@@ -46,7 +47,7 @@ class ObeyReferee(Play):
         self.halt = Halt(self.team)
         self.penalty_us = Penalty(self.team)
         self.penalty_them = PenaltyDefend(self.team)
-        self.indirect_kick = AutoRetaliate(self.team) #Ifrit(self.team, allowed_to_kick=False) #IndirectKick(self.team)
+        self.indirect_kick = IndirectKick(self.team)  # AutoRetaliate(self.team) # Ifrit(self.team, allowed_to_kick=False) #
         self.referee = self.world.referee
         self.command = self.referee.command
         self.last_command = Command.Halt
