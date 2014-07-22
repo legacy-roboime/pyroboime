@@ -186,7 +186,7 @@ class Goto(Skill):
 
     def _step(self):
         l = Line(self.robot, self.final_target)
-        self.target = self.final_target if l.length < 0.10 else Point(self.robot.x + 0.10 * (l.coords[1][0] - l.coords[0][0]) / l.length, self.robot.y + 0.10 * (l.coords[1][1] - l.coords[0][1]) / l.length)
+        self.target = self.final_target if l.length < 0.30 else Point(self.robot.x + 0.30 * (l.coords[1][0] - l.coords[0][0]) / l.length, self.robot.y + 0.30 * (l.coords[1][1] - l.coords[0][1]) / l.length)
 
         r = self.robot
         t = self.target
