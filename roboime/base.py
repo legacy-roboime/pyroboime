@@ -684,6 +684,8 @@ class World(object):
     goal_depth = 0.18
     goal_wall_width = 0.02
 
+    defense_area = {}
+
     def __init__(self, right_team=None, left_team=None):
         self.inited = False
         self.timestamp = 0
@@ -786,13 +788,17 @@ class World(object):
             return self.defense_area(robot.color).contains(robot) or not self.defense_area(robot.color).intersection(robot.body).is_empty
 
     def defense_area(self, color):
+        if color in self.defense_area:
+            return self.defense_area[color]
         goal = self.goal(color)
         gx, gy = goal.x, goal.y
         #goal_width = self.goal_width
         defense_area_radius = self.defense_radius
         defense_area_stretch = self.defense_stretch
         line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
-        return line_to_buffer.buffer(defense_area_radius)
+
+        self.defense_area[color] = line_to_buffer.buffer(defense_area_radius)
+        return self.defense_area[color]
 
     def augmented_defense_area(self, robot, color):
         goal = self.goal(color)
