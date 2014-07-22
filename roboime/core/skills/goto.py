@@ -92,11 +92,12 @@ class Goto(Skill):
         self._angle = angle
         self.target = target
         # self.final_target = final_target if final_target is not None else self.target
-        self.final_target = final_target or target
+        self.final_target = final_target
         self.referential = referential
         self.avoid_collisions = avoid_collisions
         self.ignore_defense_area = ignore_defense_area
         self.avoid_collisions = False
+        self.next_target = target
 
     def arrived(self):
         return norm(array(self.robot) - array(self.target)) <= self.arrive_distance
@@ -185,11 +186,11 @@ class Goto(Skill):
             yield (repulsion_force, magnetic_force, delta_speed_force)
 
     def _step(self):
-        l = Line(self.robot, self.final_target)
-        self.target = self.final_target if l.length < 0.30 else Point(self.robot.x + 0.30 * (l.coords[1][0] - l.coords[0][0]) / l.length, self.robot.y + 0.30 * (l.coords[1][1] - l.coords[0][1]) / l.length)
+        l = Line(self.robot, self.target)
+        self.next_target = self.target if l.length < 0.30 else Point(self.robot.x + 0.30 * (l.coords[1][0] - l.coords[0][0]) / l.length, self.robot.y + 0.30 * (l.coords[1][1] - l.coords[0][1]) / l.length)
 
         r = self.robot
-        t = self.target
+        t = self.next_target
         f_t = self.final_target
         #ref = self.referential if self.referential is not None else f_t
         # TODO: Check if target is within the boundaries of the field (augmented of the robot's radius).
