@@ -43,7 +43,7 @@ class Defender(Tactic):
         self._robot = robot
         self.proximity = proximity
         self.cover = robot.goal if cover is None else cover
-        self.distance = distance if distance is not None else self.world.defense_radius + self.robot.radius + self.world.defense_stretch/2 + 0.05
+        self.distance = distance if distance is not None else self.world.defense_radius + self.world.defense_stretch/3 + 0.05
         self.follow_distance = follow_distance
         self.proximity = proximity
         self.flapping_margin = flapping_margin

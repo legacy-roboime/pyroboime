@@ -40,7 +40,7 @@ class Zickler43(Tactic):
 
     conduction_tolerance = 0.6
 
-    def __init__(self, robot, deterministic=True, always_force=False, always_chip=False, respect_mid_line=False):
+    def __init__(self, robot, deterministic=True, always_force=True, always_chip=False, respect_mid_line=False):
         self._lookpoint = self.point_to_kick
         self._robot = robot
         self.drive = DriveToBall(robot, name='Get the Ball', lookpoint= lambda: self.robot.enemy_goal, deterministic=True, avoid_collisions=True)
@@ -76,6 +76,10 @@ class Zickler43(Tactic):
         ])
 
         self.max_hole_size = -1
+
+    #def _step(self):
+    #    super(Zickler43, self)._step()
+    #    print self.current_state
 
     def set_time(self):
         self.time_of_last_kick = self.world.timestamp

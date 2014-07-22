@@ -170,7 +170,7 @@ class Tx2013Commander(Commander):
                 #for uid in actions_now:
                 #    packet.extend(actions_dict[uid])
                 #    i += 1
-                for i in [1, 2, 3, 4, 5, 6]:
+                for i in [0, 1, 2, 3, 4, 5]:
                     packet.extend(actions_dict[i])
                 #while i < 6:
                 #    packet.extend(actions_dict[10])
@@ -179,7 +179,7 @@ class Tx2013Commander(Commander):
                 if packet:
                     if self.verbose:
                         self.log('|'.join('{:03d}'.format(x) for x in packet))
-                    print '|'.join('{:03d}'.format(x) for x in packet)
+                    print ('|'.join('{:03d}'.format(x) for x in packet))
                     self.sender.send(packet)
 
 

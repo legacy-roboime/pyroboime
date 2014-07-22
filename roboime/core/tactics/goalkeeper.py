@@ -53,10 +53,11 @@ class Goalkeeper(Tactic):
               robot,
               lookpoint=robot.world.ball,
               target=lambda: robot.goal,
-              avoid_collisions=True
+              avoid_collisions=True,
+              ignore_defense_area=True
         )
         #self.kick = KickTo(robot, lookpoint=lambda: robot.enemy_goal)
-        self.chip = Zickler43(robot, always_force=True, always_chip=True)
+        self.chip = Zickler43(robot, always_force=True, always_chip=True, respect_mid_line=False)
         #self.chip = ChipKickTo(
         #    robot,
         #    lookpoint=lambda: robot.enemy_goal,
@@ -70,7 +71,38 @@ class Goalkeeper(Tactic):
         #self.safety_ratio = 0.9
         self.safety_ratio = 2.0
 
+        self.p1 = Point(
+            array(self.goal.p1) + (self.robot.radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
+            -sin(self.angle)))
+        )
+        self.p2 = Point(
+            array(self.goal.p2) + (self.robot.radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
+            sin(self.angle)))
+        )
+        #print p1.x, p1.y, p2.x, p2.y
+
+        # Aaaand the home line
+        self.home_line = Line(self.p1, self.p2)
+
     def _step(self):
+        self.p1 = Point(
+            array(self.goal.p1) + (self.robot.radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
+            -sin(self.angle)))
+        )
+        self.p2 = Point(
+            array(self.goal.p2) + (self.robot.radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
+            sin(self.angle)))
+        )
+        #print p1.x, p1.y, p2.x, p2.y
+
+        # Aaaand the home line
+        self.home_line = Line(self.p1, self.p2)
+
+        home_line = self.home_line
+        p1 = self.p1
+        p2 = self.p2
+        self.goto.target = Point((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
+        #print self.robot.skill
         #TODO: if ball is inside area and is slow, kick/pass it far far away
 
         # Build the home line
@@ -88,17 +120,6 @@ class Goalkeeper(Tactic):
         radius = (self.robot.radius) #+ 2 * self.ball.radius) * self.safety_ratio
 
         # Compute home line ends
-        p1 = Point(
-            array(self.goal.p1) + (radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
-            -sin(self.angle)))
-        )
-        p2 = Point(
-            array(self.goal.p2) + (radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
-            sin(self.angle)))
-        )
-
-        # Aaaand the home line
-        home_line = Line(p1, p2)
 
         ### Find out where in the homeline should we stay ###
 
@@ -113,8 +134,12 @@ class Goalkeeper(Tactic):
         ball_line = Line(Point(self.ball), Point(future_ball))
 
         if ball_line.crosses(self.goal.line):
+            #print 'wtf'
             point_on_home = ball_line.intersection(home_line)
+            #print point_on_home 
+
             if point_on_home.geom_type == 'Point':
+                #print 'whee point on home' 
                 self.goto.target = point_on_home
             else:
                 pass
@@ -178,6 +203,7 @@ class Goalkeeper(Tactic):
             self.goto.target = self.point_to_defend()
         """
         # continue stepping the last strategy
+
         self.goto.step()
 
     def point_to_defend(self):

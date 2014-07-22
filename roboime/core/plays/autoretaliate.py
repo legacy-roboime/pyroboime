@@ -99,4 +99,6 @@ class AutoRetaliate(Play):
                 robot.current_tactic = self.players[r_id]['blocker']
             else:
                 robot.current_tactic = self.players[r_id]['defender']
-                robot.current_tactic.arc = defender_arc[r_id]
+                if (defender_arc and r_id in defender_arc):
+                    robot.current_tactic.arc = defender_arc[r_id]
+            #print robot.current_tactic

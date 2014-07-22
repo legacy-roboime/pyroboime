@@ -68,7 +68,7 @@ class Goto(Skill):
     exp_k = 6
 
     #def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
-    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=False, use_norm_pid=False, separate_axis_control=False, **kwargs):
+    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, ignore_defense_area=False, deterministic=True, avoid_collisions=False, use_norm_pid=False, separate_axis_control=False, **kwargs):
         """
         final_target: the ultimate position the robot should attain
         target: the intermediate position you're ACTUALLY sending the robot to
@@ -96,6 +96,8 @@ class Goto(Skill):
         self.final_target = final_target
         self.referential = referential
         self.avoid_collisions = avoid_collisions
+        self.ignore_defense_area = ignore_defense_area
+        #self.avoid_collisions = False 
 
     def arrived(self):
         return norm(array(self.robot) - array(self.target)) <= self.arrive_distance
@@ -193,7 +195,7 @@ class Goto(Skill):
         # check whether the point we want to go to will make the robot be in the defense area
         # if so then we'll go to the nearest point that meets that constraint
         #print "ball is in area?", r.world.is_in_defense_area(body=self.world.ball.buffer(r.radius), color=r.color)
-        if not self.robot.is_goalie and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
+        if not self.ignore_defense_area and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
             self.target = self.point_away_from_defense_area
             t = self.target
 
