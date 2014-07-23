@@ -86,14 +86,14 @@ class Interface(Process, Profile):
         self.forward_vision = config['interface']['forward_vision']
         self._forward_vision_on = config['interface']['forward_vision_on']
         ctx = zmq.Context()
-        self.forward_zmq = ctx.socket(zmq.PUB)
-        self.forward_zmq.bind(self._forward_vision_on)
+        self.zmq_socket = ctx.socket(zmq.PUB)
+        self.zmq_socket.bind(self._forward_vision_on)
+        self.geometry_frame_skip = 1
+        self._geometry_counter = 0
 
         # XXX: ugly but what the heck
-        if not hasattr(self, 'blue_commander'):
-            self.blue_commander = None
-        if not hasattr(self, 'yellow_commander'):
-            self.yellow_commander = None
+        self.blue_commander = None
+        self.yellow_commander = None
 
     def start(self):
         #super(Interface, self).start()
@@ -126,7 +126,8 @@ class Interface(Process, Profile):
         self.profile_reset()
         self.profile_stamp()
 
-        has_update = False
+        has_detection_update = False
+        has_geometry_update = False
 
         for up in self.updaters:
             if not up.queue.empty():
@@ -140,7 +141,10 @@ class Interface(Process, Profile):
                     if _uu is not None:
                         uu = _uu
                 uu.apply(self.world)
-                has_update = True
+                if uu.has_detection_data():
+                    has_detection_update = True
+                if uu.has_geometry_data():
+                    has_geometry_update = True
 
             ##with up.queue_lock:
             ##    print 'Queue size: ', up.queue.qsize()
@@ -158,46 +162,72 @@ class Interface(Process, Profile):
             #    self.callback()
 
         # update the robots with their positions
-        if has_update:
+        if has_detection_update or has_geometry_update:
+            w = self.world
+
             if self.blue_commander is not None:
-                send_update(self.blue_commander, self.world, self.world.blue_team)
+                send_update(self.blue_commander, w, w.blue_team)
 
             if self.yellow_commander is not None:
-                send_update(self.yellow_commander, self.world, self.world.yellow_team)
+                send_update(self.yellow_commander, w, w.yellow_team)
 
             if self.forward_vision:
-                detection = {
-                    'camera_id': 'intel',
-                    'frame_number': self.world.frame_number,
-                    'balls': [],
-                    'robots_blue': [],
-                    'robots_yellow': [],
-                }
+                wrapper = {}
 
-                detection['balls'].append({
-                    'x': 1000 * self.world.ball.x,
-                    'y': 1000 * self.world.ball.y,
-                })
-                for t, k in [(self.world.blue_team, 'robots_blue'), (self.world.yellow_team, 'robots_yellow')]:
-                    for r in t:
-                        robot = {
-                            'robot_id': r.uid,
-                            'x': 1000 * r.x,
-                            'y': 1000 * r.y,
-                            'orientation': math.radians(r.angle),
-                        }
-                        if r.skill is not None:
-                            robot['skill'] = {
-                                'name': r.skill.name,
+                if has_detection_update:
+                    detection = {
+                        'camera_id': 'intel',
+                        'frame_number': w.frame_number,
+                        'balls': [],
+                        'robots_blue': [],
+                        'robots_yellow': [],
+                    }
+
+                    detection['balls'].append({
+                        'x': 1000 * w.ball.x,
+                        'y': 1000 * w.ball.y,
+                    })
+                    for t, k in [(w.blue_team, 'robots_blue'), (w.yellow_team, 'robots_yellow')]:
+                        for r in t:
+                            robot = {
+                                'robot_id': r.uid,
+                                'x': 1000 * r.x,
+                                'y': 1000 * r.y,
+                                'orientation': math.radians(r.angle),
                             }
-                        if r.tactic is not None:
-                            robot['tactic'] = {
-                                'name': r.tactic.name,
-                            }
+                            if r.skill is not None:
+                                robot['skill'] = {
+                                    'name': r.skill.name,
+                                }
+                            if r.tactic is not None:
+                                robot['tactic'] = {
+                                    'name': r.tactic.name,
+                                }
 
-                        detection[k].append(robot)
+                            detection[k].append(robot)
+                    wrapper['detection'] = detection
 
-                self.forward_zmq.send_json({'detection': detection})
+                if has_geometry_update:
+                    geometry = {
+                        'line_width': w.line_width,
+                        'field_length': w.length,
+                        'field_width': w.width,
+                        'boundary_width': w.boundary_width,
+                        'referee_width': w.referee_width,
+                        'goal_width': w.goal_width,
+                        'goal_depth': w.goal_depth,
+                        'goal_wall_width': w.goal_wall_width,
+                        'center_circle_radius': w.center_radius,
+                        'defense_radius': w.defense_radius,
+                        'defense_stretch': w.defense_stretch,
+                        'free_kick_from_defense_dist': w.free_kick_distance,
+                        'penalty_spot_from_field_line_dist': w.penalty_spot_distance,
+                        'penalty_line_from_spot_dist': w.penalty_line_distance,
+                    }
+
+                    wrapper['geometry'] = geometry
+
+                self.zmq_socket.send_json(wrapper)
 
 
         # actions extraction phase
@@ -236,35 +266,13 @@ class TxInterface(Interface):
         debug = config['interface']['debug']
         vision_address = (config['interface']['tx']['vision-addr'], config['interface']['tx']['vision-port'])
         referee_address = (config['interface']['tx']['referee-addr'], config['interface']['tx']['referee-port'])
-        commanders = []
-        self.blue_commander = None
-        self.yellow_commander = None
-        if config['interface']['txver'] == 2012:
-            ipaddr = config['interface']['oldtx_addr']
-            port = config['interface']['oldtx_port']
-            if command_blue:
-                commanders.append(commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, ipaddr=ipaddr, port=port))
-            if command_yellow:
-                commanders.append(commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, ipaddr=ipaddr, port=port))
-        elif config['interface']['txver'] == 2013:
-            if command_blue:
-                commanders.append(commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue))
-            if command_yellow:
-                commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow))
-        else: # 2014, current
-            if command_blue:
-                self.blue_commander = commander.Tx2014Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue)
-                commanders.append(self.blue_commander)
-            if command_yellow:
-                self.yellow_commander = commander.Tx2014Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow)
-                commanders.append(self.yellow_commander)
+
         super(TxInterface, self).__init__(
             world,
             updaters=[
                 updater.VisionUpdater(vision_address),
                 updater.RefereeUpdater(referee_address),
             ],
-            commanders=commanders,
             filters=filters + [
                 filter.KickoffFixExtended(camera_order=[3,1,2,0]),
                 #filter.KickoffFix(),
@@ -284,6 +292,29 @@ class TxInterface(Interface):
             ],
             **kwargs
         )
+
+        if config['interface']['txver'] == 2012:
+            ipaddr = config['interface']['oldtx_addr']
+            port = config['interface']['oldtx_port']
+            if command_blue:
+                self.commanders.append(commander.Tx2012Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, ipaddr=ipaddr, port=port))
+            if command_yellow:
+                self.commanders.append(commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, ipaddr=ipaddr, port=port))
+        elif config['interface']['txver'] == 2013:
+            if command_blue:
+                self.commanders.append(commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue))
+            if command_yellow:
+                self.commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow))
+        elif config['interface']['txver'] == 2014:
+            if command_blue:
+                self.blue_commander = commander.Tx2014Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue)
+                self.commanders.append(self.blue_commander)
+            if command_yellow:
+                self.yellow_commander = commander.Tx2014Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow)
+                self.commanders.append(self.yellow_commander)
+        else:
+            self.commanders.append(commander.ControlCommander(world.yellow_team, self.zmq_socket))
+            self.commanders.append(commander.ControlCommander(world.blue_team, self.zmq_socket))
 
 
 class SimulationInterface(Interface):

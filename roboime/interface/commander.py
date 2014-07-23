@@ -20,6 +20,7 @@ import sys
 from collections import defaultdict
 from time import time
 from math import isnan
+from math import radians
 
 from ..config import config
 from ..communication import grsim
@@ -68,6 +69,43 @@ class Commander(object):
 
     def send(self, actions):
         raise NotImplemented
+
+
+class ControlCommander(Commander):
+    """
+    This commander is used to communicate with roboime-control.
+    """
+
+    def __init__(self, team, zmq_socket):
+        """
+        A zmq socket has to be passed so it can be shared.
+        """
+        super(ControlCommander, self).__init__(team)
+        self.zmq_socket = zmq_socket
+
+    def send(self, actions):
+        control = {'actions_blue': [], 'actions_yellow': []}
+        for a in actions:
+            if a.robot.is_blue:
+                ac = control['actions_blue']
+            else:
+                ac = control['actions_yellow']
+            if a.has_speeds:
+                sx, sy, sa = a.speeds
+                ac.append({
+                    'type': 'move',
+                    'uid': a.uid,
+                    'speeds': {
+                        'vx': 1000 * sx,
+                        'vy': 1000 * sy,
+                        'va': radians(sa),
+                    },
+                    'kick': a.kick or 0.0,
+                    'chip': a.chipkick or 0.0,
+                    'dribble': a.dribble or 0.0,
+                })
+
+        self.zmq_socket.send_json({'control': control})
 
 
 class Tx2014Commander(Commander):

@@ -69,7 +69,7 @@ class Goto(Skill):
     exp_k = 6
 
     # flag to disable actual implementation
-    decoupled = True
+    decoupled = False
 
     #def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
     def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=False, use_norm_pid=False, separate_axis_control=False, **kwargs):

@@ -8,7 +8,7 @@ interface:
   log-file: "interface.log"
   command-yellow: true
   command-blue: true
-  txver: 2014
+  txver: control
   oldtx_addr: 127.0.0.1
   oldtx_port: 9050
   forward_vision: true
