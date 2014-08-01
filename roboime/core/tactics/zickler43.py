@@ -40,10 +40,13 @@ class Zickler43(Tactic):
 
     conduction_tolerance = 0.6
 
-    def __init__(self, robot, deterministic=True, always_force=True, always_chip=False, respect_mid_line=False):
+    def __init__(self, robot, deterministic=True, always_force=True,
+            always_chip=False, respect_mid_line=False, ignore_defense_area=False):
         self._lookpoint = self.point_to_kick
         self._robot = robot
-        self.drive = DriveToBall(robot, name='Get the Ball', lookpoint= lambda: self.robot.enemy_goal, deterministic=True, avoid_collisions=True)
+        self.drive = DriveToBall(robot, name='Get the Ball', lookpoint= lambda:
+                self.robot.enemy_goal, deterministic=True,
+                avoid_collisions=True, ignore_defense_area=ignore_defense_area)
         self.dribble = SampledDribble(robot, name='Drag the Ball', deterministic=deterministic, lookpoint=lambda: self.lookpoint, minpower=0.0, maxpower=1.0)
         self.goal_kick = KickTo(robot, name='KICK IT!!!', lookpoint=lambda: self.lookpoint, minpower=0.9, maxpower=1.0)
         self.force_kick = KickTo(robot, name='FUCKING KICK IT ALREADY!!!', force_kick=True, lookpoint=lambda: self.lookpoint, minpower=0.9, maxpower=1.0)

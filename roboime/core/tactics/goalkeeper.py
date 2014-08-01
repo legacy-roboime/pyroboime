@@ -57,7 +57,8 @@ class Goalkeeper(Tactic):
               ignore_defense_area=True
         )
         #self.kick = KickTo(robot, lookpoint=lambda: robot.enemy_goal)
-        self.chip = Zickler43(robot, always_force=True, always_chip=True, respect_mid_line=False)
+        self.chip = Zickler43(robot, always_force=True, always_chip=True,
+                respect_mid_line=False, ignore_defense_area=True)
         #self.chip = ChipKickTo(
         #    robot,
         #    lookpoint=lambda: robot.enemy_goal,
