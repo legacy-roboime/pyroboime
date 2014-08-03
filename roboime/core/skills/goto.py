@@ -82,7 +82,19 @@ class Goto(Skill):
                     # TODO: Rewrite the python's way
                     n = diff * self.collision_distance / norm(diff)
                     temp = Point(-n[1] + point.x, n[0] + point.y)
-                    return self.path_planner(temp, depth + 1)
+                    target1 = self.path_planner(temp, depth + 1)
+                    diff1 = norm(array(self.final_target) - array(target1))
+                    free1 = not self.point_inside_robot(target1, robots)
+
+                    temp = Point(n[1] + point.x, -n[0] + point.y)
+                    target2 = self.path_planner(temp, depth + 1)
+                    diff2 = norm(array(self.final_target) - array(target2))
+                    free2 = not self.point_inside_robot(target2, robots)
+
+                    if free1 and free2:
+                        return target1 if diff1 < diff2 else target2
+                    else:
+                        return target1 if free1 else target2
         return target
 
     def get_robots(self):
