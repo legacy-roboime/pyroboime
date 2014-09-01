@@ -449,5 +449,4 @@ class SimCommander(Commander):
                 # reset action values
                 a.reset()
 
-        #print packet
         self.sender.send_packet(packet)
