@@ -1,0 +1,35 @@
+// See README.txt for information and build instructions.
+
+package roboime;
+
+message Action {
+  enum Type {
+    MOVE = 0;
+    PASS = 1;
+    KICK = 2;
+  }
+
+  message Move {
+    required float x = 1;
+    required float y = 2;
+  }
+
+  message Pass {
+    required int32 robot_id = 1;
+  }
+
+  message Kick {
+    required float x = 1;
+    required float y = 2;
+  }
+
+  required int32 robot_id = 1;
+  required Type type = 2;
+  optional Move move = 3;
+  optional Pass pass = 4;
+  optional Kick kick = 5;
+}
+
+message Command {
+  repeated Action action = 1;
+}
