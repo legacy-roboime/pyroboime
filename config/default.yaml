@@ -33,3 +33,5 @@ zmq:
   pull: tcp://*:6664
 robot:
   max_speed: 2.0
+minimax:
+  addr: tcp://127.0.0.1:5555
