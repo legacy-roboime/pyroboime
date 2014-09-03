@@ -21,12 +21,12 @@ class Mover(Tactic):
     Goto A then look to B then goto B then look to A then repeat, that's it.
     """
 
-    def __init__(self, robot, target):
+    def __init__(self, robot, target=None):
         self.target = target
         self.goto = GotoLooking(
             robot,
             name='Goto',
-            target=lambda: self.target,
+            target=lambda: self.target or self.robot,
             lookpoint=robot.world.ball
         )
 
