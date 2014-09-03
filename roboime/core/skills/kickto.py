@@ -36,13 +36,14 @@ class KickTo(Skill):
     Meanwhile it's experimental, depending on the results it'll stay or not.
     """
     #TODO: Change parameter back once we have real control.
-    #angle_kick_min_error = 0.5
-    angle_kick_min_error = 5
-    angle_approach_min_error = 5
+    #angle_kick_max_error = 0.5
+    angle_kick_max_error = 2
+    angle_approach_max_error = 5
+    #angle_tolerance = 20
     angle_tolerance = 20
     orientation_tolerance = 0.7
     distance_tolerance = 0.14
-    walkspeed = 0.2
+    walkspeed = 0.1
 
     def __init__(self, robot, lookpoint=None, force_kick=False, minpower=0.0, maxpower=1.0, **kwargs):
         """
@@ -100,7 +101,7 @@ class KickTo(Skill):
     def delta_orientation(self):
         delta =  self.robot.angle - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
-        
+
     def _step(self):
         #print 'blasdbflas'
         delta_orientation = self.delta_orientation()
@@ -120,13 +121,13 @@ class KickTo(Skill):
         v = pi * w * d / 180.0
         z = 0.0
 
-        if abs(delta_orientation) < self.angle_kick_min_error:
+        if abs(delta_orientation) < self.angle_kick_max_error:
             kp = kick_power(self.lookpoint.distance(self.robot))
             kp = min(max(kp, self.minpower), self.maxpower)
             self.robot.action.kick = kp
             z = self.walkspeed
         else:
-            if abs(delta_orientation) < self.angle_approach_min_error:
+            if abs(delta_orientation) < self.angle_approach_max_error:
                 z = self.walkspeed
             self.robot.action.dribble = 1.0
 

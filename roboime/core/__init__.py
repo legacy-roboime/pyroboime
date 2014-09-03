@@ -90,7 +90,7 @@ class Skill(Steppable, State):
 
 class Tactic(Steppable, Machine):
 
-    def __init__(self, robot, deterministic, **kwargs):
+    def __init__(self, robot, deterministic=True, **kwargs):
         super(Tactic, self).__init__(deterministic, **kwargs)
         self._robot = robot
 

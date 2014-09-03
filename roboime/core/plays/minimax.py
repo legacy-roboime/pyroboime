@@ -15,9 +15,13 @@ import zmq
 from .. import Play
 from ..tactics.goalkeeper import Goalkeeper
 from ..tactics.striker import Striker
+from ..tactics.passer import Passer
 from ..tactics.mover import Mover
+from ..tactics.waiter import Waiter
 from ...config import config
 from ...communication.protos.discrete_pb2 import Command
+from ...communication.protos.discrete_pb2 import Action
+from ...util.geom import Point
 
 
 class Minimax(Play):
@@ -37,13 +41,45 @@ class Minimax(Play):
         self.tactics_factory.update({
             'goalkeeper': lambda robot: Goalkeeper(robot, angle=0),
             'striker': lambda robot: Striker(robot),
+            'passer': lambda robot: Passer(robot),
             'mover': lambda robot: Mover(robot),
+            'wait': lambda robot: Waiter(robot),
         })
 
-    def step(self):
-        # req reply:
-        self.socket.send()
-        cmd = Command.ParseFromString(self.socket.recv())
+    def request(self, msg=''):
+        self.socket.send(msg)
+        return Command.ParseFromString(self.socket.recv())
+
+    def setup_tactics(self):
+        cmd = self.request()
+
+        for robot in self.team:
+            r_id = robot.uid
+
+            if r_id == self.goalie:
+                robot.current_tactic = self.players[r_id]['goalkeeper']
+
+            else:
+                robot.current_tactic = self.players[r_id]['wait']
 
         for action in cmd.actions:
-            pass
+            r_id = action.robot_id
+
+            if r_id in self.team:
+                robot = self.team[r_id]
+                tactics = self.players[r_id]
+
+                if action.type == Action.KICK:
+                    tactic = tactics['stricker']
+                    tactic.lookpoint = Point(action.kick().x, action.kick().y)
+                    robot.current_tactic = tactic
+
+                elif action.type == Action.PASS:
+                    tactic = tactics['passer']
+                    tactic.lookpoint = self.team[getattr(action, 'pass')().robot_id]
+                    robot.current_tactic = tactics['passer']
+
+                elif action.type == Action.MOVE:
+                    tactic = tactics['stricker']
+                    tactic.target = Point(action.move().x, action.move().y)
+                    robot.current_tactic = tactics['mover']
