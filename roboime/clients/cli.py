@@ -185,21 +185,33 @@ class _commands(object):
 
     def set_play(self, team, play):
         """set_play <blue|yellow> play"""
-        if play in _plays:
-            with self.step_lock:
-                self.plays[team] = _plays[play](_get_team(self, team))
-            self.write('ok')
+        if isinstance(play, str):
+            if play in _plays:
+                with self.step_lock:
+                    p = self.plays[team] = _plays[play](_get_team(self, team))
+                self.write('ok')
+                return p
+            else:
+                self.write('play {} does not exist'.format(play), ok=False)
         else:
-            self.write('play {} does not exist'.format(play), ok=False)
+            with self.step_lock:
+                p = self.plays[team] = play(_get_team(self, team))
+                return p
 
     def set_individual(self, team, robot, individual):
         """set_individual <blue|yellow> robot individual"""
-        if individual in _individuals:
-            with self.step_lock:
-                self.individuals[team][robot] = _individuals[individual](_get_robot(self, team, robot))
-            self.write('ok')
+        if isinstance(individual, str):
+            if individual in _individuals:
+                with self.step_lock:
+                    i = self.individuals[team][robot] = _individuals[individual](_get_robot(self, team, robot))
+                self.write('ok')
+                return i
+            else:
+                self.write('individual {} does not exist'.format(individual), ok=False)
         else:
-            self.write('individual {} does not exist'.format(individual), ok=False)
+            with self.step_lock:
+                i = self.individuals[team][robot] = individual(_get_robot(self, team, robot))
+                return i
 
     def set_goto_param(self, param, value):
         """set_goto_param param value
