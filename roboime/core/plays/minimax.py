@@ -64,7 +64,7 @@ class Minimax(Play):
             else:
                 robot.current_tactic = self.players[r_id]['wait']
 
-        for action in cmd.actions:
+        for action in cmd.action:
             r_id = action.robot_id
 
             if r_id in self.team:
@@ -72,16 +72,16 @@ class Minimax(Play):
                 tactics = self.players[r_id]
 
                 if action.type == Action.KICK:
-                    tactic = tactics['stricker']
-                    tactic.lookpoint = Point(action.kick().x, action.kick().y)
+                    tactic = tactics['striker']
+                    tactic.lookpoint = Point(action.kick.x, action.kick.y)
                     robot.current_tactic = tactic
 
                 elif action.type == Action.PASS:
                     tactic = tactics['passer']
-                    tactic.lookpoint = self.team[getattr(action, 'pass')().robot_id]
-                    robot.current_tactic = tactics['passer']
+                    tactic.lookpoint = self.team[getattr(action, 'pass').robot_id]
+                    robot.current_tactic = tactic
 
                 elif action.type == Action.MOVE:
-                    tactic = tactics['stricker']
-                    tactic.target = Point(action.move().x, action.move().y)
-                    robot.current_tactic = tactics['mover']
+                    tactic = tactics['mover']
+                    tactic.target = Point(action.move.x, action.move.y)
+                    robot.current_tactic = tactic
