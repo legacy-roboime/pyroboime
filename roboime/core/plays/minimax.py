@@ -21,7 +21,7 @@ from ..tactics.waiter import Waiter
 from ...config import config
 from ...communication.protos.discrete_pb2 import Command
 from ...communication.protos.discrete_pb2 import Action
-from ...util.geom import Point
+from ...utils.geom import Point
 
 
 class Minimax(Play):
