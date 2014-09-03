@@ -48,7 +48,9 @@ class Minimax(Play):
 
     def request(self, msg=''):
         self.socket.send(msg)
-        return Command.ParseFromString(self.socket.recv())
+        c = Command()
+        c.ParseFromString(self.socket.recv())
+        return c
 
     def setup_tactics(self):
         cmd = self.request()
