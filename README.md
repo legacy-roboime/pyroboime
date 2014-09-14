@@ -52,3 +52,41 @@ __There is an aditional clause for using this code on competitions:__
 The reason for the term above is to promote collaboration, help starting teams and also maintain competitiveness.
 
 This is an experimental clause that may be modified in the future, any critique is appreciated.
+
+How to's
+--------
+
+To run intelligence and transmission and control robots with joystick:
+ 1. Plug the transmission on the computer
+ 2. Run one of the following:
+  a. To run with the ssl-vision client(camera needed):
+    $ cd ~/ssl-vision/bin
+    $ ./vision -s
+  b. To run with grSim:
+    $ grsim
+    then set it to send the position of the robots on port 10002
+ 3. At ~/pyroboime run:
+    $ ./iris.py
+    -------------
+    >>> set_individual('blue',0,'joystick')
+    >>> individuals()
+
+  TO get help with iris.py commands:
+    >>> mayday()
+
+  To get robots that are on the 'world':
+    >>> world.robots
+
+Important files location
+------------------------
+
+joystick commands definition:
+  ~/pyroboime/roboime/core/skill/joystick.py
+
+communication files:
+  roboime/communication/rftransmission/vivatxrx.py
+
+transmission package definition:
+  roboime/interface/commander.py
+                    tx2013commander
+                    tx2014commander
