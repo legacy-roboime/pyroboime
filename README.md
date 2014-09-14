@@ -71,11 +71,14 @@ To run intelligence and transmission and control robots with joystick:
     >>> set_individual('blue',0,'joystick')
     >>> individuals()
 
-  TO get help with iris.py commands:
+  To get help with iris.py commands:
     >>> mayday()
 
   To get robots that are on the 'world':
     >>> world.robots
+
+  TO setup iris.py modify the following file:
+    ~/pyroboime/config/development.yaml
 
 Important files location
 ------------------------
