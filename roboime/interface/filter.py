@@ -208,6 +208,9 @@ class LowPass(Filter):
     def filter_update(self, update):
         if update.has_detection_data():
             for uid, u in update.uobjects():
+                if u == '__delete__':
+                    continue
+
                 ux = self.ux[uid]
                 uy = self.uy[uid]
                 vx = self.vx[uid]

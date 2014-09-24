@@ -18,6 +18,7 @@ from .. import Skill
 from ...utils.mathutils import exp
 from ...utils.geom import Point
 from ...utils.pidcontroller import PidController
+from ...base import Action
 
 
 def force_equation(direction, distance, floor, factor, power):
@@ -66,6 +67,9 @@ class Goto(Skill):
     g = 9.80665
     mi = 0.1
     exp_k = 6
+
+    # flag to disable actual implementation
+    decoupled = True
 
     #def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
     def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=False, use_norm_pid=False, separate_axis_control=False, **kwargs):
@@ -186,7 +190,14 @@ class Goto(Skill):
     def _step(self):
         r = self.robot
         t = self.target
+        a = self.angle or r.angle or 0.0
         f_t = self.final_target
+
+        if self.decoupled:
+            #r.action = Action(r, target=(t.x, t.y, a))
+            r.action.target = (t.x, t.y, a)
+            return
+
         #ref = self.referential if self.referential is not None else f_t
         # TODO: Check if target is within the boundaries of the field (augmented of the robot's radius).
 
@@ -196,7 +207,7 @@ class Goto(Skill):
             t = self.point_away_from_defense_area
 
         # angle control using PID controller
-        if self.angle is not None and self.robot.angle is not None:
+        if a is not None and self.robot.angle is not None:
             self.angle_controller.input = (180 + self.angle - self.robot.angle) % 360 - 180
             self.angle_controller.feedback = 0.0
             self.angle_controller.step()

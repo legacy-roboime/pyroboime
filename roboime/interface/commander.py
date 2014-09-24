@@ -12,6 +12,8 @@
 # GNU Affero General Public License for more details.
 #
 from math import pi
+import struct
+import sys
 
 #import socket
 #from multiprocessing import Process, Queue, Event, Lock
@@ -40,16 +42,23 @@ class Commander(object):
     not this is going to be a thread in and of itself running in the main window
     """
 
-    def __init__(self, maxsize=15):
+    def __init__(self, team, maxsize=15):
         #self.world = World()
         #self.action_queue = Queue()
         super(Commander, self).__init__()
         #self._recvr, self._sendr = Pipe()
         #self.conn = None
         #self._exit = Event()
-        if config['interface']['debug']:
+        self.team = team
+        self.debug = config['interface']['debug']
+        if self.debug:
             self._log = True
-            self._log_file = open(config['interface']['log-file'], 'a')
+            if config['interface']['log-file'] == 'STDOUT':
+                self._log_file = sys.stdout
+            elif config['interface']['log-file'] == 'STDERR':
+                self._log_file = sys.stderr
+            else:
+                self._log_file = open(config['interface']['log-file'], 'a')
         else:
             self._log = False
         pass
@@ -76,6 +85,116 @@ class Commander(object):
         raise NotImplemented
 
 
+class Tx2014Commander(Commander):
+    """
+    Sends commands as byte arrays via RF to the robots. Since the robots' firmware IDs are not the same as
+    the UIDs sent by the VisionUpdater, a dict mapping the UIDs to the firmware IDs should be provided.
+    If it is not provided, we shall use the trivial mapping: x => x.
+
+    This commander uses a transmission protocol compatible with the RoboIME MK-2012/2013 architecture.
+    The main difference from this one to the Tx2012Commander are that this one does not require
+    the usage of a separate program to actually execute the radio transmission.
+    """
+
+    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, **kwargs):
+        super(Tx2014Commander, self).__init__(team, **kwargs)
+        self.default_map = mapping_dict is None
+        self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
+        self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
+        self.sender = VIVATxRx()
+
+        # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
+        self.wheel_angles = [
+            +58.0,  # wheel 0
+            +133.0, # wheel 1
+            -133.0, # wheel 2
+            -58.0,  # wheel 3
+        ]
+
+        # Values in meters.
+        self.wheel_distance = 0.07521
+        self.wheel_radius = 0.0285
+        self.max_speed = 64.0
+
+    def omniwheel_speeds(self, vx, vy, va):
+        if isnan(vx) or isnan(vy) or isnan(va):
+            return [0.0, 0.0, 0.0, 0.0]
+        speeds = [(vy * cos(a) - vx * sin(a) + va * self.wheel_distance) / self.wheel_radius for a in self.wheel_angles]
+        largest = max(abs(x) for x in speeds)
+        if largest > self.max_speed:
+            speeds = [x * self.max_speed / largest for x in speeds]
+        return speeds
+
+    def prepare_byte(self, x, max_speed=None):
+        if max_speed == None:
+            max_speed = self.max_speed
+        if abs(x) > max_speed:
+            x = x / abs(x)
+        else:
+            x = x / max_speed
+        return int(127 * x) & 255
+
+    def send(self, actions):
+        actions_dict = keydefaultdict(lambda x: '\x7f\x00\x00\x00\x00\x00\x00')
+
+        # Initializes packet with the header.
+        has_action = False
+
+        if len(actions) > 0:
+            for a in actions:
+                if not a:
+                    continue
+                has_action = True
+
+                if a.has_speeds:
+                    # this is the old move skill and default fallback
+
+                    vx, vy, va = a.speeds
+                    # Convert va to angular speed.
+                    va = va * pi / 180
+
+                    if self.default_map or a.uid in self.mapping_dict:
+                        uid = self.mapping_dict[a.uid] | 128
+                    else:
+                        continue
+
+                    s1, s2, s3, s4 = tuple(self.prepare_byte(-x) for x in self.omniwheel_speeds(vx, vy, va))
+                    dribble = int((a.dribble or 0) * 255)
+
+                    if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:
+                        kick = self.prepare_byte(a.kick * 100 / self.kicking_power_dict[a.uid] or 0.0, 1)
+                    elif a.chipkick > 0 and self.kicking_power_dict[a.uid] > 0:
+                        kick = self.prepare_byte(-a.chipkick * 100 / self.kicking_power_dict[a.uid] or 0.0, 1)
+                    else:
+                        kick = 0
+
+                    robot_packet = struct.pack('!BBBBBBB', uid, s1, s2, s3, s4, dribble, kick)
+                    actions_dict[self.mapping_dict[a.uid]] = robot_packet
+                    a.reset()
+
+                else:
+                    # this is the goto skill that is now implemented in-robot
+
+                    tx, ty, ta = a.target
+                    robot_packet = struct.pack('<bHHH', self.mapping_dict[a.uid], 1000 * tx, 1000 * ty, 100 * ta)
+                    actions_dict[self.mapping_dict[a.uid]] = robot_packet
+                    a.reset()
+
+
+            if has_action:
+                # header [254, 0, 88]
+                packet = '\xfe\x00\x58'
+                for i in xrange(6):
+                    packet += actions_dict[i]
+                # tail [55]
+                packet += '\x37'
+
+                if self.debug:
+                    self.log(' '.join(map(lambda i: '{:02x}'.format(i), map(ord, packet))))
+
+                self.sender.send(packet)
+
+
 class Tx2013Commander(Commander):
     """
     Sends commands as byte arrays via RF to the robots. Since the robots' firmware IDs are not the same as
@@ -87,13 +206,11 @@ class Tx2013Commander(Commander):
     the usage of a separate program to actually execute the radio transmission.
     """
 
-    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, verbose=False, **kwargs):
-        super(Tx2013Commander, self).__init__(**kwargs)
+    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, **kwargs):
+        super(Tx2013Commander, self).__init__(team, **kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
         self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
-        self.team = team
-        self.verbose = verbose
         self.sender = VIVATxRx()
 
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
@@ -129,13 +246,15 @@ class Tx2013Commander(Commander):
 
     def send(self, actions):
         actions_dict = keydefaultdict(lambda x: [x | 128, 0, 0, 0, 0, 0, 0])
+
         # Initializes packet with the header.
-        dirty = False
+        has_action = False
+
         if len(actions) > 0:
             for a in actions:
                 if not a:
                     continue
-                dirty = True
+                has_action = True
                 vx, vy, va = a.speeds
                 # Convert va to angular speed.
                 va = va * pi / 180
@@ -157,15 +276,15 @@ class Tx2013Commander(Commander):
                     robot_packet.append(0)
 
                 actions_dict[self.mapping_dict[a.uid]] = robot_packet
-                a.reset()
+                #a.reset()
 
-            if dirty:
+            if has_action:
                 packet = [254, 0, 44]
                 for i in xrange(6):
                     packet.extend(actions_dict[i])
                 packet.append(55)
                 if packet:
-                    if self.verbose:
+                    if self.debug:
                         self.log('|'.join('{:03d}'.format(x) for x in packet))
                     #print '|'.join('{:03d}'.format(x) for x in packet)
                     self.sender.send(packet)
@@ -182,13 +301,11 @@ class Tx2012Commander(Commander):
     This might be deprecated soon. Or not.
     """
 
-    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, verbose=False, **kwargs):
-        super(Tx2012Commander, self).__init__(**kwargs)
+    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, ipaddr='127.0.0.1', port=9050, **kwargs):
+        super(Tx2012Commander, self).__init__(team, **kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
         self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
-        self.team = team
-        self.verbose = verbose
         self.sender = unicast.UnicastSender(address=(ipaddr, port))
         #self.sock = so
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
@@ -227,13 +344,13 @@ class Tx2012Commander(Commander):
 
     def send(self, actions):
         actions_dict = defaultdict(lambda:['0', '0', '0', '0', '0', '0', '0'])
-        dirty = False
+        has_action = False
         if len(actions) > 0:
             for a in actions:
                 string_list = []
                 if not a:
                     continue
-                dirty = True
+                has_action = True
                 vx, vy, va = a.speeds
                 # Convert va to angular speed.
                 va = va * pi / 180
@@ -259,7 +376,7 @@ class Tx2012Commander(Commander):
 
                 actions_dict[self.mapping_dict[a.uid]] = string_list
                 a.reset()
-            if dirty:
+            if has_action:
                 string_list = []
                 for i in xrange(6):
                     string_list.extend(actions_dict[i])
@@ -267,7 +384,7 @@ class Tx2012Commander(Commander):
                 packet = ' '.join(string_list)
 
                 if packet:
-                    #if self.verbose:
+                    #if self.debug:
                     #    # print self.kicking_power_dict
                     #    print packet
                     self.sender.send(packet)
@@ -276,8 +393,7 @@ class Tx2012Commander(Commander):
 class SimCommander(Commander):
 
     def __init__(self, team, address, send_omni=True, **kwargs):
-        super(SimCommander, self).__init__(**kwargs)
-        self.team = team
+        super(SimCommander, self).__init__(team, **kwargs)
         self.sender = grsim.grSimSender(address)
         self.send_omni = send_omni
 
@@ -333,5 +449,4 @@ class SimCommander(Commander):
                 # reset action values
                 a.reset()
 
-        #print packet
         self.sender.send_packet(packet)
