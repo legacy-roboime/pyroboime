@@ -38,7 +38,6 @@ class Striker(Tactic):
             name='Get the Ball',
             lookpoint=lambda: self.lookpoint,
             deterministic=True,
-            avoid_collisions=True,
         )
         self.kick = KickTo(
             robot,

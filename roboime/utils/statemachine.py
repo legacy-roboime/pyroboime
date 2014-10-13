@@ -51,12 +51,14 @@ class Machine(object):
         super(Machine, self).__init__(**kwargs)
 
         self.deterministic = deterministic
-        #self.initial_state = initial_state
+        self.initial_state = initial_state
         #self.final_state = final_state
         self.current_state = initial_state
         self.transitions = transitions
 
     def execute(self):
+        """execute a single step which may lead to transition"""
+
         possible_transitions = [t for t in self.transitions if t.from_state is self.current_state and t.condition()]
         if self.deterministic:
             if possible_transitions:
@@ -72,3 +74,7 @@ class Machine(object):
                     self.current_state = t.to_state
                     t.callback()
                     break
+
+    def reset(self):
+        """reset the machine, going back to the initial state"""
+        self.current_state = self.initial_state

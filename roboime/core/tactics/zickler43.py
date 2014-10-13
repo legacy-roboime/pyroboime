@@ -44,7 +44,7 @@ class Zickler43(Tactic):
     def __init__(self, robot, deterministic=True):
         self._lookpoint = self.point_to_kick
         self._robot = robot
-        self.drive = DriveToBall(robot, name='Get the Ball', lookpoint=self.robot.enemy_goal, deterministic=True, avoid_collisions=True)
+        self.drive = DriveToBall(robot, name='Get the Ball', lookpoint=self.robot.enemy_goal, deterministic=True)
         self.dribble = SampledDribble(robot, name='Drag the Ball', deterministic=deterministic, lookpoint=lambda: self.lookpoint, minpower=0.0, maxpower=1.0)
         self.goal_kick = KickTo(robot, name='KICK IT!!!', lookpoint=lambda: self.lookpoint, minpower=0.9, maxpower=1.0)
         self.force_kick = KickTo(robot, name='FUCKING KICK IT ALREADY!!!', force_kick=True, lookpoint=lambda: self.lookpoint, minpower=0.9, maxpower=1.0)

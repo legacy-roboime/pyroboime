@@ -58,7 +58,7 @@ class ExecutePass(Tactic):
         self._robot = robot
         self.companion = companion_tactic or ExecutePass.CompanionCube(self.robot)
 
-        self.drive = DriveToBall(robot, lookpoint=lambda: self.companion.robot, deterministic=True, avoid_collisions=True)
+        self.drive = DriveToBall(robot, lookpoint=lambda: self.companion.robot, deterministic=True)
         self.dribble = SampledDribble(robot, deterministic=deterministic, lookpoint=lambda: self.companion.robot, minpower=0.0, maxpower=1.0)
         self.kick = KickTo(robot, lookpoint=lambda: self.companion.robot.kicker, minpower=0.9, maxpower=1.0)
         #self.chip_kick = SampledChipKick(robot, deterministic=deterministic, lookpoint=lambda: self.companion.robot.kicker, receiver=self.companion.robot.kicker, minpower=0.9, maxpower=1.0)

@@ -15,6 +15,7 @@ from .. import Tactic
 from ...utils.statemachine import Transition
 from ..skills.drivetoball import DriveToBall
 from ..skills.kickto import KickTo
+from ..skills.gotolooking import GotoLooking
 
 
 class Passer(Tactic):
@@ -39,17 +40,20 @@ class Passer(Tactic):
             name='Get the Ball',
             lookpoint=lambda: self.lookpoint,
             deterministic=True,
-            avoid_collisions=True,
         )
         self.kick = KickTo(
             robot,
             name='Pass!',
             lookpoint=lambda: self.lookpoint,
             minpower=0.1,
-            maxpower=1.0,
+            maxpower=0.5,
         )
-        self.stored_point = None
-
+        self.wait = GotoLooking(
+            robot,
+            name='Wait',
+            target=robot,
+            lookpoint=robot.world.ball
+        )
         super(Passer, self).__init__(
             robot,
             initial_state=self.drive,
@@ -58,6 +62,12 @@ class Passer(Tactic):
                     self.drive,
                     self.kick,
                     condition=lambda: self.drive.close_enough(),
+                    callback=lambda: self.kick.save_ball_pos(),
+                ),
+                Transition(
+                    self.kick,
+                    self.wait,
+                    condition=lambda: self.kick.ball_kicked(),
                 ),
                 Transition(
                     self.kick,

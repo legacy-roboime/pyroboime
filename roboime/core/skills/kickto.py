@@ -43,6 +43,7 @@ class KickTo(Skill):
     angle_tolerance = 20
     orientation_tolerance = 0.7
     distance_tolerance = 0.14
+    ball_kicked_dist = 0.1
     walkspeed = 0.1
 
     def __init__(self, robot, lookpoint=None, force_kick=False, minpower=0.0, maxpower=1.0, **kwargs):
@@ -65,8 +66,8 @@ class KickTo(Skill):
 
     @lookpoint.setter
     def lookpoint(self, value):
-        self._lookpoint = value   
- 
+        self._lookpoint = value
+
     @property
     def final_target(self):
         return self.lookpoint
@@ -83,14 +84,12 @@ class KickTo(Skill):
         self._lookpoint = value
 
     def bad_position(self):
-        bad_distance = self.robot.kicker.distance(self.ball) > self.distance_tolerance + .01
-        #bad_orientation = abs(self.delta_orientation()) >= self.orientation_tolerance + 3
+        bad_distance = self.robot.kicker.distance(self.ball) > self.distance_tolerance
         bad_angle = abs(self.delta_angle()) >= self.angle_tolerance + 5
         return bad_distance or bad_angle
 
     def good_position(self):
         good_distance = self.robot.kicker.distance(self.ball) <= self.distance_tolerance
-        #good_orientation = abs(self.delta_orientation()) < self.orientation_tolerance       
         good_angle = abs(self.delta_angle()) < self.angle_tolerance
         return good_distance and good_angle
 
@@ -101,6 +100,12 @@ class KickTo(Skill):
     def delta_orientation(self):
         delta =  self.robot.angle - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
+
+    def save_ball_pos(self):
+        self.last_ball_pos = array(self.ball)
+
+    def ball_kicked(self):
+        return norm(array(self.ball) - self.last_ball_pos) > self.ball_kicked_dist
 
     def _step(self):
         #print 'blasdbflas'

@@ -39,6 +39,9 @@ class SampledChipKick(DriveToBall):
     need calibration, however one may choose to use the max speed
     instead for most goals.
     """
+
+    avoid_collisions = False
+
     def __init__(self, robot, receiver=None, minpower=0.0, maxpower=1.0, **kwargs):
         """
         minpower and maxpower are in respect to the kicking power.
@@ -47,7 +50,7 @@ class SampledChipKick(DriveToBall):
 
         All other options from DriveToBall apply here.
         """
-        super(SampledChipKick, self).__init__(robot, avoid_collisions=False, **kwargs)
+        super(SampledChipKick, self).__init__(robot, **kwargs)
         self.receiver = receiver
         self.minpower = minpower
         self.maxpower = maxpower

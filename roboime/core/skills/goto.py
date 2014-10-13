@@ -71,8 +71,10 @@ class Goto(Skill):
     # flag to disable actual implementation
     decoupled = False
 
-    #def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=True, **kwargs):
-    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, avoid_collisions=False, use_norm_pid=False, separate_axis_control=False, **kwargs):
+    # flag to enable/disable obstacle avoidance
+    avoid_collisions = False
+
+    def __init__(self, robot, target=None, angle=None, final_target=None, referential=None, deterministic=True, use_norm_pid=False, separate_axis_control=False, **kwargs):
         """
         final_target: the ultimate position the robot should attain
         target: the intermediate position you're ACTUALLY sending the robot to
@@ -99,7 +101,6 @@ class Goto(Skill):
         # self.final_target = final_target if final_target is not None else self.target
         self.final_target = final_target
         self.referential = referential
-        self.avoid_collisions = avoid_collisions
 
     def arrived(self):
         return norm(array(self.robot) - array(self.target)) <= self.arrive_distance

@@ -21,6 +21,9 @@ class SampledDribble(DriveToBall):
     This is a DriveToBall extension that gets the robot
     really close to the ball and make it dribble.
     """
+
+    avoid_collisions = False
+
     def __init__(self, robot, minpower=0.0, maxpower=1.0, **kwargs):
         """
         minpower and maxpower are in respect to the dribbling power, however
@@ -29,7 +32,7 @@ class SampledDribble(DriveToBall):
 
         All other options from DriveToBall apply here.
         """
-        super(SampledDribble, self).__init__(robot, avoid_collisions=False, **kwargs)
+        super(SampledDribble, self).__init__(robot, **kwargs)
         self.minpower = minpower
         self.maxpower = maxpower
 
