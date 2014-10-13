@@ -1,0 +1,26 @@
+package roboime;
+
+message Robot {
+  required uint32 i = 1;
+  required float x = 2;
+  required float y = 3;
+  required float a = 4;
+  required float vx = 5;
+  required float vy = 6;
+  required float va = 7;
+}
+
+message Ball {
+  required float x = 1;
+  required float y = 2;
+  required float vx = 3;
+  required float vy = 4;
+}
+
+message Update {
+  required Ball ball = 1;
+  repeated Robot min_team = 2;
+  repeated Robot max_team = 3;
+}
+
+// vim: et sw=2 ts=2 sts=2

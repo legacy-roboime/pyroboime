@@ -21,6 +21,7 @@ from ..tactics.waiter import Waiter
 from ...config import config
 from ...communication.protos.discrete_pb2 import Command
 from ...communication.protos.discrete_pb2 import Action
+from ...communication.protos.update_pb2 import Update
 from ...utils.geom import Point
 
 
@@ -35,8 +36,12 @@ class Minimax(Play):
         """
         super(Minimax, self).__init__(team, **kwargs)
         ctx = zmq.Context()
+        timeout = 10  # in miliseconds
+        ctx.setsockopt(zmq.RCVTIMEO, timeout)
+        ctx.setsockopt(zmq.SNDTIMEO, timeout)
         self.socket = ctx.socket(zmq.REQ)
         self.socket.connect(config['minimax']['addr'])
+        self.send = True
 
         self.tactics_factory.update({
             'goalkeeper': lambda robot: Goalkeeper(robot, angle=0),
@@ -46,22 +51,45 @@ class Minimax(Play):
             'wait': lambda robot: Waiter(robot),
         })
 
-    def request(self, msg=''):
-        self.socket.send(msg)
-        c = Command()
-        c.ParseFromString(self.socket.recv())
-        return c
+    def request(self):
+        if self.send:
+            u = Update()
+            u.ball.x = self.ball.x
+            u.ball.y = self.ball.y
+            u.ball.vx, u.ball.vy = self.ball.speed
+            for team, mteam in [(self.team, u.max_team), (self.enemy_team, u.min_team)]:
+                for robot in team:
+                    r = mteam.add()
+                    r.i = robot.uid
+                    r.x = robot.x
+                    r.y = robot.y
+                    r.a = robot.angle
+                    r.vx, r.vy = robot.speed
+                    r.va = 0.0
+
+            self.socket.send(u.SerializeToString())
+
+        try:
+            c = Command()
+            c.ParseFromString(self.socket.recv())
+            self.send = True
+            return c
+        except zmq.Again:
+            self.send = False
 
     def setup_tactics(self):
         cmd = self.request()
+        if cmd is None:
+            return
 
         for robot in self.team:
             r_id = robot.uid
 
             if r_id == self.goalie:
+                robot.prev_tactic = robot.current_tactic
                 robot.current_tactic = self.players[r_id]['goalkeeper']
-
             else:
+                robot.prev_tactic = robot.current_tactic
                 robot.current_tactic = self.players[r_id]['wait']
 
         for action in cmd.action:
@@ -79,6 +107,8 @@ class Minimax(Play):
                 elif action.type == Action.PASS:
                     tactic = tactics['passer']
                     tactic.lookpoint = self.team[getattr(action, 'pass').robot_id]
+                    if robot.prev_tactic is not tactic:
+                        tactic.reset()
                     robot.current_tactic = tactic
 
                 elif action.type == Action.MOVE:
