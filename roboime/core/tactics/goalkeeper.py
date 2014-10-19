@@ -50,15 +50,16 @@ class Goalkeeper(Tactic):
         super(Goalkeeper, self).__init__(robot, deterministic=True)
         self.aggressive = aggressive
         self.goto = GotoLooking(
-              robot,
-              lookpoint=robot.world.ball,
-              target=lambda: robot.goal,
-              avoid_collisions=True,
-              ignore_defense_area=True
+            robot,
+            lookpoint=robot.world.ball,
+            target=lambda: robot.goal,
+            avoid_collisions=True,
+            ignore_defense_area=True,
+            deaccel_dist=0.2
         )
         #self.kick = KickTo(robot, lookpoint=lambda: robot.enemy_goal)
         self.chip = Zickler43(robot, always_force=True, always_chip=True,
-                respect_mid_line=False, ignore_defense_area=True)
+                              respect_mid_line=False, ignore_defense_area=True)
         #self.chip = ChipKickTo(
         #    robot,
         #    lookpoint=lambda: robot.enemy_goal,
@@ -72,38 +73,29 @@ class Goalkeeper(Tactic):
         #self.safety_ratio = 0.9
         self.safety_ratio = 2.0
 
+        #self.p1 = Point(
+        #    array(self.goal.p1) + (self.robot.radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
+        #    -sin(self.angle)))
+        #)
+        #self.p2 = Point(
+        #    array(self.goal.p2) + (self.robot.radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
+        #    sin(self.angle)))
+        #)
+
         self.p1 = Point(
-            array(self.goal.p1) + (self.robot.radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
-            -sin(self.angle)))
+            array(self.goal.p1) + array((self.robot.radius * -sign(self.goal.x), 0))
         )
         self.p2 = Point(
-            array(self.goal.p2) + (self.robot.radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
-            sin(self.angle)))
+            array(self.goal.p2) + array((self.robot.radius * -sign(self.goal.x), 0))
         )
-        #print p1.x, p1.y, p2.x, p2.y
 
         # Aaaand the home line
         self.home_line = Line(self.p1, self.p2)
 
     def _step(self):
-        self.p1 = Point(
-            array(self.goal.p1) + (self.robot.radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
-            -sin(self.angle)))
-        )
-        self.p2 = Point(
-            array(self.goal.p2) + (self.robot.radius + 0.05) * array((cos(self.angle) * -sign(self.goal.x),
-            sin(self.angle)))
-        )
-        #print p1.x, p1.y, p2.x, p2.y
 
-        # Aaaand the home line
-        self.home_line = Line(self.p1, self.p2)
+        self.goto.final_target = self.home_line.centroid
 
-        home_line = self.home_line
-        p1 = self.p1
-        p2 = self.p2
-        self.goto.target = Point((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
-        #print self.robot.skill
         #TODO: if ball is inside area and is slow, kick/pass it far far away
 
         # Build the home line
@@ -116,36 +108,9 @@ class Goalkeeper(Tactic):
         # +-o/_ <- angle
         #
 
-        # Sets the ratio between the perpendicular distance of the homeline to
-        # the goal and the GK's radius
-        radius = (self.robot.radius) #+ 2 * self.ball.radius) * self.safety_ratio
-
-        # Compute home line ends
-
-        ### Find out where in the homeline should we stay ###
-
         if self.aggressive:
             if self.robot is self.world.closest_robot_to_ball():
                 return self.chip.step()
-
-        # if the ball is moving fast* torwards the goal, defend it: THE CATCH
-        #*: define fast
-
-        future_ball = array(self.ball) + self.ball.speed * self.look_ahead_time
-        ball_line = Line(Point(self.ball), Point(future_ball))
-
-        if ball_line.crosses(self.goal.line):
-            #print 'wtf'
-            point_on_home = ball_line.intersection(home_line)
-            #print point_on_home 
-
-            if point_on_home.geom_type == 'Point':
-                #print 'whee point on home' 
-                self.goto.target = point_on_home
-            else:
-                pass
-                #self.goto.target = p1 if p1.distance_to_line(ball_line) < p2.distance_to_line(ball_line) else p2
-            return self.goto.step()
 
         # watch the enemy
         # TODO: get the chain of badguys, (badguy and who can it pass to)
@@ -164,11 +129,12 @@ class Goalkeeper(Tactic):
             )
             danger_line = Line(danger_bot, future_point)
 
-            #if danger_line.crosses(self.goal.line):
-            if danger_line.crosses(home_line):
-                point_on_home = danger_line.intersection(home_line)
-                if point_on_home.geom_type == 'Point':
-                    self.goto.target = point_on_home
+            #if danger_line.crosses(self.home_line):
+            if danger_line.crosses(self.goal.line):
+                #point_on_home = danger_line.intersection(self.home_line)
+                point_to_go = danger_line.intersection(self.goal.line)
+                if point_to_go.geom_type == 'Point':
+                    self.goto.final_target = self.goal_to_home(point_to_go)
                 else:
                     pass
                     # self.goto.target = p1 if p1.distance_to_line(danger_line) < p2.distance_to_line(danger_line) else p2
@@ -198,12 +164,27 @@ class Goalkeeper(Tactic):
         #}
 
         # middle of the largest gap:
-        """
-        p = self.point_to_defend()
-        if p is not None:
-            self.goto.target = self.point_to_defend()
-        """
+        #p = self.point_to_defend()
+        #if p is not None:
+        #    self.goto.final_target = self.point_to_defend()
         # continue stepping the last strategy
+
+        # if the ball is moving fast* torwards the goal, defend it: THE CATCH
+        #*: define fast
+
+        future_ball = array(self.ball) + self.ball.speed * self.look_ahead_time
+        ball_line = Line(Point(self.ball), Point(future_ball))
+
+        if ball_line.crosses(self.goal.line):
+            #point_on_home = ball_line.intersection(self.home_line)
+            point_to_go = ball_line.intersection(self.goal.line)
+
+            if point_to_go.geom_type == 'Point':
+                self.goto.final_target = self.goal_to_home(point_to_go)
+            else:
+                pass
+                #self.goto.target = p1 if p1.distance_to_line(ball_line) < p2.distance_to_line(ball_line) else p2
+            return self.goto.step()
 
         self.goto.step()
 
@@ -218,12 +199,12 @@ class Goalkeeper(Tactic):
         our_goal = self.team.goal
         max_hole = []
 
-        possible_points = [(y, self.world.has_clear_shot(Point(our_goal.x, y))) for y in linspace(our_goal.p2.y, our_goal.p1.y, 5)]
+        possible_points = [(y, self.world.has_clear_shot(Point(our_goal.x, y))) for y in linspace(our_goal.p2.y, our_goal.p1.y, 10)]
 
         for has_clear_shot, group in groupby(possible_points, lambda (point, has): has):
             if has_clear_shot:
                 hole = list(group)
-                if len(hole) >  len(max_hole):
+                if len(hole) > len(max_hole):
                     max_hole = hole
 
         if len(max_hole) != 0:
@@ -241,3 +222,6 @@ class Goalkeeper(Tactic):
             #    our_goal.x - sign(our_goal.x) * radius,
             #    (our_goal.x - sign(our_goal.x) * radius) * y / our_goal.x
             #)
+
+    def goal_to_home(self, point):
+        return Point(array(point) + array((self.robot.radius * -sign(self.goal.x), 0)))
