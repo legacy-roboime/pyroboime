@@ -19,8 +19,8 @@ class Goto(Skill):
     max_angle_error = 1.0
 
     def __init__(self, robot, target=None, angle=None, avoid_collisions=True,
-                 **kwargs):
-        super(Goto, self).__init__(robot, deterministic=True, **kwargs)
+                 deterministic=True, **kwargs):
+        super(Goto, self).__init__(robot, deterministic=deterministic, **kwargs)
         self.angle_controller = PidController(
             kp=1., ki=.0, kd=.0, integ_max=.5, output_max=360)
         self.norm_controller = PidController(
@@ -32,7 +32,7 @@ class Goto(Skill):
 
         self.angle = angle
         self.final_target = target
-        self.target = self.final_target
+        self.target = target
         self.avoid_collisions = avoid_collisions
 
         self.collision_distance = self.robot.radius * 1.5
@@ -106,3 +106,25 @@ class Goto(Skill):
             if diff <= 2 * self.robot.radius:
                 return True
         return False
+
+    @property
+    def target(self):
+        if callable(self._target):
+            return self._target()
+        else:
+            return self._target or self.robot
+
+    @target.setter
+    def target(self, target):
+        self._target = target
+
+    @property
+    def final_target(self):
+        if callable(self._final_target):
+            return self._final_target()
+        else:
+            return self._final_target or self.target
+
+    @final_target.setter
+    def final_target(self, target):
+        self._final_target = target
