@@ -63,7 +63,7 @@ class Component(object):
 class Action(object):
     """An instance of this class determines what will a robot do."""
 
-    def __init__(self, robot, target=None, speeds=None):
+    def __init__(self, uid_robot, target=None, speeds=None):
         """
         The action can do a veeery rudimentary control, for that one has to set
         a target instead of the speeds. This feature is deprecated and may be
@@ -84,7 +84,12 @@ class Action(object):
         One can also use the speeds property, to have it spin still for instance:
         >>> a.speeds = (0.0, 0.0, 2.0)
         """
-        self.robot = robot
+        if isinstance(uid_robot, int):
+            self._uid = uid_robot
+            self.robot = None
+        else:
+            self._uid = None
+            self.robot = uid_robot
         self.x, self.y, self.angle = target if target is not None else (None, None, None)
         self.kick = None
         self.chipkick = None
@@ -96,24 +101,38 @@ class Action(object):
         self.kick = None
         self.chipkick = None
         self.dribble = None
-        self._speeds = None
-
-    @property
-    def target(self):
-        return self.x, self.y, self.angle
 
     def __nonzero__(self):
         """This is used for implicit bool conversion, which answers if the action does something."""
-        return not (self.x is None or self.y is None or self.angle is None) or self._speeds is not None
+        #return not (self.x is None or self.y is None or self.angle is None) or self._speeds is not None
+        return self.has_target or self.has_speeds
+
+    @property
+    def target(self):
+        if self.has_target:
+            return self.x, self.y, self.angle
+        else:
+            return None
 
     @target.setter
     def target(self, t):
         self._speeds = None
-        self.x, self.y, self.angle = t if t is not None else (None, None, None)
+        self.x, self.y, self.angle = t
+
+    @property
+    def has_target(self):
+        return (self.x, self.y, self.angle) is not (None, None, None)
+
+    @property
+    def has_speeds(self):
+        return self._speeds is not None
 
     @property
     def uid(self):
-        return self.robot.uid
+        if self.robot is None:
+            return self._uid
+        else:
+            return self.robot.uid
 
     @property
     def color(self):

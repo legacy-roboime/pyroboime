@@ -17,6 +17,7 @@ from numpy.linalg import norm
 from .. import Skill
 from ...utils.geom import Point
 from ...utils.pidcontroller import PidController
+from ...base import Action
 
 
 class Goto(Skill):

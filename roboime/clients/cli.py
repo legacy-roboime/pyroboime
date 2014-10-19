@@ -57,6 +57,8 @@ _individuals = {
     'dummy': lambda r: Dummy(),
     'goto': lambda r: goto.Goto(r, target=Point(0, 0)),
     'gotoball': lambda r: goto.Goto(r, target=r.world.ball),
+    'goto2': lambda r: goto.Goto(r, target=Point(2, 0), angle=0),
+    'goto3': lambda r: goto.Goto(r, target=Point(0, 2), angle=0),
     'goto_avoid': lambda r: gotoavoid.GotoAvoid(r, target=Point(0, 0), avoid=r.world.ball),
     'drive_to_object': lambda r: drivetoobject.DriveToObject(r, lookpoint=r.enemy_goal, point=r.world.ball),
     'drive_to_ball': lambda r: drivetoball.DriveToBall(r, lookpoint=r.enemy_goal),

@@ -8,7 +8,7 @@ interface:
   log-file: "interface.log"
   command-yellow: true
   command-blue: true
-  oldtx: false
+  txver: 2014
   oldtx_addr: 127.0.0.1
   oldtx_port: 9050
   sim:

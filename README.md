@@ -1,5 +1,5 @@
-RoboIME Artificial Intelligence
-===============================
+RoboIME's Artificial Intelligence
+=================================
 
 This is an attempt to develop the intelligence project on python.
 Python 2 is required due to google.protobuf, aside from that, the code is designed to be mostly Python 3 compatible.
