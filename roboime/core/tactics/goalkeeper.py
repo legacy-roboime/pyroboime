@@ -138,7 +138,7 @@ class Goalkeeper(Tactic):
                 else:
                     pass
                     # self.goto.target = p1 if p1.distance_to_line(danger_line) < p2.distance_to_line(danger_line) else p2
-                return self.goto.step()
+                #return self.goto.step()
             else:
                 pass
                 # self.goto.target = p1 if future_point.y > 0 else p2
@@ -184,7 +184,11 @@ class Goalkeeper(Tactic):
             else:
                 pass
                 #self.goto.target = p1 if p1.distance_to_line(ball_line) < p2.distance_to_line(ball_line) else p2
-            return self.goto.step()
+            #return self.goto.step()
+
+        # If the ball is in defense area, the goalkeeper must shoot
+        if self.ball.within(self.goal.area):
+            return self.chip.step()
 
         self.goto.step()
 
