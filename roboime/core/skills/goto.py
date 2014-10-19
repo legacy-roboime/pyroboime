@@ -27,14 +27,14 @@ class Goto(Skill):
     min_dist = 0.25
     max_recursive = 3
     divisions = 10
-    deaccel_dist = 0.8
 
     # distance to consider target arrival
     arrive_distance = 1e-3
     max_angle_error = 1.0
 
     def __init__(self, robot, target=None, angle=None, avoid_collisions=True,
-                 deterministic=True, ignore_defense_area=False, **kwargs):
+                 deterministic=True, ignore_defense_area=False, deaccel_dist=0.8,
+                 **kwargs):
         super(Goto, self).__init__(robot, deterministic=deterministic, **kwargs)
         self.angle_controller = PidController(
             kp=1., ki=.0, kd=.0, integ_max=.5, output_max=360)
@@ -51,6 +51,7 @@ class Goto(Skill):
         self.avoid_collisions = avoid_collisions
         self.next_target = target
         self.ignore_defense_area = ignore_defense_area
+        self.deaccel_dist = deaccel_dist
 
         self.collision_distance = self.robot.radius * 1.5
 
