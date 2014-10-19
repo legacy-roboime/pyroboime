@@ -606,7 +606,10 @@ class Goal(geom.Point):
             return self._area
         else:
             # Area of the goal + radius of the robots
-            self._area = self._line.buffer(
+            self._area = geom.Line([
+                array(self) + array((0, self.world.defense_stretch / 2)),
+                array(self) - array((0, self.world.defense_stretch / 2))
+            ]).buffer(
                 self.world.defense_radius +
                 # Robot radius...
                 180e-3 / 2
