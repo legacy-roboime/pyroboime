@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013 RoboIME
+# Copyright (C) 2014 RoboIME
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -26,7 +26,8 @@ from ..communication import grsim
 from ..communication.network import unicast
 from ..utils.mathutils import sin, cos
 from ..utils.keydefaultdict import keydefaultdict
-from ..communication.rftransmission.vivatxrx import VIVATxRx
+from ..communication.rftransmission.serialtxrx import SerialTxRx
+#from ..communication.rftransmission.vivatxrx import VIVATxRx
 
 
 class Commander(object):
@@ -101,7 +102,9 @@ class Tx2014Commander(Commander):
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
         self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
-        self.sender = VIVATxRx()
+        self.sender = SerialTxRx()
+        #self.sender = VIVATxRx()
+
 
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
         self.wheel_angles = [
@@ -211,7 +214,8 @@ class Tx2013Commander(Commander):
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
         self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
-        self.sender = VIVATxRx()
+        self.sender = SerialTxRx()
+        #self.sender = VIVATxRx()
 
         # FIXME: These values should be on the robot prototype to allow for mixed-chassis teams. NOT HERE!
         self.wheel_angles = [
@@ -282,11 +286,7 @@ class Tx2013Commander(Commander):
                 a.reset()
 
             if has_action:
-                packet = [254, 0, 44]
-                i = 0
-                #for uid in actions_now:
-                #    packet.extend(actions_dict[uid])
-                #    i += 1
+                packet = [254, 0, 44] #44 means there are 1 (44) + 6*7 +  1 (55) bytes to be transmitted!
                 for i in [0, 1, 2, 3, 4, 5]:
                     packet.extend(actions_dict[i])
                 #while i < 6:
