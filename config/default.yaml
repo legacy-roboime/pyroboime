@@ -3,7 +3,7 @@
 # you can roll your own development.yaml
 interface:
   debug: false
-  control_active_only: true#false
+  control_active_only: true #false
   default: tx #sim
   log-file: "interface.log"
   command-yellow: true

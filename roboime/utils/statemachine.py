@@ -17,7 +17,8 @@ from random import random
 class State(object):
 
     def __init__(self, deterministic, name=None, **kwargs):
-        super(State, self).__init__(**kwargs)
+        #super(State, self).__init__(**kwargs)
+        super(State, self).__init__()
 
         if name is not None:
             self.name = name
