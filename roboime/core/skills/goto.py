@@ -24,6 +24,7 @@ class Goto(Skill):
     New goto using Stox's path planning
     """
     # path planning
+    min_dist = 0.25
     max_recursive = 3
     divisions = 10
 
@@ -80,8 +81,9 @@ class Goto(Skill):
         self.robot.action.absolute_speeds = v[0], v[1], va
 
     def path_planner(self, target, depth=0):
-        if depth < self.max_recursive:
-            diff = array(target) - array(self.robot)
+        diff = array(target) - array(self.robot)
+
+        if depth < self.max_recursive and norm(diff) < self.min_dist:
 
             # TODO: Rewrite the python's way
             points = []
