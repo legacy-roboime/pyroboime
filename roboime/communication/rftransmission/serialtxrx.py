@@ -62,9 +62,17 @@ class SerialTxRx(Transmitter):
     delay = 0.05
 
 
-    def __init__(self, address='/dev/tty.usbmodem1451', verbose=False):
+    def __init__(self, address=None, verbose=False):
         super(SerialTxRx, self).__init__()
         
+        # defining the address dinamically
+        if address is None:
+            if sys.platform.startswith('darwin'):
+                available_addresses = serial_ports()
+                for addr in available_addresses:
+                    if 'usbmodem' in addr:
+                        address = addr;
+
 
         try:
             self.transmitter = serial.Serial(address)
@@ -87,6 +95,10 @@ class SerialTxRx(Transmitter):
         if self.verbose:
             print self.is_busy
         if (not self.is_busy) and self.is_working:
+            
+            while(len(array)<64):
+                array.append(0x00)
+            print array
             return self.transmitter.write(array)
         else:
             return -1
