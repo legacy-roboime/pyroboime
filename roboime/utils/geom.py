@@ -84,6 +84,7 @@ geometry.Point.distance_to_line = Point.distance_to_line.im_func
 geometry.Point.update = Point.update.im_func
 geometry.Point.angle_to_point = Point.angle_to_point.im_func
 geometry.Point.closest_to = Point.closest_to.im_func
+geometry.Point.within = Point.within.im_func
 
 
 class Circle(geometry.Polygon):

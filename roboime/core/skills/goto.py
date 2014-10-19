@@ -27,13 +27,14 @@ class Goto(Skill):
     min_dist = 0.25
     max_recursive = 3
     divisions = 10
+    deaccel_dist = 0.8
 
     # distance to consider target arrival
     arrive_distance = 1e-3
     max_angle_error = 1.0
 
     def __init__(self, robot, target=None, angle=None, avoid_collisions=True,
-                 deterministic=True, **kwargs):
+                 deterministic=True, ignore_defense_area=False, **kwargs):
         super(Goto, self).__init__(robot, deterministic=deterministic, **kwargs)
         self.angle_controller = PidController(
             kp=1., ki=.0, kd=.0, integ_max=.5, output_max=360)
@@ -46,10 +47,10 @@ class Goto(Skill):
 
         self.angle = angle
         self.final_target = target
-        self.target = target
+        self.target = None
         self.avoid_collisions = avoid_collisions
-        self.avoid_collisions = False
         self.next_target = target
+        self.ignore_defense_area = ignore_defense_area
 
         self.collision_distance = self.robot.radius * 1.5
 
@@ -62,7 +63,8 @@ class Goto(Skill):
         return abs(angle) <= self.max_angle_error
 
     def _step(self):
-        self.target = self.path_planner(self.final_target)
+        final = self.final_target if self.ignore_defense_area else self.robot.goal.point_outside_area(self.final_target)
+        self.target = self.path_planner(final)
 
         # angle control using PID controller
         if self.angle is not None and self.robot.angle is not None:
@@ -74,23 +76,26 @@ class Goto(Skill):
         else:
             va = 0.0
 
-        diff_to_final = array(self.final_target) - array(self.robot)
+        diff_to_final = array(final) - array(self.robot)
         diff = array(self.target) - array(self.robot)
-        vel = self.robot.max_speed if norm(diff_to_final) > 0.5 else self.robot.max_speed * norm(diff)
+        vel = self.robot.max_speed if norm(diff_to_final) > self.deaccel_dist else self.robot.max_speed * norm(diff)
         v = vel * diff / norm(diff)
         self.robot.action.absolute_speeds = v[0], v[1], va
 
     def path_planner(self, target, depth=0):
         diff = array(target) - array(self.robot)
 
-        if depth < self.max_recursive and norm(diff) < self.min_dist:
+        if self.avoid_collisions and depth < self.max_recursive and norm(diff) > self.min_dist:
 
             # TODO: Rewrite the python's way
             points = []
             x = linspace(target.x, self.robot.x, self.divisions)
             y = linspace(target.y, self.robot.y, self.divisions)
             for i in xrange(self.divisions):
-                points.append(Point(x[i], y[i]))
+                if self.ignore_defense_area:
+                    points.append(Point(x[i], y[i]))
+                else:
+                    points.append(self.robot.goal.point_outside_area(Point(x[i], y[i])))
             points.pop(0)
 
             robots = self.get_robots()
@@ -123,17 +128,6 @@ class Goto(Skill):
             if diff <= 2 * self.robot.radius:
                 return True
         return False
-
-    @property
-    def target(self):
-        if callable(self._target):
-            return self._target()
-        else:
-            return self._target or self.robot
-
-    @target.setter
-    def target(self, target):
-        self._target = target
 
     @property
     def final_target(self):

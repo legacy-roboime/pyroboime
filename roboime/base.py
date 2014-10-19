@@ -536,10 +536,6 @@ class Goal(geom.Point):
         self.world = world
         assert len(args) == 2
         self.update(*args)
-        #self._p1 = geom.Point(0, 0)
-        #self._p2 = geom.Point(0, 0)
-        #self._line = geom.Line(self._p1, self._p2)
-        #self._body = geometry.LineString
 
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
@@ -553,6 +549,7 @@ class Goal(geom.Point):
             array(self) + array((self.depth * (sign(self.x) or 1), -self.width / 2)),
             array(self) + array((0.0, -self.width / 2)),
         ])
+        self._area = None
 
     @property
     def penalty_line(self):
@@ -602,6 +599,26 @@ class Goal(geom.Point):
     @property
     def is_yellow(self):
         return self.world.yellow_goal == self
+
+    @property
+    def area(self):
+        if self._area:
+            return self._area
+        else:
+            # Area of the goal + radius of the robots
+            self._area = self._line.buffer(
+                self.world.defense_radius +
+                # Robot radius...
+                180e-3 / 2
+            )
+            return self._area
+
+    def point_outside_area(self, point):
+        # TODO: Select the point better
+        if point.within(self.area):
+            r = point.distance(self.area.exterior)
+            return point.buffer(r + 0.01).intersection(self.area.exterior).centroid
+        return point
 
 
 class Referee(object):
