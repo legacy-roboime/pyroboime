@@ -28,8 +28,8 @@ class VisionReceiver(MulticastReceiver):
     >>> packet = receiver.get_packet()
     """
 
-    def __init__(self, address):
-        MulticastReceiver.__init__(self, address)
+    def __init__(self, address, intf):
+        MulticastReceiver.__init__(self, address, intf)
 
     def get_packet(self):
         wrapper = Wrapper()

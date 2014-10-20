@@ -12,6 +12,7 @@ interface:
   oldtx_addr: 127.0.0.1
   oldtx_port: 9050
   sim:
+    vision-intf: 127.0.0.1
     vision-addr: 224.5.23.2
     vision-port: 11002
     referee-addr: 224.5.23.1
@@ -19,6 +20,7 @@ interface:
     grsim-addr: 127.0.0.1
     grsim-port: 20011
   tx:
+    vision-intf: 127.0.0.1
     vision-addr: 224.5.23.2
     vision-port: 10002
     referee-addr: 224.5.23.1

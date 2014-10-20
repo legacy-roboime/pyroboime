@@ -131,6 +131,7 @@ class TxInterface(Interface):
     def __init__(self, world, filters=[], command_blue=config['interface']['command-blue'], command_yellow=config['interface']['command-yellow'], mapping_yellow=None, mapping_blue=None, kick_mapping_yellow=None, kick_mapping_blue=None, **kwargs):
         debug = config['interface']['debug']
         vision_address = (config['interface']['tx']['vision-addr'], config['interface']['tx']['vision-port'])
+        vision_intf = config['interface']['tx']['vision-intf']
         referee_address = (config['interface']['tx']['referee-addr'], config['interface']['tx']['referee-port'])
         commanders = []
         if config['interface']['txver'] == 2012:
@@ -153,8 +154,8 @@ class TxInterface(Interface):
         super(TxInterface, self).__init__(
             world,
             updaters=[
-                updater.VisionUpdater(vision_address),
-                updater.RefereeUpdater(referee_address),
+                updater.VisionUpdater(vision_address, vision_intf),
+                updater.RefereeUpdater(referee_address, vision_intf),
             ],
             commanders=commanders,
             filters=filters + [
@@ -178,13 +179,14 @@ class SimulationInterface(Interface):
     def __init__(self, world, filters=[], **kwargs):
         #debug = config['interface']['debug']
         vision_address = (config['interface']['sim']['vision-addr'], config['interface']['sim']['vision-port'])
+        vision_intf = config['interface']['sim']['vision-intf']
         referee_address = (config['interface']['sim']['referee-addr'], config['interface']['sim']['referee-port'])
         grsim_address = (config['interface']['sim']['grsim-addr'], config['interface']['sim']['grsim-port'])
         super(SimulationInterface, self).__init__(
             world,
             updaters=[
-                updater.VisionUpdater(vision_address),
-                updater.RefereeUpdater(referee_address),
+                updater.VisionUpdater(vision_address, vision_intf),
+                updater.RefereeUpdater(referee_address, vision_intf),
             ],
             commanders=[
                 commander.SimCommander(world.blue_team, grsim_address),

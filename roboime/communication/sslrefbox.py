@@ -26,8 +26,8 @@ class RefboxReceiver(MulticastReceiver):
     >>> packet = receiver.get_packet()
     """
 
-    def __init__(self, address):
-        MulticastReceiver.__init__(self, address)
+    def __init__(self, address, intf):
+        MulticastReceiver.__init__(self, address, intf)
 
     def get_packet(self):
         referee = SSL_Referee()
@@ -57,8 +57,8 @@ class RefboxLegacyReceiver(MulticastReceiver):
     >>> packet = receiver.get_packet()
     """
 
-    def __init__(self, address):
-        super(RefboxLegacyReceiver, self).__init__(address)
+    def __init__(self, address, intf):
+        super(RefboxLegacyReceiver, self).__init__(address, intf)
         self._fmt = '!cBBBi'
         self.Packet = namedtuple('Packet', 'command counter goals_blue goals_yellow time_remaining')
 

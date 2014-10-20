@@ -205,12 +205,13 @@ class Updater(Process):
 
 class VisionUpdater(Updater):
 
-    def __init__(self, address):
+    def __init__(self, address, intf):
         super(VisionUpdater, self).__init__()
         self.address = address
+        self.intf = intf
 
     def run(self):
-        self.receiver = sslvision.VisionReceiver(self.address)
+        self.receiver = sslvision.VisionReceiver(self.address, self.intf)
         super(VisionUpdater, self).run()
 
     def receive(self):
@@ -277,13 +278,14 @@ class VisionUpdater(Updater):
 
 class RefereeUpdater(Updater):
 
-    def __init__(self, address):
+    def __init__(self, address, intf):
         super(RefereeUpdater, self).__init__()
         self.address = address
+        self.intf = intf
         self.counter = 0
 
     def run(self):
-        self.receiver = sslrefbox.RefboxReceiver(self.address)
+        self.receiver = sslrefbox.RefboxReceiver(self.address, self.intf)
         super(RefereeUpdater, self).run()
 
     def receive(self):

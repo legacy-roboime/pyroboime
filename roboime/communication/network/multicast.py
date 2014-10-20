@@ -60,7 +60,7 @@ class MulticastSender(Multicast):
 class MulticastReceiver(Multicast):
     """Extension of socket for receiving multicast messages."""
 
-    def __init__(self, address):
+    def __init__(self, address, intf):
         Multicast.__init__(self, address)
 
         # Set some options to make it multicast-friendly
@@ -77,8 +77,6 @@ class MulticastReceiver(Multicast):
         self._sock.bind(('', self.port))
 
         # Set some more multicast options
-        #intf = socket.gethostbyname(socket.gethostname())
-        intf = '127.0.0.1'
         self._sock.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(intf) + socket.inet_aton('0.0.0.0'))
         self._sock.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(self.group) + socket.inet_aton('0.0.0.0'))
 
