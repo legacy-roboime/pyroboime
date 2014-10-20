@@ -297,7 +297,7 @@ class Tx2013Commander(Commander):
                 #    i += 1
                 packet.append(55)
                 if packet:
-                    self.log_debug('|'.join('{:03d}'.format(x) for x in packet))
+                    self.log_debug(' '.join('{:02x}'.format(x) for x in packet))
                     self.sender.send(packet)
 
 
