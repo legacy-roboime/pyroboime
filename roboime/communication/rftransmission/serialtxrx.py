@@ -93,21 +93,23 @@ class SerialTxRx(Transmitter):
             self.last_sent = now
 
         if self.verbose:
-            print self.is_busy
+            #print self.is_busy
+            pass
         if (not self.is_busy) and self.is_working:
-            
+
             while(len(array)<64):
                 array.append(0x00)
-            print array
+            #print array
             return self.transmitter.write(array)
         else:
             return -1
 
     def receive(self):
         if self.verbose:
-            print self.is_busy
+            #print self.is_busy
+            pass
         #sizev =  self.transmitter.ctrl_transfer(5824, 4, 3, 0, 8)
-        
+
         data = self.transmitter.read(32)
         return data
 

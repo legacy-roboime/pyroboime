@@ -6,3 +6,4 @@ pyusb
 pyzmq
 pyyaml
 ipython>=1.2.1
+pyserial
