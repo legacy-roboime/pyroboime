@@ -133,6 +133,7 @@ class TxInterface(Interface):
         vision_address = (config['interface']['tx']['vision-addr'], config['interface']['tx']['vision-port'])
         vision_intf = config['interface']['tx']['vision-intf']
         referee_address = (config['interface']['tx']['referee-addr'], config['interface']['tx']['referee-port'])
+        robots_onthefield  = config['interface']['robots-onthefield']
         commanders = []
         if config['interface']['txver'] == 2012:
             ipaddr = config['interface']['oldtx_addr']
@@ -143,9 +144,9 @@ class TxInterface(Interface):
                 commanders.append(commander.Tx2012Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, ipaddr=ipaddr, port=port))
         elif config['interface']['txver'] == 2013:
             if command_blue:
-                commanders.append(commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue))
+                commanders.append(commander.Tx2013Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue, robots_onthefield=robots_onthefield))
             if command_yellow:
-                commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow))
+                commanders.append(commander.Tx2013Commander(world.yellow_team, mapping_dict=mapping_yellow, kicking_power_dict=kick_mapping_yellow, robots_onthefield=robots_onthefield))
         else: # 2014, current
             if command_blue:
                 commanders.append(commander.Tx2014Commander(world.blue_team, mapping_dict=mapping_blue, kicking_power_dict=kick_mapping_blue))

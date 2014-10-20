@@ -209,11 +209,12 @@ class Tx2013Commander(Commander):
     the usage of a separate program to actually execute the radio transmission.
     """
 
-    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, **kwargs):
+    def __init__(self, team, mapping_dict=None, kicking_power_dict=None, robots_onthefield=None, **kwargs):
         super(Tx2013Commander, self).__init__(team, **kwargs)
         self.default_map = mapping_dict is None
         self.mapping_dict = mapping_dict if mapping_dict is not None else keydefaultdict(lambda x: x)
         self.kicking_power_dict = kicking_power_dict if kicking_power_dict is not None else defaultdict(lambda: 100)
+        self.robots_onthefield = robots_onthefield if robots_onthefield is not None else range(6)
         self.sender = SerialTxRx()
         #self.sender = VIVATxRx()
 
@@ -287,7 +288,7 @@ class Tx2013Commander(Commander):
 
             if has_action:
                 packet = [254, 0, 44] #44 means there are 1 (44) + 6*7 +  1 (55) bytes to be transmitted!
-                for i in [0, 1, 2, 3, 4, 5]:
+                for i in self.robots_onthefield:
                     packet.extend(actions_dict[i])
                 #while i < 6:
                 #    packet.extend(actions_dict[10])

@@ -11,6 +11,7 @@ interface:
   txver: 2014
   oldtx_addr: 127.0.0.1
   oldtx_port: 9050
+  robots-onthefield: [0, 1, 2, 3, 4, 5]
   sim:
     vision-intf: 127.0.0.1
     vision-addr: 224.5.23.2
