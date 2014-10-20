@@ -13,6 +13,7 @@
 #
 from multiprocessing import Process, Queue, Event, Lock
 
+from ..config import config
 from ..communication import sslvision
 from ..communication import sslrefbox
 
@@ -179,6 +180,28 @@ class Updater(Process):
         self.queue_lock = Lock()
         self._exit = Event()
 
+        self.debug = config['interface']['debug']
+        if self.debug:
+            self._log = True
+            if config['interface']['log-file'] == 'STDOUT':
+                self._log_file = sys.stdout
+            elif config['interface']['log-file'] == 'STDERR':
+                self._log_file = sys.stderr
+            else:
+                self._log_file = open(config['interface']['log-file'], 'a')
+        else:
+            self._log = False
+
+    def log(self, message):
+       if self._log:
+           self._log_file.write(str(message))
+           self._log_file.write('\n')
+           self._log_file.flush()
+
+    def log_debug(self, message):
+       if self.debug:
+           self.log(message)
+
     def run(self):
         while not self._exit.is_set():
             #with self.queue_lock:
@@ -195,8 +218,7 @@ class Updater(Process):
         # This leaves the process hanging on Windows
         #self.join(STOP_TIMEOUT)
         if self.is_alive():
-            #TODO make a nicer warning
-            print 'Terminating updater:', self
+            self.log('Terminating updater: {}'.format(self))
             self.terminate()
 
     def receive(self):

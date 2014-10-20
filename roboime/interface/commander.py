@@ -62,12 +62,16 @@ class Commander(object):
                 self._log_file = open(config['interface']['log-file'], 'a')
         else:
             self._log = False
-        pass
 
     def log(self, message):
        if self._log:
            self._log_file.write(str(message))
            self._log_file.write('\n')
+           self._log_file.flush()
+
+    def log_debug(self, message):
+       if self.debug:
+           self.log(message)
 
     #def start(self):
     #    super(Commander, self).start()
@@ -192,9 +196,7 @@ class Tx2014Commander(Commander):
                 # tail [55]
                 packet += '\x37'
 
-                if self.debug:
-                    self.log(' '.join(map(lambda i: '{:02x}'.format(i), map(ord, packet))))
-
+                self.log_debug(' '.join(map(lambda i: '{:02x}'.format(i), map(ord, packet))))
                 self.sender.send(packet)
 
 
@@ -295,8 +297,7 @@ class Tx2013Commander(Commander):
                 #    i += 1
                 packet.append(55)
                 if packet:
-                    if self.debug:
-                        self.log('|'.join('{:03d}'.format(x) for x in packet))
+                    self.log_debug('|'.join('{:03d}'.format(x) for x in packet))
                     self.sender.send(packet)
 
 
