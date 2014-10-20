@@ -17,6 +17,7 @@ import serial
 import time
 
 from . import Transmitter
+from ...utils.log import Log
 
 
 def serial_ports():
@@ -64,7 +65,7 @@ class SerialTxRx(Transmitter):
 
     def __init__(self, address=None, verbose=False):
         super(SerialTxRx, self).__init__()
-        
+
         # defining the address dinamically
         if address is None:
             if sys.platform.startswith('darwin'):
@@ -83,24 +84,23 @@ class SerialTxRx(Transmitter):
         self.is_working = self.transmitter is not None
         self.verbose = verbose
         self.last_sent = time.time()
+        self.log = Log('interface')
 
     def send(self, array):
         now = time.time()
         if now - self.last_sent < self.delay:
             # too soon
             return 0
+
         else:
             self.last_sent = now
 
-        if self.verbose:
-            #print self.is_busy
-            pass
         if (not self.is_busy) and self.is_working:
-
-            while(len(array)<64):
+            while(len(array) < 64):
                 array.append(0x00)
-            #print array
+            self.log.debug(' '.join('{:02x}'.format(a) for a in array))
             return self.transmitter.write(array)
+
         else:
             return -1
 

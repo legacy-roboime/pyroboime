@@ -33,6 +33,9 @@ class Goto(Skill):
     arrive_distance = 1e-3
     max_angle_error = 1.0
 
+    # flag to disable actual implementation
+    decoupled = False
+
     def __init__(self, robot, target=None, angle=None, avoid_collisions=True,
                  deterministic=True, ignore_defense_area=False, deaccel_dist=0.8,
                  **kwargs):
@@ -67,6 +70,11 @@ class Goto(Skill):
     def _step(self):
         final = self.final_target if self.ignore_defense_area else self.robot.goal.point_outside_area(self.final_target)
         self.target = self.path_planner(final)
+
+        if self.decoupled:
+            a = self.angle or r.angle or 0.0
+            self.robot.action.target = (self.target.x, self.target.y, a)
+            return
 
         # angle control using PID controller
         if self.angle is not None and self.robot.angle is not None:

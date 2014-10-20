@@ -3,15 +3,17 @@
 # you can roll your own development.yaml
 interface:
   debug: false
-  control_active_only: true #false
+  control_active_only: true
   default: tx #sim
   log-file: "interface.log"
   command-yellow: true
   command-blue: true
-  txver: 2014
+  txver: control
   oldtx_addr: 127.0.0.1
   oldtx_port: 9050
   robots-onthefield: [0, 1, 2, 3, 4, 5]
+  forward_vision: true
+  forward_vision_on: tcp://0.0.0.0:6665
   sim:
     vision-intf: 127.0.0.1
     vision-addr: 224.5.23.2

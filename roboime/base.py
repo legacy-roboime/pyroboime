@@ -121,7 +121,7 @@ class Action(object):
 
     @property
     def has_target(self):
-        return (self.x, self.y, self.angle) is not (None, None, None)
+        return (self.x, self.y, self.angle) != (None, None, None)
 
     @property
     def has_speeds(self):
@@ -726,6 +726,8 @@ class World(object):
     def __init__(self, right_team=None, left_team=None):
         self.inited = False
         self.timestamp = 0
+        self.frame_number = 0
+        self.frame_skip = 0
 
         # objects
         if right_team is None:

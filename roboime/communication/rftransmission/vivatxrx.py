@@ -12,9 +12,11 @@
 # GNU Affero General Public License for more details.
 #
 import usb.core
+from usb import USBError
 import time
 
 from . import Transmitter
+from ...utils.log import Log
 
 class VIVATxRx(Transmitter):
     """
@@ -41,8 +43,13 @@ class VIVATxRx(Transmitter):
         self.is_working = self.transmitter is not None
         self.verbose = verbose
         self.last_sent = time.time()
+        self.queue = {}
+        self.log = Log('interface')
 
-    def send(self, array):
+    def send(self, array, queue='action'):
+        if array is None:
+            raise RuntimeError('You moron!!! You\'re trying to send nothing!! Nothing!!!!')
+
         now = time.time()
         if now - self.last_sent < self.delay:
             # too soon
@@ -52,8 +59,15 @@ class VIVATxRx(Transmitter):
 
         if self.verbose:
             print self.is_busy
-        if (not self.is_busy) and self.is_working:
-            return self.transmitter.ctrl_transfer(5696, 3, 0, 0, array)
+        try:
+            self.log.debug(' '.join(map(lambda i: '{:02x}'.format(i), map(ord, array))))
+            if (not self.is_busy) and self.is_working:
+                return self.transmitter.ctrl_transfer(5696, 3, 0, 0, array)
+        except USBError as e:
+            print 'Error occurred sending the following package:'
+            print array
+            print 'Error message:', e.message
+
         else:
             return -1
 

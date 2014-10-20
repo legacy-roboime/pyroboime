@@ -173,9 +173,10 @@ class Goalkeeper(Tactic):
         #*: define fast
 
         future_ball = array(self.ball) + self.ball.speed * self.look_ahead_time
-        ball_line = Line(Point(self.ball), Point(future_ball))
+        ball_now, ball_then = Point(self.ball), Point(future_ball)
+        ball_line = Line(ball_now, ball_then)
 
-        if ball_line.crosses(self.goal.line):
+        if ball_now.equals(ball_then) and ball_line.crosses(self.goal.line):
             #point_on_home = ball_line.intersection(self.home_line)
             point_to_go = ball_line.intersection(self.goal.line)
 

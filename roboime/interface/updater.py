@@ -16,6 +16,7 @@ from multiprocessing import Process, Queue, Event, Lock
 from ..config import config
 from ..communication import sslvision
 from ..communication import sslrefbox
+from ..utils.log import Log
 
 
 STOP_TIMEOUT = 1
@@ -113,6 +114,10 @@ class Update(dict):
                             if ball_prop not in ('x', 'y'):
                                 setattr(world.ball, ball_prop, ball_prop_value)
 
+            elif prop == 'frame_number':
+                world.frame_skip = value - world.frame_number - 1
+                world.frame_number = value
+
             # ignore some metadata
             elif prop.startswith('__'):
                 pass
@@ -179,28 +184,7 @@ class Updater(Process):
         self.queue = Queue()
         self.queue_lock = Lock()
         self._exit = Event()
-
-        self.debug = config['interface']['debug']
-        if self.debug:
-            self._log = True
-            if config['interface']['log-file'] == 'STDOUT':
-                self._log_file = sys.stdout
-            elif config['interface']['log-file'] == 'STDERR':
-                self._log_file = sys.stderr
-            else:
-                self._log_file = open(config['interface']['log-file'], 'a')
-        else:
-            self._log = False
-
-    def log(self, message):
-       if self._log:
-           self._log_file.write(str(message))
-           self._log_file.write('\n')
-           self._log_file.flush()
-
-    def log_debug(self, message):
-       if self.debug:
-           self.log(message)
+        self.log = Log('interface')
 
     def run(self):
         while not self._exit.is_set():
@@ -271,6 +255,7 @@ class VisionUpdater(Updater):
             })
 
             data['camera'] = packet.detection.camera_id
+            data['frame_number'] = packet.detection.frame_number
 
             balls = data['balls']
             for i, b in enumerate(packet.detection.balls):

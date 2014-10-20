@@ -20,12 +20,14 @@ import sys
 from collections import defaultdict
 from time import time
 from math import isnan
+from math import radians
 
 from ..config import config
 from ..communication import grsim
 from ..communication.network import unicast
 from ..utils.mathutils import sin, cos
 from ..utils.keydefaultdict import keydefaultdict
+from ..utils import to_short
 from ..communication.rftransmission.serialtxrx import SerialTxRx
 #from ..communication.rftransmission.vivatxrx import VIVATxRx
 
@@ -51,27 +53,6 @@ class Commander(object):
         #self.conn = None
         #self._exit = Event()
         self.team = team
-        self.debug = config['interface']['debug']
-        if self.debug:
-            self._log = True
-            if config['interface']['log-file'] == 'STDOUT':
-                self._log_file = sys.stdout
-            elif config['interface']['log-file'] == 'STDERR':
-                self._log_file = sys.stderr
-            else:
-                self._log_file = open(config['interface']['log-file'], 'a')
-        else:
-            self._log = False
-
-    def log(self, message):
-       if self._log:
-           self._log_file.write(str(message))
-           self._log_file.write('\n')
-           self._log_file.flush()
-
-    def log_debug(self, message):
-       if self.debug:
-           self.log(message)
 
     #def start(self):
     #    super(Commander, self).start()
@@ -88,6 +69,43 @@ class Commander(object):
 
     def send(self, actions):
         raise NotImplemented
+
+
+class ControlCommander(Commander):
+    """
+    This commander is used to communicate with roboime-control.
+    """
+
+    def __init__(self, team, zmq_socket):
+        """
+        A zmq socket has to be passed so it can be shared.
+        """
+        super(ControlCommander, self).__init__(team)
+        self.zmq_socket = zmq_socket
+
+    def send(self, actions):
+        control = {'actions_blue': [], 'actions_yellow': []}
+        for a in actions:
+            if a.robot.is_blue:
+                ac = control['actions_blue']
+            else:
+                ac = control['actions_yellow']
+            if a.has_speeds:
+                sx, sy, sa = a.speeds
+                ac.append({
+                    'type': 'move',
+                    'uid': a.uid,
+                    'speeds': {
+                        'vx': 1000 * sx,
+                        'vy': 1000 * sy,
+                        'va': radians(sa),
+                    },
+                    'kick': a.kick or 0.0,
+                    'chip': a.chipkick or 0.0,
+                    'dribble': a.dribble or 0.0,
+                })
+
+        self.zmq_socket.send_json({'control': control})
 
 
 class Tx2014Commander(Commander):
@@ -183,7 +201,8 @@ class Tx2014Commander(Commander):
                     # this is the goto skill that is now implemented in-robot
 
                     tx, ty, ta = a.target
-                    robot_packet = struct.pack('<bHHH', self.mapping_dict[a.uid], 1000 * tx, 1000 * ty, 100 * ta)
+                    #print a.target, a.robot.uid, a.robot.skill
+                    robot_packet = struct.pack('<bhhh', self.mapping_dict[a.uid], to_short(1000 * tx), to_short(1000 * ty), to_short(100 * ta))
                     actions_dict[self.mapping_dict[a.uid]] = robot_packet
                     a.reset()
 
@@ -196,7 +215,6 @@ class Tx2014Commander(Commander):
                 # tail [55]
                 packet += '\x37'
 
-                self.log_debug(' '.join(map(lambda i: '{:02x}'.format(i), map(ord, packet))))
                 self.sender.send(packet)
 
 
@@ -277,7 +295,10 @@ class Tx2013Commander(Commander):
                 #if a.uid == 3:
                 #    print self.omniwheel_speeds(vx, vy, va)
                 robot_packet.extend([self.prepare_byte(-x) for x in self.omniwheel_speeds(vx, vy, va)])
-                robot_packet.append(int((a.dribble or 0) * 255))
+                dribble = a.dribble or 0
+                if dribble > 1.0:
+                    dribble = 1.0
+                robot_packet.append(int(dribble * 255))
                 if a.kick > 0 and self.kicking_power_dict[a.uid] > 0:
                     robot_packet.append(self.prepare_byte(a.kick * 100 / self.kicking_power_dict[a.uid] or 0.0, 1))
                 elif a.chipkick > 0 and self.kicking_power_dict[a.uid] > 0:
@@ -289,7 +310,7 @@ class Tx2013Commander(Commander):
                 a.reset()
 
             if has_action:
-                packet = [254, 0, 44] #44 means there are 1 (44) + 6*7 +  1 (55) bytes to be transmitted!
+                packet = [254, 0, 44]  # 44 means there are 1 (44) + 6*7 +  1 (55) bytes to be transmitted!
                 for i in self.robots_onthefield:
                     packet.extend(actions_dict[i])
                 #while i < 6:
@@ -297,7 +318,6 @@ class Tx2013Commander(Commander):
                 #    i += 1
                 packet.append(55)
                 if packet:
-                    self.log_debug(' '.join('{:02x}'.format(x) for x in packet))
                     self.sender.send(packet)
 
 
