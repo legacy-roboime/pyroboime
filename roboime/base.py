@@ -167,7 +167,7 @@ class Robot(geom.Point):
 
     max_speed = MAX_ROBOT_SPEED
     max_speed_dribbling = MAX_ROBOT_SPEED * 0.75
-    max_ang_speed = 10.0
+    max_ang_speed = 15.0
 
     def __init__(self, uid, body=None, dribbler=None, kicker=None, wheels=[], battery=None, team=None, max_speed=None, max_ang_speed=None):
         """This class represents a robot, regardless of the team.
