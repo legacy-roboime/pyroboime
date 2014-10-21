@@ -96,9 +96,9 @@ class SerialTxRx(Transmitter):
             self.last_sent = now
 
         if (not self.is_busy) and self.is_working:
+            self.log.debug(' '.join('{:02x}'.format(a) for a in array))
             while(len(array) < 64):
                 array.append(0x00)
-            self.log.debug(' '.join('{:02x}'.format(a) for a in array))
             return self.transmitter.write(array)
 
         else:
