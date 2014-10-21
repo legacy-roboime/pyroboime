@@ -25,7 +25,7 @@ from ...base import Referee, Blue, Yellow
 from ...utils.geom import Point
 
 Command = Referee.Command
-TOLERANCE = 0.15
+TOLERANCE = 0.50
 
 
 class ObeyReferee(Play):
