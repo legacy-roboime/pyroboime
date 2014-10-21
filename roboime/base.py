@@ -463,16 +463,18 @@ class Team(keydefaultdict):
             for y in linspace(-f_w / 2, f_w / 2, precision - 2):
                 pt = geom.Point(x, y)
                 acceptable = True
+                found = False
                 final_line = geom.Point(0, 0)
                 for enemy in self.world.enemy_team(self.color).iterrobots():
                     # if the robot -> pt line doesn't cross any enemy body...
+                    found = True
                     start_line = geom.Line(b, pt)
                     if not start_line.crosses(enemy.body):
                         final_line = geom.Line(pt, target)
                         # if the pt -> target line crosses any enemy body...
                         if final_line.crosses(enemy.body):
                             acceptable = False
-                if acceptable:
+                if found and acceptable:
                     candidate += [(pt, start_line.length + final_line.length)]
         if not candidate:
             #goal_point = self.enemy_goal
