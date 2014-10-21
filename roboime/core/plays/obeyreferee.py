@@ -64,14 +64,7 @@ class ObeyReferee(Play):
             self.first_time = True
         ball_distance = self.ball.distance(self.last_ball)
 
-        if self.verbose:
-            pass
-
-        if ((self.command == Command.DirectFreeYellow and self.team.color == Yellow) or
-                (self.command == Command.DirectFreeBlue and self.team.color == Blue)):
-            self.play.step()
-
-        elif ((self.command == Command.PreparePenaltyYellow and self.team.color == Yellow) or
+        if ((self.command == Command.PreparePenaltyYellow and self.team.color == Yellow) or
                 (self.command == Command.PreparePenaltyBlue and self.team.color == Blue)):
             # Sets up the penalty kicker on the penalty position
             self.penalty_us.is_last_toucher = False
@@ -114,18 +107,18 @@ class ObeyReferee(Play):
             else:
                 self.stop.step()
 
-        elif ((self.command == Command.IndirectFreeBlue and self.team.color == Blue) or
+        elif ((self.command == Command.DirectFreeYellow and self.team.color == Yellow) or
+                (self.command == Command.DirectFreeBlue and self.team.color == Blue) or
+                (self.command == Command.IndirectFreeBlue and self.team.color == Blue) or
                 (self.command == Command.IndirectFreeYellow and self.team.color == Yellow)):
-            if self.first_time:
-                pass
-                #self.indirect_kick.reset()
 
-            #print "Has passed: ", self.indirect_kick.has_passed
-            if True:  # self.indirect_kick.has_passed:
+            if self.first_time:
+                self.indirect_kick.reset()
+
+            if self.indirect_kick.has_passed:
                 self.play.step()
             else:
                 self.indirect_kick.step()
-            #self.play.step()
 
         elif self.command in [Command.PrepareKickoffYellow, Command.PrepareKickoffBlue, Command.Stop, Command.TimeoutYellow, Command.TimeoutBlue]:
             self.stop.step()

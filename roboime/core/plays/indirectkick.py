@@ -65,6 +65,10 @@ class IndirectKick(Stop, StateMachine):
         self.passer = None
 
     @property
+    def has_passed(self):
+        return self.current_state == self.states['end']
+
+    @property
     def goalkeeper(self):
         l = [r for r in self.team if r.uid == self.goalie]
         if l:
@@ -130,6 +134,8 @@ class IndirectKick(Stop, StateMachine):
             robots_closest_to_ball = self.team.closest_robots_to_ball()
             try:
                 robots_closest_to_ball.remove(self.goalkeeper)
+            except AttributeError:
+                pass
             except ValueError:
                 pass
             try:
