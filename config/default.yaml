@@ -28,6 +28,9 @@ interface:
     vision-port: 10002
     referee-addr: 224.5.23.1
     referee-port: 10003
+core:
+  debug: false
+  log-file: "core.log"
 cli:
   debug: false
   main_thread: true

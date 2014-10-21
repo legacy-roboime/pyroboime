@@ -18,6 +18,7 @@ Might it be splitted?
 """
 from ..utils.statemachine import State, Machine
 from ..utils import keydefaultdict
+from ..utils.log import Log
 
 
 class Steppable(object):
@@ -33,6 +34,7 @@ class Steppable(object):
             self.name = kwargs.pop('name')
         # continue the chain of inheritance init
         super(Steppable, self).__init__(*args, **kwargs)
+        self.log = Log('core')
         #try:
         #    super(Steppable, self).__init__(*args, **kwargs)
         #except TypeError:
