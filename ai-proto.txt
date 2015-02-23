@@ -42,18 +42,26 @@ Input
 
 All fields are in meters (float)
 
+
 ## Update phase
 
-From this phase on input and output are decoupled, you don't necessarily have to
-respond to every input and may even respond more often than inputed.
+There are update cycles, each cylce begins with an Input in which the latest state
+information is sent, the core will wait for an Update before going to the next
+cycle.  That means that some raw updates may be skipped if the AI doesn't keep
+with the pace of the Core, but that's OK though because the command are made to
+have a Decent™ amount of time.
 
-Input, typically, but not always, 60 updates per second:
+The formats follow:
+
+Input:
 
     REF_STATE
     TIMESTAMP
     BALL_X BALL_Y BALL_VX BALL_VY
     NUM_ROBOTS
-    [ROBOT_X ROBOT_Y ROBOT_W ROBOT_VX ROBOT_VY ROBOT_VW] x NUM_ROBOTS
+    [ROBOT_ID ROBOT_X ROBOT_Y ROBOT_W ROBOT_VX ROBOT_VY ROBOT_VW] x NUM_ROBOTS
+    OPPONENT_NUM_ROBOTS
+    [ROBOT_ID ROBOT_X ROBOT_Y ROBOT_W ROBOT_VX ROBOT_VY ROBOT_VW] x OPPNENT_NUM_ROBOTS
 
 - TIMESTAMP: seconds (float)
 - NUM_ROBOTS: number of robots (int)
@@ -61,25 +69,41 @@ Input, typically, but not always, 60 updates per second:
 - *_VX and *_VY are velocities in meters/s (float)
 - *_W in radians (float)
 - *_VW in radians/s (float)
-- REF_STATE: literal (string) any of these:
-  - HALT
-  - STOP
-  - START
-  - PRE_KICKOFF
-  - KICKOFF
-  - INDIRECT
-  - DIRECT
-  - PRE_PENALTY
-  - PENALTY
-  - OPPONENT_PRE_KICKOFF
-  - OPPONENT_KICKOFF
-  - OPPONENT_INDIRECT
-  - OPPONENT_DIRECT
-  - OPPONENT_PRE_PENALTY
-  - OPPONENT_PENALTY
+- REF_STATE: single char any of these:
+  - 'H': HALT
+  - 'S': STOP
+  - 'N': NORMAL
+  - 'p': PRE_KICKOFF
+  - 'k': KICKOFF
+  - 'i': INDIRECT
+  - 'd': DIRECT
+  - 'x': PRE_PENALTY
+  - 'y': PENALTY
+  - 'P': OPPONENT_PRE_KICKOFF
+  - 'K': OPPONENT_KICKOFF
+  - 'I': OPPONENT_INDIRECT
+  - 'D': OPPONENT_DIRECT
+  - 'X': OPPONENT_PRE_PENALTY
+  - 'Y': OPPONENT_PENALTY
+
+It's important to note that the referee is already interpreted, meaning if the
+state is at NORMAL it is safe to play, no checking for opponent kick has to be
+done.
 
 On future versions the protocol may include the Z axis of the ball. Also they
 may include the score, it's been left out for now.
+
+Output:
+
+    [ROBOT_ID <COMMAND>] * NUM_ROBOTS
+
+<COMMAND> may be one of the following:
+
+    'D' X Y <'G'|N> (defend own goal (G) or team robot N at X,Y)
+    'A' X Y <'G'|N> (attack opponent goal (G) or team robot N at X,Y)
+    'I' X Y 'B' (intercept ball near X,Y)
+    'P' N (pass to team robot N)
+    'K' (kick ball to goal)
 
 
 vim: tw=80
