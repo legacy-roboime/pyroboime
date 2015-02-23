@@ -1,0 +1,85 @@
+## Conventions
+
+Input: Core -> AI
+Output: AI -> Core
+
+
+## Pre-setup phase
+
+Happens only once, no output will be given until the AI states compatibility.
+
+Input state current protocol version
+
+    ROBOIME_AI_PROTOCOL_VERSION 1
+
+Output state compatibility along with max compatible version
+
+    COMPATIBLE 1
+
+Output for future versions, if current is not supported, also state max
+compatible version
+
+    NOT_COMPATIBLE 1
+
+If not compatible Output will EOF and the process is expected to terminate.
+
+## Setup phase
+
+Happens only once, right after pre-setup phase.  If geometry params change
+in-game the process will be re-opened so new parameters can be loaded.
+
+Input
+
+    FIELD_WIDTH
+    FIELD_HEIGHT
+    GOAL_WIDTH
+    CENTER_CIRCLE_RADIUS
+    DEFENSE_RADIUS
+    DEFENSE_STRETCH
+    FREE_KICK_FROM_DEFENSE_DIST
+    PENALTY_SPOT_FROM_FIELD_LINE_DIST
+    PENALTY_LINE_FROM_SPOT_DIST
+
+All fields are in meters (float)
+
+## Update phase
+
+From this phase on input and output are decoupled, you don't necessarily have to
+respond to every input and may even respond more often than inputed.
+
+Input, typically, but not always, 60 updates per second:
+
+    REF_STATE
+    TIMESTAMP
+    BALL_X BALL_Y BALL_VX BALL_VY
+    NUM_ROBOTS
+    [ROBOT_X ROBOT_Y ROBOT_W ROBOT_VX ROBOT_VY ROBOT_VW] x NUM_ROBOTS
+
+- TIMESTAMP: seconds (float)
+- NUM_ROBOTS: number of robots (int)
+- *_X and *_Y are positions in meters (float)
+- *_VX and *_VY are velocities in meters/s (float)
+- *_W in radians (float)
+- *_VW in radians/s (float)
+- REF_STATE: literal (string) any of these:
+  - HALT
+  - STOP
+  - START
+  - PRE_KICKOFF
+  - KICKOFF
+  - INDIRECT
+  - DIRECT
+  - PRE_PENALTY
+  - PENALTY
+  - OPPONENT_PRE_KICKOFF
+  - OPPONENT_KICKOFF
+  - OPPONENT_INDIRECT
+  - OPPONENT_DIRECT
+  - OPPONENT_PRE_PENALTY
+  - OPPONENT_PENALTY
+
+On future versions the protocol may include the Z axis of the ball. Also they
+may include the score, it's been left out for now.
+
+
+vim: tw=80
