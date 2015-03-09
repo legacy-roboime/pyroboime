@@ -432,7 +432,7 @@ class SimCommander(Commander):
                     # will be able to chipkick
                     c.kickspeedx = a.chipkick * cos(chip_angle)
                 else:
-                    c.kickspeedx = (a.kick or 0.0) * 5
+                    c.kickspeedx = (a.kick or 0.0) * 9
                 c.veltangent = vx
                 c.velnormal = vy
                 c.velangular = va * pi / 180
