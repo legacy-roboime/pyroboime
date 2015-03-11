@@ -55,7 +55,7 @@ The formats follow:
 
 Input:
 
-    REF_STATE
+    REF_STATE <REF_TIME_LEFT|-1>
     TIMESTAMP
     BALL_X BALL_Y BALL_VX BALL_VY
     GOALKEEPER_ID
@@ -71,7 +71,6 @@ Input:
 - *_W in radians (float)
 - *_VW in radians/s (float)
 - REF_STATE: single char any of these:
-  - 'H': HALT
   - 'S': STOP
   - 'N': NORMAL
   - 'p': PRE_KICKOFF
@@ -86,6 +85,10 @@ Input:
   - 'D': OPPONENT_DIRECT
   - 'X': OPPONENT_PRE_PENALTY
   - 'Y': OPPONENT_PENALTY
+- REF_TIME_LEFT: for referee states 'kidyKIDY' this is the
+  number of seconds (float) left until a fault occurs for not
+  putting the ball in normal play, this will be capped to 0 if it happens to be
+  less than that.  For other states it's -1 as it doesn't apply.
 
 It's important to note that the referee is already interpreted, meaning if the
 state is at NORMAL it is safe to play, no checking for opponent kick has to be
@@ -100,8 +103,8 @@ Output:
 
 <COMMAND> may be one of the following:
 
-    'D' X Y <'G'|N> (defend own goal (G) or team robot N at X,Y)
-    'A' X Y <'G'|N> (attack opponent goal (G) or team robot N at X,Y)
+    'D' X Y R <'G'|N> (defend own goal (G) or team robot N at X,Y)
+    'A' X Y R <'G'|N> (attack opponent goal (G) or team robot N at X,Y)
     'I' X Y 'B' (intercept ball near X,Y)
     'P' N (pass to team robot N)
     'K' (kick ball to goal)
