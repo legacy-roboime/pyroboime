@@ -204,8 +204,8 @@ class Goto(Skill):
 
         # check whether the point we want to go to will make the robot be in the defense area
         # if so then we'll go to the nearest point that meets that constraint
-        if not self.robot.is_goalie and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
-            t = self.point_away_from_defense_area
+        #if not self.robot.is_goalie and r.world.is_in_defense_area(body=t.buffer(r.radius), color=r.color):
+        #    t = self.point_away_from_defense_area
 
         # angle control using PID controller
         if a is not None and self.robot.angle is not None:

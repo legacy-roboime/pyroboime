@@ -11,6 +11,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
+from time import time
+
 from .. import Tactic
 from ...utils.statemachine import Transition
 from ..skills.drivetoball import DriveToBall
@@ -54,6 +56,10 @@ class Passer(Tactic):
             target=robot,
             lookpoint=robot.world.ball
         )
+        self.wait.timeout = 2.0 # in seconds
+        self.wait.last_time = time()
+        def update_last_time():
+            self.wait.last_time = time()
         super(Passer, self).__init__(
             robot,
             initial_state=self.drive,
@@ -68,11 +74,17 @@ class Passer(Tactic):
                     self.kick,
                     self.wait,
                     condition=lambda: self.kick.ball_kicked(),
+                    callback=update_last_time,
                 ),
                 Transition(
                     self.kick,
                     self.drive,
                     condition=lambda: self.kick.bad_position(),
+                ),
+                Transition(
+                    self.wait,
+                    self.drive,
+                    condition=lambda: time() - self.wait.last_time > self.wait.timeout,
                 ),
             ],
         )

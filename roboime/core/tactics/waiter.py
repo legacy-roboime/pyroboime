@@ -25,3 +25,7 @@ class Waiter(Tactic):
             target=robot,
             lookpoint=robot.world.ball
         ))
+
+    @property
+    def target(self):
+        return self.robot

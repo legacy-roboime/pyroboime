@@ -23,6 +23,7 @@ from ...communication.protos.discrete_pb2 import Command
 from ...communication.protos.discrete_pb2 import Action
 from ...communication.protos.update_pb2 import Update
 from ...utils.geom import Point
+from ...base import Blue, Yellow
 
 
 class Minimax(Play):
@@ -40,7 +41,10 @@ class Minimax(Play):
         ctx.setsockopt(zmq.RCVTIMEO, timeout)
         ctx.setsockopt(zmq.SNDTIMEO, timeout)
         self.socket = ctx.socket(zmq.REQ)
-        self.socket.connect(config['minimax']['addr'])
+        if team.color == Blue:
+            self.socket.connect(config['minimax']['addr'])
+        elif team.color == Yellow:
+            self.socket.connect(config['minimax']['addr2'])
         self.send = True
 
         self.tactics_factory.update({
@@ -57,7 +61,7 @@ class Minimax(Play):
             u.ball.x = self.ball.x
             u.ball.y = self.ball.y
             u.ball.vx, u.ball.vy = self.ball.speed
-            for team, mteam in [(self.team, u.max_team), (self.enemy_team, u.min_team)]:
+            for team, mteam in [(self.world.blue_team, u.max_team), (self.world.yellow_team, u.min_team)]:
                 for robot in team:
                     r = mteam.add()
                     r.i = robot.uid
@@ -88,6 +92,8 @@ class Minimax(Play):
             if r_id == self.goalie:
                 robot.prev_tactic = robot.current_tactic
                 robot.current_tactic = self.players[r_id]['goalkeeper']
+                # XXX: GAMBI!
+                robot.current_tactic.target = robot
             else:
                 robot.prev_tactic = robot.current_tactic
                 robot.current_tactic = self.players[r_id]['wait']
@@ -106,7 +112,14 @@ class Minimax(Play):
 
                 elif action.type == Action.PASS:
                     tactic = tactics['passer']
-                    tactic.lookpoint = self.team[getattr(action, 'pass').robot_id]
+                    #tactic.lookpoint = self.team[getattr(action, 'pass').robot_id]
+                    tactic.target = self.team[getattr(action, 'pass').robot_id]
+                    def lookpoint():
+                        robot = self.team[getattr(action, 'pass').robot_id]
+                        if robot.tactic is not None:
+                            return robot.tactic.target
+                        return robot
+                    tactic.lookpoint = lookpoint
                     if robot.prev_tactic is not tactic:
                         tactic.reset()
                     robot.current_tactic = tactic

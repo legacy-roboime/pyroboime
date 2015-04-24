@@ -65,6 +65,10 @@ class Striker(Tactic):
         )
 
     @property
+    def target(self):
+        return self.robot
+
+    @property
     def lookpoint(self):
         if callable(self._lookpoint):
             return self._lookpoint() or self.robot.enemy_goal
