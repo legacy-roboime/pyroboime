@@ -45,6 +45,10 @@ class AutoRetaliate(Play):
             'blocker': lambda robot: Blocker(robot, arc=0),
             'defender': lambda robot: Defender(robot, enemy=self.ball),
         })
+        self.clean()
+
+    def clean(self):
+        self.avoid_id = None
 
     def setup_tactics(self):
 
@@ -53,8 +57,18 @@ class AutoRetaliate(Play):
 
         # make sure we do not account for the goalkeeper on that list
         gk_id = self.goalie
-        if gk_id in closest_robots:
+        if len(closest_robots) > 1 and gk_id in closest_robots:
             closest_robots.remove(gk_id)
+
+        # make sure we do not double-kick
+        av_id = self.avoid_id
+        if av_id is not None:
+            if len(closest_robots) > 1 and av_id == closest_robots[0]:
+                closest_robots[0], closest_robots[1] = closest_robots[1], closest_robots[0]
+            # resort to the goalkeeper if we have to
+            if gk_id and len(closest_robots) == 1 and av_id == closest_robots[0]:
+                closest_robots = [gk_id, av_id]
+                gk_id = None
 
         atk_id = closest_robots[0] if len(closest_robots) > 0 else None
         blk_id = closest_robots[1] if len(closest_robots) > 1 else None

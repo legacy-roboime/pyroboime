@@ -52,6 +52,8 @@ class ObeyReferee(Play):
     def select_play(self):
         state = self.world.referee.state
 
+        self.main_play.clean()
+
         if state == State.stop:
             self.indirect_kick.reset()
             return self.stop
@@ -60,7 +62,7 @@ class ObeyReferee(Play):
             return self.main_play
 
         if state == State.avoid:
-            # TODO: avoid properly
+            self.main_play.avoid_id = self.world.referee.more_info
             return self.main_play
 
         if state == State.pre_kickoff_player:
