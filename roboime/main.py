@@ -115,8 +115,8 @@ class Main(object):
             action = robot.action
             v_tangent, v_normal, v_angular = action.speeds
             v_angular = radians(v_angular)
-            kick_force = action.kick or 0.0
-            chip_force = action.chipkick if action.chipkick and not action.kick else 0.0
+            kick_force = min(action.kick or 0.0, 1.0) * 6.0
+            chip_force = min(action.chipkick if action.chipkick and not action.kick else 0.0, 1.0) * 6.0
             dribble = 1 if action.dribble and not (action.kick or action.chipkick) else 0
             print(v_tangent, v_normal, v_angular, kick_force, chip_force, dribble)
 
