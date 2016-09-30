@@ -12,7 +12,6 @@
 # GNU Affero General Public License for more details.
 #
 from numpy import array, linspace
-from numpy.linalg import norm
 
 from .. import Skill
 from ...utils.geom import Point
@@ -35,18 +34,16 @@ class Goto(Skill):
     # flag to disable actual implementation
     decoupled = False
 
+    avoid_collision_enabled = False
+
     def __init__(self, robot, target=None, angle=None, avoid_collisions=True,
                  deterministic=True, ignore_defense_area=False, deaccel_dist=0.8,
                  **kwargs):
         super(Goto, self).__init__(robot, deterministic=deterministic, **kwargs)
-        self.angle_controller = PidController(
-            kp=1., ki=.0, kd=.0, integ_max=.5, output_max=360)
-        self.norm_controller = PidController(
-            kp=.1, ki=0.01, kd=.5, integ_max=50., output_max=1.2)
-        self.x_controller = PidController(
-            kp=.3, ki=0.01, kd=.05, integ_max=5., output_max=.8)
-        self.y_controller = PidController(
-            kp=.3, ki=0.01, kd=.05, integ_max=5., output_max=.8)
+        self.angle_controller = PidController(kp=1., ki=.0, kd=.0, integ_max=.5, output_max=360)
+        self.norm_controller = PidController(kp=.1, ki=0.01, kd=.5, integ_max=50., output_max=1.2)
+        self.x_controller = PidController(kp=.3, ki=0.01, kd=.05, integ_max=5., output_max=.8)
+        self.y_controller = PidController(kp=.3, ki=0.01, kd=.05, integ_max=5., output_max=.8)
 
         self.angle = angle
         self.final_target = target
@@ -59,8 +56,7 @@ class Goto(Skill):
         self.collision_distance = self.robot.radius * 1.5
 
     def arrived(self):
-        dist = array(self.robot) - array(self.target)
-        return norm(dist) <= self.arrive_distance
+        return self.robot.distance(self.target) <= self.arrive_distance
 
     def oriented(self):
         angle = (180 + self.angle - self.robot.angle) % 360 - 180
@@ -85,16 +81,18 @@ class Goto(Skill):
         else:
             va = 0.0
 
-        diff_to_final = array(final) - array(self.robot)
-        diff = array(self.target) - array(self.robot)
-        vel = self.robot.max_speed if norm(diff_to_final) > self.deaccel_dist else self.robot.max_speed * norm(diff)
-        v = diff * (vel / norm(diff) if norm(diff) > 0.0 else 0.0)
+        delta = array(self.target) - array(self.robot)
+        diff = self.robot.distance(self.target)
+        diff_to_final = self.robot.distance(final)
+        vel = self.robot.max_speed if diff_to_final > self.deaccel_dist else self.robot.max_speed * diff
+        v = delta * (vel / diff if diff > 0.0 else 0.0)
         self.robot.action.absolute_speeds = v[0], v[1], va
 
     def path_planner(self, target, depth=0):
-        diff = array(target) - array(self.robot)
+        delta = array(target) - array(self.robot)
+        diff = self.robot.distance(target)
 
-        if self.avoid_collisions and depth < self.max_recursive and norm(diff) > self.min_dist:
+        if self.avoid_collision_enabled and self.avoid_collisions and depth < self.max_recursive and diff > self.min_dist:
 
             # TODO: Rewrite the python's way
             points = []
@@ -111,15 +109,15 @@ class Goto(Skill):
             for point in points:
                 if self.point_inside_robot(point, robots):
                     # TODO: Rewrite the python's way
-                    n = diff * self.collision_distance / norm(diff)
+                    n = delta * self.collision_distance / diff
                     temp = Point(-n[1] + point.x, n[0] + point.y)
                     target1 = self.path_planner(temp, depth + 1)
-                    diff1 = norm(array(self.final_target) - array(target1))
+                    diff1 = self.final_target.distance(target1)
                     free1 = not self.point_inside_robot(target1, robots)
 
                     temp = Point(n[1] + point.x, -n[0] + point.y)
                     target2 = self.path_planner(temp, depth + 1)
-                    diff2 = norm(array(self.final_target) - array(target2))
+                    diff2 = self.final_target.distance(target2)
                     free2 = not self.point_inside_robot(target2, robots)
 
                     if free1 and free2:
