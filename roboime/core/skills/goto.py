@@ -132,9 +132,8 @@ class Goto(Skill):
         return [r for r in self.world.robots if r.uid != self.robot.uid]
 
     def point_inside_robot(self, point, robots):
-        for r in robots:
-            diff = norm(array(point) - array(r))
-            if diff <= 2 * self.robot.radius:
+        for robot in robots:
+            if point.distance(robot) <= 4 * self.robot.radius:
                 return True
         return False
 
