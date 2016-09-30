@@ -10,3 +10,4 @@
 .virtualenv*
 config/development.*
 config/production.*
+*.profile

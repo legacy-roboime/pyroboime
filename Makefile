@@ -10,10 +10,18 @@ MAIN ?= ./intel
 CORE ?= roboime-next-gui
 CORE_FLAGS ?= -p
 
+# Profiling
+CORE_PROFILE ?= roboime-next-cli
+CORE_FLAGS_PROFILE ?= -vvff
+PROFILE_OUT = pyroboime.profile
+MAIN_PROFILE := python3 -m cProfile -o $(PROFILE_OUT) $(MAIN)
+
 ifdef AGAINST
 CORE_CMD := $(CORE) -b '$(MAIN)' -y $(AGAINST) $(CORE_FLAGS)
+CORE_CMD_PROFILE := $(CORE_PROFILE) -b '$(MAIN_PROFILE)' -y $(AGAINST) $(CORE_FLAGS_PROFILE)
 else
 CORE_CMD := $(CORE) -b '$(MAIN)' $(CORE_FLAGS)
+CORE_CMD_PROFILE := $(CORE_PROFILE) -b '$(MAIN_PROFILE)' $(CORE_FLAGS_PROFILE)
 endif
 
 # virtualenv config
@@ -33,8 +41,14 @@ all: deps
 
 .PHONY: run
 run:
-	@echo Running "'"$(CORE_CMD)"'"
+	@echo Running "\`$(CORE_CMD_PROFILE)\`"
 	@source $(VIRTUALENV_ACTIVATE) && $(CORE_CMD)
+
+.PHONY: profile
+profile:
+	@echo Profiling "\`$(CORE_CMD_PROFILE)\`"
+	@rm -f $(PROFILE_OUT)
+	@source $(VIRTUALENV_ACTIVATE) && $(CORE_CMD_PROFILE) || true
 
 
 # target to create the virtualenv, based on the presence
