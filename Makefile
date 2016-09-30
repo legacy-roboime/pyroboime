@@ -41,7 +41,7 @@ all: deps
 
 .PHONY: run
 run:
-	@echo Running "\`$(CORE_CMD_PROFILE)\`"
+	@echo Running "\`$(CORE_CMD)\`"
 	@source $(VIRTUALENV_ACTIVATE) && $(CORE_CMD)
 
 .PHONY: profile
