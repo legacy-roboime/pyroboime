@@ -237,8 +237,7 @@ class Robot(geom.Point):
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
         super(Robot, self).update(*args, **kwargs)
-        # TODO generate the actual body shape instead of a circle
-        self._body = geom.Circle(self, self._radius)
+        self._body = None
         angle = self.angle or 0.0
         d = array((cos(angle), sin(angle)))
         self.kicker = geom.Point(array(self) + d * self.front_cut)
@@ -263,8 +262,14 @@ class Robot(geom.Point):
     def is_yellow(self):
         return self.color == Yellow
 
+    def build_body(self):
+        # TODO generate the actual body shape instead of a circle
+        self._body = geom.Circle(self, self._radius)
+
     @property
     def body(self):
+        if self._body is None:
+            self.build_body()
         return self._body
 
     @property
@@ -495,10 +500,15 @@ class Ball(geom.Point):
     def update(self, *args, **kwargs):
         """This is just a hook over the original function to cache some data."""
         super(Ball, self).update(*args, **kwargs)
+        self._body = None
+
+    def build_body(self):
         self._body = geom.Circle(self, self._radius)
 
     @property
     def body(self):
+        if self._body is None:
+            self.build_body()
         return self._body
 
     @property
