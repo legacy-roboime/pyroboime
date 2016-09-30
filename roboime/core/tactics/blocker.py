@@ -48,6 +48,6 @@ class Blocker(Tactic):
         base_angle = self.ball.angle_to_point(self.goal)
         self.goto.target = Point(
             array((self.dist * cos(base_angle + self.arc),
-            self.dist * sin(base_angle + self.arc))) + array(self.blockpoint)
+                   self.dist * sin(base_angle + self.arc))) + array(self.blockpoint)
         )
         self.goto.step()

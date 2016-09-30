@@ -17,7 +17,6 @@ from random import random
 class State(object):
 
     def __init__(self, deterministic, name=None, **kwargs):
-        #super(State, self).__init__(**kwargs)
         super(State, self).__init__()
 
         if name is not None:
@@ -53,7 +52,6 @@ class Machine(object):
 
         self.deterministic = deterministic
         self.initial_state = initial_state
-        #self.final_state = final_state
         self.current_state = initial_state
         self.transitions = transitions
 

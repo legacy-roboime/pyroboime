@@ -18,14 +18,12 @@ from .stop import Stop
 from .halt import Halt
 from .penalty import Penalty
 from .penaltydefend import PenaltyDefend
-from .ifrit import Ifrit
 from .indirectkick import IndirectKick
-from .autoretaliate import AutoRetaliate
-from ...base import Referee, Blue, Yellow
+from ...base import Referee
 from ...utils.geom import Point
 
-Command = Referee.Command
-TOLERANCE = 0.50
+
+State = Referee.State
 
 
 class ObeyReferee(Play):
@@ -40,95 +38,67 @@ class ObeyReferee(Play):
     """
 
     # TODO: Implement this as a state machine variant (states as input, transitions as output).
-    def __init__(self, play, verbose=True):
-        super(ObeyReferee, self).__init__(play.team)
-        self.play = play
+    def __init__(self, main_play, verbose=True):
+        super(ObeyReferee, self).__init__(main_play.team)
+
+        # plays
+        self.main_play = main_play
         self.stop = Stop(self.team)
         self.halt = Halt(self.team)
-        self.penalty_us = Penalty(self.team)
-        self.penalty_them = PenaltyDefend(self.team)
+        self.penalty = Penalty(self.team)
+        self.penalty_defend = PenaltyDefend(self.team)
         self.indirect_kick = IndirectKick(self.team)  # AutoRetaliate(self.team) # Ifrit(self.team, allowed_to_kick=False) #
-        self.referee = self.world.referee
-        self.command = self.referee.command
-        self.last_command = Command.Halt
-        self.last_ball = Point(self.world.ball)
-        self.verbose = verbose
-        self.halt = Halt(self.team)
+
+    def select_play(self):
+        state = self.world.referee.state
+
+        if state == State.stop:
+            self.indirect_kick.reset()
+            return self.stop
+
+        if state == State.normal:
+            return self.main_play
+
+        if state == State.avoid:
+            # TODO: avoid properly
+            return self.main_play
+
+        if state == State.pre_kickoff_player:
+            # TODO: get closer to kick, don't act like Stop
+            return self.stop
+
+        if state == State.kickoff_player:
+            return self.main_play
+
+        if state == State.indirect_player:
+            return self.indirect_kick
+
+        if state == State.direct_player:
+            # TODO: we can do better than this
+            return self.main_play
+
+        if state == State.pre_penalty_player:
+            # Sets up the penalty kicker on the penalty position
+            self.penalty.is_last_toucher = False
+            self.penalty.ready = False
+            return self.penalty
+
+        if state == State.penalty_player:
+            # After the penalty kicker reaches its position, it actually kicks
+            self.penalty.ready = True
+            return self.penalty
+
+        if state == State.pre_kickoff_opponent or state == State.kickoff_opponent:
+            # TODO: take better defensive position
+            return self.stop
+
+        if state == State.indirect_opponent or state == State.direct_opponent:
+            # TODO: take better defensive position
+            return self.stop
+
+        if state == State.pre_penalty_opponent or state == State.penalty_opponent:
+            return self.penalty_defend
 
     def step(self):
-        self.first_time = False
-        if self.command != self.referee.command:
-            self.last_command = self.command
-            self.command = self.referee.command
-            self.last_ball = Point(self.ball)
-            self.first_time = True
-        ball_distance = self.ball.distance(self.last_ball)
-
-        if ((self.command == Command.PreparePenaltyYellow and self.team.color == Yellow) or
-                (self.command == Command.PreparePenaltyBlue and self.team.color == Blue)):
-            # Sets up the penalty kicker on the penalty position
-            self.penalty_us.is_last_toucher = False
-            self.penalty_us.ready = False
-            self.penalty_us.step()
-
-        elif (self.command == Command.NormalStart and
-                ((self.last_command == Command.PreparePenaltyYellow and self.team.color == Yellow) or
-                (self.last_command == Command.PreparePenaltyBlue and self.team.color == Blue))):
-            # After the penalty kicker reaches its position, it actually kicks
-            self.penalty_us.ready = True
-            self.penalty_us.step()
-
-            if self.penalty_us.attacker.is_last_toucher:
-                self.last_command = Command.NormalStart
-
-        elif ((self.command == Command.PreparePenaltyYellow and self.team.color == Blue) or
-              (self.command == Command.PreparePenaltyBlue and self.team.color == Yellow)):
-            self.penalty_them.step()
-
-        elif (self.command == Command.NormalStart and
-                ((self.last_command == Command.PreparePenaltyYellow and self.team.color == Blue) or
-                (self.last_command == Command.PreparePenaltyBlue and self.team.color == Yellow))):
-            # TODO: Should I put the ball's speed back here?
-            if ball_distance > TOLERANCE:
-                self.play.step()
-                self.last_command = Command.NormalStart
-            else:
-                self.penalty_them.step()
-
-        elif ((self.command == Command.DirectFreeBlue and self.team.color == Yellow) or
-                (self.command == Command.DirectFreeYellow and self.team.color == Blue) or
-                (self.command == Command.IndirectFreeBlue and self.team.color == Yellow) or
-                (self.command == Command.IndirectFreeYellow and self.team.color == Blue) or
-                (self.command == Command.NormalStart and
-                (self.last_command == Command.PrepareKickoffYellow and self.team.color == Blue) or
-                (self.last_command == Command.PrepareKickoffBlue and self.team.color == Yellow))):
-            if norm(self.world.ball.speed) > TOLERANCE or ball_distance > TOLERANCE:
-                self.play.step()
-            else:
-                self.stop.step()
-
-        elif ((self.command == Command.DirectFreeYellow and self.team.color == Yellow) or
-                (self.command == Command.DirectFreeBlue and self.team.color == Blue) or
-                (self.command == Command.IndirectFreeBlue and self.team.color == Blue) or
-                (self.command == Command.IndirectFreeYellow and self.team.color == Yellow)):
-
-            if self.first_time:
-                self.indirect_kick.reset()
-
-            if self.indirect_kick.has_passed:
-                self.play.step()
-            else:
-                self.indirect_kick.step()
-
-        elif self.command in [Command.PrepareKickoffYellow, Command.PrepareKickoffBlue, Command.Stop, Command.TimeoutYellow, Command.TimeoutBlue]:
-            self.stop.step()
-
-        elif self.command == Command.Halt:
-            self.halt.step()
-
-        elif (self.command == Command.NormalStart and
-                ((self.last_command == Command.PrepareKickoffYellow and self.team.color == Yellow) or
-                (self.last_command == Command.PrepareKickoffBlue and self.team.color == Blue))):
-            self.play.step()
-        else:
-            self.play.step()
+        play = self.select_play()
+        return play.step()

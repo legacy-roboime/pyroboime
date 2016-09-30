@@ -19,19 +19,17 @@ Things worth knowing:
 uid in this context means unique id, it is unique within a team only
 uuid in this context is universal unique id, it is unique whithin a world
 """
-from itertools import imap
-#from collections import defaultdict
 from functools import partial
+from enum import Enum
+
 from numpy import array
 from numpy import sign
 from numpy import linspace
-#from numpy import sign
 from shapely import geometry
 
 from .utils import geom
 from .utils.mathutils import cos, sin, sqrt
 from .utils.keydefaultdict import keydefaultdict
-from .communication.protos.referee_pb2 import SSL_Referee as ref
 from .config import config
 
 MAX_ROBOT_SPEED = config['robot']['max_speed']
@@ -104,7 +102,6 @@ class Action(object):
 
     def __nonzero__(self):
         """This is used for implicit bool conversion, which answers if the action does something."""
-        #return not (self.x is None or self.y is None or self.angle is None) or self._speeds is not None
         return self.has_target or self.has_speeds
 
     @property
@@ -159,7 +156,6 @@ class Action(object):
         self._speeds = (vx * cos(ra) + vy * sin(ra), vy * cos(ra) - vx * sin(ra), va)
 
     def __str__(self):
-        #return "Action: "+str(type(self.robot))+ str(self.speeds)#{'x': self.x, 'y': self.y, 'angle':self.angle})
         return "Action: {}{}".format(type(self.robot), str(self.speeds))
 
 
@@ -349,13 +345,13 @@ class Team(keydefaultdict):
     """This is basically a list of robots."""
 
     def __init__(self, color, robots=[], world=None):
-        super(Team, self).__init__(partial(Robot, team=self), imap(lambda r: (r.pattern, r), robots))
+        super(Team, self).__init__(partial(Robot, team=self), map(lambda r: (r.pattern, r), robots))
 
         self.color = color
         self.world = world
 
         # team info attributes
-        self.name = None
+        self.name = 'RoboIME'
         self.score = None
         self.red_cards = None
         self.yellow_cards = None
@@ -369,7 +365,7 @@ class Team(keydefaultdict):
         self.play = None
 
         # update robots' team
-        for r in self.itervalues():
+        for r in self.values():
             r.team = self
 
     @property
@@ -418,7 +414,7 @@ class Team(keydefaultdict):
 
     def iterrobots(self, active=True):
         """active: True, only active; False, only inactive; None, both."""
-        for r in self.itervalues():
+        for r in self.values():
             if active is not None:
                 if r.active == active:
                     yield r
@@ -444,7 +440,6 @@ class Team(keydefaultdict):
         """
         # TODO: aim for the best spot in the goal, not only to the middle of the enemy goal
 
-        #t = self.team
         b = self.world.ball
 
         if target is None:
@@ -477,7 +472,6 @@ class Team(keydefaultdict):
                 if found and acceptable:
                     candidate += [(pt, start_line.length + final_line.length)]
         if not candidate:
-            #goal_point = self.enemy_goal
             return [(geom.Point(self.enemy_goal.x - sign(self.enemy_goal.x), self.enemy_goal.y), 1)]
         else:
             return sorted(candidate, key=lambda tup: tup[1])
@@ -645,65 +639,32 @@ class Goal(geom.Point):
         return point
 
 
-class Referee(object):
+class Referee:
 
-    class _Enum(object):
-        @classmethod
-        def _pretty(cls, value):
-            for name in dir(cls):
-                if not name.startswith('_'):
-                    if getattr(cls, name) == value:
-                        return name
+    class State(Enum):
+        stop = 'S'
+        normal = 'N'
+        avoid = 'A'
+        pre_kickoff_player = 'p'
+        kickoff_player = 'k'
+        indirect_player = 'i'
+        direct_player = 'd'
+        pre_penalty_player = 'x'
+        penalty_player = 'y'
+        pre_kickoff_opponent = 'P'
+        kickoff_opponent = 'K'
+        indirect_opponent = 'I'
+        direct_opponent = 'D'
+        pre_penalty_opponent = 'X'
+        penalty_opponent = 'Y'
 
-    class Stage(_Enum):
-        NormalFirstHalfPre = ref.NORMAL_FIRST_HALF_PRE
-        NormalFirstHalf = ref.NORMAL_FIRST_HALF
-        NormalHalfTime = ref.NORMAL_HALF_TIME
-        NormalSecondHalfPre = ref.NORMAL_SECOND_HALF_PRE
-        NormalSecondHalf = ref.NORMAL_SECOND_HALF
-        ExtraTimeBreak = ref.EXTRA_TIME_BREAK
-        ExtraFirstHalfPre = ref.EXTRA_FIRST_HALF_PRE
-        ExtraFirstHalf = ref.EXTRA_FIRST_HALF
-        ExtraHalfTime = ref.EXTRA_HALF_TIME
-        ExtraSecondHalfPre = ref.EXTRA_SECOND_HALF_PRE
-        ExtraSecondHalf = ref.EXTRA_SECOND_HALF
-        PenaltyShootoutBreak = ref.PENALTY_SHOOTOUT_BREAK
-        PenaltyShootout = ref.PENALTY_SHOOTOUT
-        PostGame = ref.POST_GAME
-
-    class Command(_Enum):
-        Halt = ref.HALT
-        Stop = ref.STOP
-        NormalStart = ref.NORMAL_START
-        ForceStart = ref.FORCE_START
-        PrepareKickoffYellow = ref.PREPARE_KICKOFF_YELLOW
-        PrepareKickoffBlue = ref.PREPARE_KICKOFF_BLUE
-        PreparePenaltyYellow = ref.PREPARE_PENALTY_YELLOW
-        PreparePenaltyBlue = ref.PREPARE_PENALTY_BLUE
-        DirectFreeYellow = ref.DIRECT_FREE_YELLOW
-        DirectFreeBlue = ref.DIRECT_FREE_BLUE
-        IndirectFreeYellow = ref.INDIRECT_FREE_YELLOW
-        IndirectFreeBlue = ref.INDIRECT_FREE_BLUE
-        TimeoutYellow = ref.TIMEOUT_YELLOW
-        TimeoutBlue = ref.TIMEOUT_BLUE
-        GoalYellow = ref.GOAL_YELLOW
-        GoalBlue = ref.GOAL_BLUE
-
-    def __init__(self, world):
-        self.world = world
-        self.timestamp = None
-        self.stage = None
-        self.stage_time_left = None
-        self.command = None
-        self.command_timestamp = None
-
-    @property
-    def pretty_command(self):
-        return self.Command._pretty(self.command)
-
-    @property
-    def pretty_stage(self):
-        return self.Stage._pretty(self.stage)
+    def __init__(self):
+        self.state = None
+        self.more_info = None
+        self.score_player = None
+        self.score_opponent = None
+        self.goalie_id_player = None
+        self.goalie_id_opponent = None
 
 
 class World(object):
@@ -748,7 +709,7 @@ class World(object):
         self.ball = Ball(self)
 
         # the referee
-        self.referee = Referee(self)
+        self.referee = Referee()
 
     def switch_sides(self):
         self.right_team, self.left_team = self.left_team, self.right_team
@@ -831,7 +792,6 @@ class World(object):
     def defense_area(self, color):
         goal = self.goal(color)
         gx, gy = goal.x, goal.y
-        #goal_width = self.goal_width
         defense_area_radius = self.defense_radius
         defense_area_stretch = self.defense_stretch
         line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
@@ -851,13 +811,6 @@ class World(object):
             (goal.x, -r - s / 2),
             (goal.x, r + s / 2)
         ))
-        #goal = self.goal(color)
-        #gx, gy = goal.x, goal.y
-        ##goal_width = self.goal_width
-        #defense_area_radius = self.defense_radius
-        #defense_area_stretch = self.defense_stretch
-        #line_to_buffer = geom.Line([(gx, gy + defense_area_stretch / 2), (gx, gy - defense_area_stretch / 2)])
-        #return line_to_buffer.buffer(defense_area_radius + robot.radius + 0.1)
 
     def closest_robot_to_ball(self, **kwargs):
         return self.closest_robot_to_point(self.ball, **kwargs)
@@ -872,7 +825,7 @@ class World(object):
         """
         distance_robots_list = [(r.distance(point), r) for r in self.iterrobots(can_kick=can_kick, color=color)]
         if distance_robots_list:
-            d, r = min(distance_robots_list)
+            d, r = min(distance_robots_list, key=lambda d_r: d_r[0])
             return r
 
     def closest_robots_to_ball(self, **kwargs):
@@ -886,7 +839,8 @@ class World(object):
         If you want to consider both set can_kick to None.
         It will return a list sorted by distance
         """
-        return [r for d, r in sorted((r.distance(point), r) for r in self.iterrobots(can_kick=can_kick, color=color))]
+        return [r for d, r in sorted(((r.distance(point), r) for r in self.iterrobots(can_kick=can_kick, color=color)),
+                                     key=lambda d_r: d_r[0])]
 
     @property
     def robots(self):

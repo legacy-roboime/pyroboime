@@ -13,7 +13,6 @@
 # GNU Affero General Public License for more details.
 #
 from numpy import array
-from numpy.linalg import norm
 
 from .goto import Goto
 from ...utils.mathutils import cos, sin
@@ -50,7 +49,6 @@ class DriveTo(Goto):
         """
 
         super(DriveTo, self).__init__(robot, angle=angle, **kwargs)
-        #self.should_avoid = False
         self.robot = robot
         self._base_angle = base_angle
         self._base_point = base_point
@@ -91,36 +89,23 @@ class DriveTo(Goto):
 
     def bad_position(self):
         bad_distance = self.robot.kicker.distance(self.ball) > self.distance_tolerance + .01
-        #bad_orientation = abs(self.delta_orientation()) >= self.orientation_tolerance + 3
         bad_angle = abs(self.delta_angle()) >= self.angle_tolerance + 5
         return bad_distance or bad_angle
 
     def good_position(self):
         good_distance = self.robot.kicker.distance(self.ball) <= self.distance_tolerance
-        #good_orientation = abs(self.delta_orientation()) < self.orientation_tolerance
         good_angle = abs(self.delta_angle()) < self.angle_tolerance
         return good_distance and good_angle
 
     def delta_angle(self):
-        delta =  self.robot.angle_to_point(self.ball) - self.ball.angle_to_point(self.lookpoint)
+        delta = self.robot.angle_to_point(self.ball) - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
 
     def delta_orientation(self):
-        delta =  self.robot.angle - self.ball.angle_to_point(self.lookpoint)
+        delta = self.robot.angle - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
 
     def close_enough(self):
         good_distance = self.robot.kicker.distance(self.ball) <= self.distance_tolerance
-        #good_orientation = abs(self.delta_orientation()) < self.orientation_tolerance
         good_angle = abs(self.delta_angle()) < self.angle_tolerance
         return good_distance and good_angle
-
-    #def close_enough(self):
-    #    if self.target is None:
-    #        return None
-    #    error_d = norm(array(self.target) - array(self.robot))
-    #    error_a = abs(self.robot.angle - self.angle) % 180.0
-    #    error_a = min(error_a, 180. - error_a)
-    #    #print error_d, error_a
-    #    # We're close enough if both errors are sufficiently small.
-    #    return error_d < self.max_error_d and error_a < self.max_error_a

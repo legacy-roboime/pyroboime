@@ -43,8 +43,6 @@ class Stop(Play):
 
         # first 3 are blockers, the rest are defenders
         blockers, defenders = closest_robots[:3], closest_robots[3:]
-        #blockers = [r for d, r in sorted((-self.team[id].y, id) for id in blockers)]
-        #print blockers
 
         # sorting to avoid robot swap
         blockers = sorted(blockers)
@@ -72,15 +70,15 @@ class Stop(Play):
                 defenders[0].uid: 0.0
             }
 
-
         # iterate over list of enemies by proximity to the goal
-        #for enemy in self.enemy_team.closest_robots_to_point(self.team.goal):
-        #    # if there are free defenders, assign the closest to the enemy, to follow it
-        #    if len(defenders) > 0:
-        #        defender = enemy.closest_to(defenders)
-        #        defenders.remove(defender)
-        #        self.players[defender.uid]['defender'].enemy = enemy
-        ## for any remaining defender, let them guard the ball
+        # for enemy in self.enemy_team.closest_robots_to_point(self.team.goal):
+        #     # if there are free defenders, assign the closest to the enemy, to follow it
+        #     if len(defenders) > 0:
+        #         defender = enemy.closest_to(defenders)
+        #         defenders.remove(defender)
+        #         self.players[defender.uid]['defender'].enemy = enemy
+
+        # for any remaining defender, let them guard the ball
         for defender in defenders:
             self.players[defender.uid]['defender'].enemy = self.ball
 

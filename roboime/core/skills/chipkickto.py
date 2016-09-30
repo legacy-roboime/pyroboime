@@ -20,7 +20,6 @@ from .. import Skill
 
 
 KICKPOWER = 5.0
-#KICKPOWER = 1.0 # check this value...
 
 
 def kick_power(distance, initial_speed=0.0, final_speed=0.0):
@@ -63,20 +62,18 @@ class ChipKickTo(Skill):
     @lookpoint.setter
     def lookpoint(self, value):
         self._lookpoint = value
- 
+
     @property
     def final_target(self):
         return self.lookpoint
 
     def bad_position(self):
         bad_distance = self.robot.kicker.distance(self.ball) > self.distance_tolerance + .01
-        #bad_orientation = abs(self.delta_orientation()) >= self.orientation_tolerance + 3
         bad_angle = abs(self.delta_angle()) >= self.angle_tolerance + 5
         return bad_distance or bad_angle
 
     def good_position(self):
         good_distance = self.robot.kicker.distance(self.ball) <= self.distance_tolerance
-        #good_orientation = abs(self.delta_orientation()) < self.orientation_tolerance       
         good_angle = abs(self.delta_angle()) < self.angle_tolerance
         return good_distance and good_angle
 
@@ -87,7 +84,7 @@ class ChipKickTo(Skill):
     def delta_orientation(self):
         delta = self.robot.angle - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
- 
+
     def _step(self):
         delta_orientation = self.delta_orientation()
 
@@ -95,7 +92,6 @@ class ChipKickTo(Skill):
         self.angle_controller.feedback = 0.0
         self.angle_controller.step()
 
-        #d = self.robot.front_cut + self.ball.radius
         d = norm(array(self.robot) - array(self.ball))
         r = self.robot.radius
 

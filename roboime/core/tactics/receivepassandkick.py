@@ -15,11 +15,6 @@ from numpy import linspace
 from itertools import groupby
 
 from .. import Tactic
-from ...utils.statemachine import Transition
-from ..skills.drivetoball import DriveToBall
-from ..skills.sampledkick import SampledKick
-from ..skills.sampleddribble import SampledDribble
-from ..skills.halt import Halt
 from ...utils.geom import Point
 from ..skills.gotolooking import GotoLooking
 
@@ -79,7 +74,7 @@ class ReceivePassAndKick(Tactic):
 
         possible_points = [(y, self.world.has_clear_shot(Point(enemy_goal.x, y))) for y in linspace(enemy_goal.p2.y, enemy_goal.p1.y, 5)]
 
-        for has_clear_shot, group in groupby(possible_points, lambda (point, has): has):
+        for has_clear_shot, group in groupby(possible_points, lambda point_has: point_has[1]):
             if has_clear_shot:
                 hole = list(group)
                 if len(hole) > len(max_hole):

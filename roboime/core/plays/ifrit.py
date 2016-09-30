@@ -19,7 +19,6 @@ from ..tactics.zickler43 import Zickler43
 from ..tactics.blocker import Blocker
 from ..tactics.defender import Defender
 from ..tactics.executepass import ExecutePass
-#from ..tactics.receivepass import ReceivePass
 from ..tactics.receivepassandkick import ReceivePassAndKick
 from ...utils.mathutils import angle_between
 from ...utils.geom import Point, Line
@@ -73,7 +72,6 @@ class Ifrit(Play):
             if attacker.time_of_last_kick + .2 < self.world.timestamp:
                 self.hold_down_passer = self.last_passer
             if attacker.time_of_last_kick < self.world.timestamp + 1. and self.last_passer is not None and self.hold_down_passer is not None:
-                #print self.hold_down_passer.uid
                 self.hold_down_passer.action.kick = 1
 
         # list of the ids of the robots in order of proximity to the ball
@@ -87,7 +85,6 @@ class Ifrit(Play):
 
         # Here we split from autoretaliate.
         # We'll find now the best position for our pivot to receive a possible pass.
-        #self.best_position = self.best_receiver_positions(self.team[atk_id], self.last_passer)[0][0]
         self.best_position = self.crude_receiver_positions(self.team[atk_id], self.last_passer)[0][0]
         if self.best_position:
             robots_closest_to_bathtub = self.team.closest_robots_to_point(point=self.best_position)
@@ -127,18 +124,15 @@ class Ifrit(Play):
             goal_kick = True
             # Check if we want to pass or if we want to kick.
             if atk_id is not None and pvt_id is not None:
-                #print self.allowed_to_kick
                 if self.world.has_clear_shot(self.players[atk_id]['attacker'].lookpoint) and self.allowed_to_kick:
                     goal_kick = True
                     self.players[pvt_id]['receiver'].companion = self.players[atk_id]['attacker']
-                #print self.players[pvt_id]['receiver'].companion, self.players[atk_id]['attacker']
                 else:
                     self.players[atk_id]['passer'].companion = self.players[pvt_id]['receiver']
                     self.players[pvt_id]['receiver'].companion = self.players[atk_id]['passer']
                     goal_kick = False
         else:
             goal_kick = True
-        #print self.is_valid_position(self.team[0], self.team[1], verbose=True)
         # step'em, this is needed to guarantee we're only stepping active robots
         for robot in self.team:
             r_id = robot.uid
@@ -156,16 +150,12 @@ class Ifrit(Play):
             else:
                 robot.current_tactic = self.players[r_id]['defender']
 
-        #print self.is_valid_position(self.players[pvt_id]['receiver'].point, self.team[atk_id], verbose=True)
-
-    def is_valid_position(self, point, passer, verbose=False):
+    def is_valid_position(self, point, passer):
         base_array = array(point) - array(self.world.ball)
         p0, p1 = array(passer.enemy_goal.p1) - array(point), array(passer.enemy_goal.p2) - array(point)
         angle1, angle2 = angle_between(base_array, p0), angle_between(base_array, p1)
         for angle in [angle1, angle2]:
             angle = angle if angle < 180 else angle - 360
-        if verbose:
-            print angle1, angle2
         return abs(angle1) < 70 and abs(angle2) < 70 and (not Line(point, passer.enemy_goal.p1).crosses(passer.body)) and (not Line(point, passer.enemy_goal.p2).crosses(passer.body))
 
     def crude_receiver_positions(self, passer, current_position, target=None):
@@ -195,14 +185,12 @@ class Ifrit(Play):
         """
         # TODO: aim for the best spot in the goal, not only to the middle of the enemy goal
 
-        #t = self.team
         b = self.world.ball
 
         if target is None:
             target = self.team.enemy_goal
 
         candidate = []
-        #candidate_no_vision = []
         safety_margin = 2 * self.team[0].radius + 0.1
 
         # field params:
@@ -232,7 +220,6 @@ class Ifrit(Play):
                     else:
                         candidate += [(pt, 0)]
         if not candidate and current_position is not None:
-            #goal_point = self.enemy_goal
             return [(None, 0)]
         elif current_position is None:
             return [(Point(self.team.goal.x - sign(self.team.goal.x) * 1.5, self.team.goal.y - 1), 0)]

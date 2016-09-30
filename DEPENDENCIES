@@ -7,10 +7,6 @@ PIP
     # requires python
     apt-get install python-pip
 
-Google Protobuf for python
-    # requires PIP
-    pip install protobuf
-
 Shapely
     # requires PIP and libgeos
     pip install shapely
@@ -20,11 +16,6 @@ libgeos
     apt-get install libgeos-c
     # under fedora, the packages are labled as following: the -devel package is needed by shapely
     rpm install geos geos-devel
-
-PyQt4 (optional)
-    # windows users are advised to get the binaries from Riverbank, as pip install of pyqt is bugged as of now.
-    # mac os users should install it via ports or homebrew
-    pip install PyQt
 
 pygame (optional)
     # pygame 1.9.2 is recommended, it's not much easy to install
@@ -37,21 +28,11 @@ Python 2.7
 PIP
     http://www.lfd.uci.edu/~gohlke/pythonlibs/#pip
 
-Protobuf
-    # download latest version for win32
-    https://code.google.com/p/protobuf/downloads/list
-
 Shapely
     pip install shapely
 
-PyQt4
-    http://www.lfd.uci.edu/~gohlke/pythonlibs/#pyqt
-
 pygame
     http://www.lfd.uci.edu/~gohlke/pythonlibs/#pygame
-
-pyUSB
-    pip install pyusb
 
 pyYAML
     pip install pyyaml
@@ -61,4 +42,3 @@ pyYAML
     create smart dependencies file so one can
     run `python setup.py install-dependencies`
     or similar.
-

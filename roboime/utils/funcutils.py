@@ -20,10 +20,10 @@ def chained(*args):
     That is, for instance:
 
     >>> def a():
-    ...     print 'A!'
+    ...     print('A!')
     ...
     >>> def b():
-    ...     print 'B!'
+    ...     print('B!')
     ...
     >>> a()
     A!

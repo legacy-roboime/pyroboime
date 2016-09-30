@@ -11,10 +11,15 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
+import logging
+
 import pygame
 from numpy import abs
 
 from .. import Skill
+
+
+logger = logging.getLogger(__name__)
 
 
 class Joystick(Skill):
@@ -37,17 +42,15 @@ class Joystick(Skill):
         self.relative = relative
 
     def __del__(self):
-        pygame.quit() 
+        pygame.quit()
 
     def check_joysticks(self, index=0):
         if pygame.joystick.get_count() == 0:
             self.joystick_found = False
             # raise RuntimeError('No joysticks found.')
-            print 'WARNING: No joysticks found.'
-            print 'Setting keyboard as main controller.'
+            logger.warn('No joysticks found. Setting keyboard as main controller')
             pygame.joystick.quit()
 
-            #key_control = pygame.display.set_mode((150, 150))
             pygame.display.set_mode((150, 150))
             pygame.display.set_caption('Keyboard Controller')
 
@@ -73,7 +76,7 @@ class Joystick(Skill):
                 # Acquires the actual template of the joystick
                 joystick_topology = (self.joystick.get_numaxes(), self.joystick.get_numhats(), self.joystick.get_numbuttons())
                 template = available_templates.get(joystick_topology)
-                print 'template:', template
+                logger.info('template:', template)
 
                 # Available joysticks: ADD NEW JOYSTICK KEYMAPS HERE!
                 if template == 'xbox':
@@ -156,11 +159,11 @@ class Joystick(Skill):
                     self.lock_x = None
                     self.lock_y = None
                 else:
-                    print 'ERROR: Unrecognized joystick template.'
+                    logger.warn('Unrecognized joystick template. Ignoring joystick.')
                     # fallback to nojoysticks if we have no bindings
                     self.joystick_found = False
             else:
-                print 'ERROR: Joystick index not found.'
+                logger.error('Joystick index not found.')
 
     def set_speeds(self, speeds):
         if self.relative:
@@ -182,12 +185,8 @@ class Joystick(Skill):
         if self.joystick_found:
             # User did something
             for event in pygame.event.get():
+                # Possible joystick actions: JOYAXISMOTION JOYBALLMOTION JOYBUTTONDOWN JOYBUTTONUP JOYHATMOTION
                 pass
-                ## Possible joystick actions: JOYAXISMOTION JOYBALLMOTION JOYBUTTONDOWN JOYBUTTONUP JOYHATMOTION
-                #if event.type == pygame.JOYBUTTONDOWN:
-                #    print("Joystick button pressed.")
-                #if event.type == pygame.JOYBUTTONUP:
-                #    print("Joystick button released.")
 
             # 'attack3-like' joysticks have straffe_button != -1
             if self.straffe_button != -1:
@@ -223,7 +222,6 @@ class Joystick(Skill):
                     y = 0
                 if self.locked_y():
                     x = 0
-                #s = self.joystick.get_axis(self.straffe_axis)
                 a = -self.joystick.get_axis(self.angle_axis)
                 power = abs(self.joystick.get_axis(self.power_axis))
 
@@ -232,7 +230,7 @@ class Joystick(Skill):
                 y = y if abs(y) > self.deadzone else 0
                 a = a if abs(a) > self.deadzone else 0
                 power = power if abs(power) > self.deadzone else 0
-                print y * self.speed_ratio, x * self.speed_ratio, a * 300
+                logger.debug(y * self.speed_ratio, x * self.speed_ratio, a * 300)
                 self.set_speeds((y * self.speed_ratio, x * self.speed_ratio, a * 300))
 
                 if self.joystick.get_button(self.kick_button):
@@ -288,6 +286,3 @@ class Joystick(Skill):
                 self.robot.action.dribble = 0
 
             # TODO: 'Esc' to quit!
-            # if pressed[pygame.K_ESCAPE]:
-               # self.robot.action.speeds = 0, 0, 0
-               # pygame.quit()

@@ -11,6 +11,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PidController():
@@ -44,4 +47,4 @@ class PidController():
 
         if self.warn_over_speed:
             if self.output == self.output_max:
-                print 'WARNING: SPEED LIMIT REACHED'
+                logger.warn('SPEED LIMIT REACHED')

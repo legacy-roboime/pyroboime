@@ -43,7 +43,7 @@ class Defender(Tactic):
         self._robot = robot
         self.proximity = proximity
         self.cover = robot.goal if cover is None else cover
-        self.distance = distance if distance is not None else self.world.defense_radius + self.world.defense_stretch/2 + 0.10
+        self.distance = distance if distance is not None else self.world.defense_radius + self.world.defense_stretch / 2 + 0.10
         self.follow_distance = follow_distance
         self.proximity = proximity
         self.flapping_margin = flapping_margin
@@ -60,7 +60,7 @@ class Defender(Tactic):
         self.goto = GotoLooking(
             robot,
             name='Defend!',
-            lookpoint = self.enemy
+            lookpoint=self.enemy
         )
         # the following line is so that lambdas can use self.robot instead of
         # robot and keep track of the robot
@@ -91,12 +91,11 @@ class Defender(Tactic):
     def _step(self):
         base_angle = self.cover.angle_to_point(self.enemy)
         self.goto.target = Point(
-            array(
-                (self.distance * cos(base_angle + self.arc),
-                self.distance * sin(base_angle + self.arc))
-            ) + array(self.cover)
+            array((self.distance * cos(base_angle + self.arc),
+                   self.distance * sin(base_angle + self.arc))) + array(self.cover)
         )
         super(Defender, self)._step()
+
     @property
     def enemy(self):
         return self._enemy

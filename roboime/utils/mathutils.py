@@ -22,13 +22,13 @@ for fun in dir(math):
     if fun in _restricted_:
         pass
     elif fun in _trigonom_:
-        exec '{0} = lambda x: math.{0}(math.radians(x))'.format(fun) in globals()
+        exec('{0} = lambda x: math.{0}(math.radians(x))'.format(fun), globals())
     elif fun == 'atan2':
-        exec '{0} = lambda y, x: math.degrees(math.{0}(y, x))'.format(fun) in globals()
+        exec('{0} = lambda y, x: math.degrees(math.{0}(y, x))'.format(fun), globals())
     elif fun in _invtrigonom_:
-        exec '{0} = lambda x: math.degrees(math.{0}(x))'.format(fun) in globals()
+        exec('{0} = lambda x: math.degrees(math.{0}(x))'.format(fun), globals())
     else:
-        exec '{0} = math.{0}'.format(fun)
+        exec('{0} = math.{0}'.format(fun))
 
 
 def norm(vector):

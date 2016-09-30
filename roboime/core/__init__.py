@@ -16,9 +16,14 @@ This is the core module that holds the base for Skills,
 Tactics and Plays.
 Might it be splitted?
 """
+import logging
+
 from ..utils.statemachine import State, Machine
 from ..utils import keydefaultdict
 from ..utils.log import Log
+
+
+logger = logging.getLogger(__name__)
 
 
 class Steppable(object):
@@ -35,10 +40,6 @@ class Steppable(object):
         # continue the chain of inheritance init
         super(Steppable, self).__init__(*args, **kwargs)
         self.log = Log('core')
-        #try:
-        #    super(Steppable, self).__init__(*args, **kwargs)
-        #except TypeError:
-        #    pass
 
     def __str__(self):
         return self.name or self.__class__.__name__
@@ -93,7 +94,7 @@ class Skill(Steppable, State):
 
     def mark_skill(self):
         self.robot.skill = self
-        for param in self.params.iterkeys:
+        for param in self.params.keys():
             pvalue = getattr(self, param)
             self.params[param] = pvalue
 
@@ -182,7 +183,7 @@ class Play(Steppable):
             r_id = robot.uid
             if r_id not in self.players:
                 self.players[r_id] = {}
-                for key, expression in self.tactics_factory.iteritems():
+                for key, expression in self.tactics_factory.items():
                     self.players[r_id][key] = expression(robot)
 
     def setup_tactics(self):

@@ -11,7 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-from numpy import pi, sign, array, sin
+from numpy import pi, sign, array
 from numpy.linalg import norm
 
 from ...utils.mathutils import sqrt
@@ -20,7 +20,6 @@ from .. import Skill
 
 
 KICKPOWER = 5.0
-#KICKPOWER = 1.0 # check this value...
 
 
 def kick_power(distance, initial_speed=0.0, final_speed=0.0):
@@ -35,9 +34,7 @@ class KickTo(Skill):
     This class is an alternative to SampledKick.
     Meanwhile it's experimental, depending on the results it'll stay or not.
     """
-    #TODO: Change parameter back once we have real control.
-    #angle_kick_min_error = 0.5
-    #distance_kick_min_error = 0.8
+    # TODO: Change parameter back once we have real control.
     angle_kick_min_error = 10
     angle_approach_min_error = 5
     angle_tolerance = 5
@@ -77,13 +74,11 @@ class KickTo(Skill):
 
     def bad_position(self):
         bad_distance = self.robot.kicker.distance(self.ball) > self.distance_tolerance + .01
-        #bad_orientation = abs(self.delta_orientation()) >= self.orientation_tolerance + 3
         bad_angle = abs(self.delta_angle()) >= self.angle_tolerance + 5
         return bad_distance or bad_angle
 
     def good_position(self):
         good_distance = self.robot.kicker.distance(self.ball) <= self.distance_tolerance
-        #good_orientation = abs(self.delta_orientation()) < self.orientation_tolerance
         good_angle = abs(self.delta_angle()) < self.angle_tolerance
         return good_distance and good_angle
 
@@ -96,14 +91,12 @@ class KickTo(Skill):
         return (180 + delta) % 360 - 180
 
     def _step(self):
-        #print 'blasdbflas'
         delta_orientation = self.delta_orientation()
 
         self.angle_controller.input = delta_orientation
         self.angle_controller.feedback = 0.0
         self.angle_controller.step()
 
-        #d = self.robot.front_cut + self.ball.radius
         d = norm(array(self.robot) - array(self.ball))
         r = self.robot.radius
 
@@ -115,7 +108,6 @@ class KickTo(Skill):
         z = 0.0
 
         if abs(delta_orientation) < self.angle_kick_min_error or self.force_kick:
-        #if abs(sin(delta_orientation) * self.ball.distance(self.lookpoint)) < self.distance_kick_min_error:
             kp = kick_power(self.lookpoint.distance(self.robot))
             kp = min(max(kp, self.minpower), self.maxpower)
             self.robot.action.kick = kp
@@ -123,7 +115,6 @@ class KickTo(Skill):
             self.distance_controller.feedback = 0
             self.distance_controller.step()
             z = self.distance_controller.output
-            #z = self.walkspeed
         else:
             if abs(delta_orientation) < self.angle_approach_min_error:
                 self.distance_controller.input = self.robot.kicker.distance(self.ball)

@@ -34,7 +34,6 @@ class Point(geometry.Point):
         """ This reconstructs the current point with a new set of coordinates so that
         we can work around the fact that shapely points cannot have their coordinate sets changed
         """
-        #super(Point, self).__init__(*args, **kwargs)
         self._set_coords(*args)
         if len(args) == 1:
             ctypes_data = _c_double_Array_2(*args[0])
@@ -55,8 +54,6 @@ class Point(geometry.Point):
         ang_rad = arctan2(deltaY, deltaX) * 180 / pi
         if(ang_rad < 0):
             return ang_rad + 360
-        #if(deltaY < 0 and deltaX < 0):
-        #    return ang_rad + 180
         return ang_rad
 
     @classmethod
@@ -80,11 +77,11 @@ class Point(geometry.Point):
 # This is so that we can access the methods we defined in our Point class from shapely's Point class.
 # we use im_func to acquire the function from the unbound methods so that when an instance of
 # shapely.geometry.Point is created, these methods will bind to them.
-geometry.Point.distance_to_line = Point.distance_to_line.im_func
-geometry.Point.update = Point.update.im_func
-geometry.Point.angle_to_point = Point.angle_to_point.im_func
-geometry.Point.closest_to = Point.closest_to.im_func
-geometry.Point.within = Point.within.im_func
+geometry.Point.distance_to_line = Point.distance_to_line
+geometry.Point.update = Point.update
+geometry.Point.angle_to_point = Point.angle_to_point
+geometry.Point.closest_to = Point.closest_to
+geometry.Point.within = Point.within
 
 
 class Circle(geometry.Polygon):

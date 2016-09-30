@@ -11,12 +11,14 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def to_short(x):
-    return min(max(x, -32768), 32767)
-    # TODO log when it truncates
-    #if x == min(max(x, -32768), 32767):
-    #    return x
-    #else:
-    #    raise RuntimeError('THAT ({}) NUMBER IS TOO DAMN HIGH!!!'.format(x))
+    s = min(max(x, -32768), 32767)
+    if s != x:
+        logger.warn('{} truncated'.format(x))
+    return s

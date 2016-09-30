@@ -30,8 +30,7 @@ class DriveToObject(DriveTo, GotoAvoid):
         In adition to those, checkout DriveTo parameters as they are also
         valid for this skill, EXCEPT for base_point, which is mapped to point.
         """
-        if not 'threshold' in kwargs:
-            #kwargs['threshold'] = robot.front_cut * 1.1
+        if 'threshold' not in kwargs:
             kwargs['threshold'] = robot.radius * 1.1
         super(DriveToObject, self).__init__(robot, base_point=point, **kwargs)
         self._lookpoint = lookpoint

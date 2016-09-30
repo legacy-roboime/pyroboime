@@ -17,7 +17,6 @@ from numpy.linalg import norm
 from .. import Skill
 from ...utils.geom import Point
 from ...utils.pidcontroller import PidController
-from ...base import Action
 
 
 class Goto(Skill):
@@ -72,7 +71,7 @@ class Goto(Skill):
         self.target = self.path_planner(final)
 
         if self.decoupled:
-            a = self.angle or r.angle or 0.0
+            a = self.angle or self.robot.angle or 0.0
             self.robot.action.target = (self.target.x, self.target.y, a)
             return
 
@@ -89,7 +88,7 @@ class Goto(Skill):
         diff_to_final = array(final) - array(self.robot)
         diff = array(self.target) - array(self.robot)
         vel = self.robot.max_speed if norm(diff_to_final) > self.deaccel_dist else self.robot.max_speed * norm(diff)
-        v = vel * diff / norm(diff)
+        v = diff * (vel / norm(diff) if norm(diff) > 0.0 else 0.0)
         self.robot.action.absolute_speeds = v[0], v[1], va
 
     def path_planner(self, target, depth=0):
@@ -101,7 +100,7 @@ class Goto(Skill):
             points = []
             x = linspace(target.x, self.robot.x, self.divisions)
             y = linspace(target.y, self.robot.y, self.divisions)
-            for i in xrange(self.divisions):
+            for i in range(self.divisions):
                 if self.ignore_defense_area:
                     points.append(Point(x[i], y[i]))
                 else:

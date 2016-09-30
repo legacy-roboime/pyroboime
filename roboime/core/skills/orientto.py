@@ -14,7 +14,6 @@
 from numpy import pi, sign, array
 from numpy.linalg import norm
 
-#from ...utils.mathutils import sqrt
 from ...utils.pidcontroller import PidController
 from .. import Skill
 
@@ -48,7 +47,7 @@ class OrientTo(Skill):
         return good_distance and good_angle
 
     def delta_angle(self):
-        delta =  self.robot.angle - self.ball.angle_to_point(self.lookpoint)
+        delta = self.robot.angle - self.ball.angle_to_point(self.lookpoint)
         return (180 + delta) % 360 - 180
 
     def _step(self):
@@ -58,7 +57,6 @@ class OrientTo(Skill):
         self.angle_controller.feedback = 0.0
         self.angle_controller.step()
 
-        #d = self.robot.front_cut + self.ball.radius
         d = norm(array(self.robot) - array(self.ball))
         r = self.robot.radius
 

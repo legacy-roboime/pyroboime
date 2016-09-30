@@ -11,11 +11,16 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
+import logging
+
 from .. import Play
 from ..tactics.goalkeeper import Goalkeeper
 from ..tactics.zickler43 import Zickler43
 from ..tactics.blocker import Blocker
 from ..tactics.defender import Defender
+
+
+logger = logging.getLogger(__name__)
 
 
 class AutoRetaliate(Play):
@@ -42,6 +47,7 @@ class AutoRetaliate(Play):
         })
 
     def setup_tactics(self):
+
         # list of the ids of the robots in order of proximity to the ball
         closest_robots = [r.uid for r in self.team.closest_robots_to_ball(can_kick=True)]
 
@@ -56,7 +62,7 @@ class AutoRetaliate(Play):
         # gather the defenders (not goalkeeper, attacker or blocker)
         defenders = [r for r in self.team if r.uid not in [gk_id, atk_id, blk_id]]
         # order defenders by id to avoid position oscillations
-        defenders = sorted(defenders, lambda x, y: x.uid < y.uid)
+        defenders = sorted(defenders, key=lambda r: r.uid)
         # distributing defenders
         # TODO: make it generic
         defender_arc = {}
@@ -76,18 +82,6 @@ class AutoRetaliate(Play):
                 defenders[0].uid: 0.0
             }
 
-        # iterate over list of enemies by proximity to the goal
-        #for enemy in self.enemy_team.closest_robots_to_point(self.team.goal):
-        #    # if there are free defenders, assign the closest to the enemy, to follow it
-        #    if len(defenders) > 0:
-        #        defender = enemy.closest_to(defenders)
-        #        defenders.remove(defender)
-        #        self.players[defender.uid]['defender'].enemy = enemy
-
-        # for any remaining defender, let them guard the ball
-        #for defender in defenders:
-        #    self.players[defender.uid]['defender'].enemy = self.ball
-
         # step'em, this is needed to guarantee we're only stepping active robots
         for robot in self.team:
             r_id = robot.uid
@@ -101,4 +95,3 @@ class AutoRetaliate(Play):
                 robot.current_tactic = self.players[r_id]['defender']
                 if (defender_arc and r_id in defender_arc):
                     robot.current_tactic.arc = defender_arc[r_id]
-            #print robot.current_tactic

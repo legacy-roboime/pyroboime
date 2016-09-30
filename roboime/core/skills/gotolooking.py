@@ -34,6 +34,5 @@ class GotoLooking(Goto):
         self._lookpoint = value
 
     def _step(self):
-        #print self.lookpoint
         self.angle = self.robot.angle_to_point(self.lookpoint)
         super(GotoLooking, self)._step()

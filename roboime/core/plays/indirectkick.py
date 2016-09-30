@@ -13,7 +13,6 @@
 #
 from .stop import Stop
 from ..tactics.zickler43 import Zickler43
-#from ..skills.sampledchipkick import SampledChipKick
 from ..tactics.executepass import ExecutePass
 from ..tactics.receivepass import ReceivePass
 from ...utils.statemachine import Machine as StateMachine, State, Transition
@@ -28,7 +27,6 @@ class IndirectKick(Stop, StateMachine):
 
     def __init__(self, team, **kwargs):
         super(IndirectKick, self).__init__(team, deterministic=True, **kwargs)
-        #Stop.__init__(self, team, **kwargs)
 
         self.states = {
             'starting': State(True, name='Starting'),
@@ -102,19 +100,12 @@ class IndirectKick(Stop, StateMachine):
             if robots_closest_to_ball:
                 self.passer = robots_closest_to_ball[0]
 
-            #for robot in self.team:
-            #    robot.current_tactic = Steppable()
-
         elif self.current_state == self.states['go_position']:
             self.players[self.passer.uid]['passer'].companion = self.players[self.receiver.uid]['receiver']
             self.players[self.receiver.uid]['receiver'].point = self.best_position
             self.players[self.receiver.uid]['receiver'].companion = self.players[self.passer.uid]['passer']
             self.receiver.current_tactic = self.players[self.receiver.uid]['receiver']
             self.log.debug(self.receiver.current_tactic)
-
-            #for robot in self.team:
-            #    if robot != self.receiver:
-            #        robot.current_tactic = Steppable()
 
         elif self.current_state == self.states['pass']:
             self.best_position = self.team.best_indirect_positions()[0][0]
@@ -126,9 +117,6 @@ class IndirectKick(Stop, StateMachine):
             self.players[self.receiver.uid]['receiver'].point = self.best_position
 
             self.receiver.current_tactic = self.players[self.receiver.uid]['receiver']
-            #for robot in self.team:
-            #    if robot != self.passer and robot != self.receiver:
-            #        robot.current_tactic = Steppable()
 
         elif self.current_state == self.states['touched']:
             robots_closest_to_ball = self.team.closest_robots_to_ball()
@@ -148,13 +136,6 @@ class IndirectKick(Stop, StateMachine):
 
             self.players[self.receiver.uid]['receiver'].target = self.best_position
             self.receiver.current_tactic = self.players[self.receiver.uid]['receiver']
-
-            #for robot in self.team:
-            #    if robot != attacker and robot != self.receiver:
-            #        robot.current_tactic = Steppable()
-        #else:
-        #    for robot in self.team:
-        #        robot.current_tactic = Steppable()
 
         # Executes state machine transitions
         self.execute()

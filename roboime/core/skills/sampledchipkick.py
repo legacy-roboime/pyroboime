@@ -18,7 +18,6 @@ from .drivetoball import DriveToBall
 
 
 KICKPOWER = 2000.0
-#KICKPOWER = 1.0 # check this value...
 
 
 def kick_power(distance, initial_speed=0.0, final_speed=0.0):
