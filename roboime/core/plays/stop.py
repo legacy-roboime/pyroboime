@@ -11,6 +11,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
+from itertools import permutations
+
 from .. import Play
 from ..tactics.goalkeeper import Goalkeeper
 from ..tactics.blocker import Blocker
@@ -23,6 +25,26 @@ class Stop(Play):
     to the ball, use this.
     """
 
+    # map the number of robots to a list of arc angles
+    defender_arcs = {
+        0: {},
+        1: {0},
+        2: {-10, 10},
+        3: {-15, 0, 15},
+        4: {-21, -7, 7, 21},
+        5: {-24, -12, 0, 12, 24},
+    }
+    blocker_arcs = {
+        0: {},
+        1: {0},
+        2: {-15, 15},
+        3: {-30, 0, 30},
+        4: {-45, -15, 15, 45},
+        5: {-60, -30, 0, 30, 60},
+    }
+
+    default_n_blockers = 3
+
     def __init__(self, team, **kwargs):
         super(Stop, self).__init__(team, **kwargs)
         self.players = {}
@@ -31,71 +53,56 @@ class Stop(Play):
             'blocker': lambda robot: Blocker(robot, arc=0),
             'defender': lambda robot: Defender(robot, enemy=self.ball),
         })
+        self.n_blockers = self.default_n_blockers
 
-    def setup_tactics(self):
-        # list of the ids of the robots in order of proximity to the ball
-        closest_robots = [r.uid for r in self.team.closest_robots_to_ball(can_kick=True)]
+        self.cached_gk_id = None
+        self.cached_bd_ids = None
+        self.counter = 0
 
-        # make sure we do not account for the goalkeeper on that list
-        gk_id = self.goalie
-        if gk_id in closest_robots:
-            closest_robots.remove(gk_id)
+    def heavy_setup_tactics(self):
+        gk_id = self.cached_gk_id
+        bd_ids = self.cached_bd_ids
 
         # first 3 are blockers, the rest are defenders
-        blockers, defenders = closest_robots[:3], closest_robots[3:]
+        n_blockers = min(self.n_blockers, len(bd_ids))
+        n_defenders = len(bd_ids) - n_blockers
 
-        # sorting to avoid robot swap
-        blockers = sorted(blockers)
+        # get arcs
+        defender_arcs = self.defender_arcs[n_defenders]
+        blocker_arcs = self.blocker_arcs[n_blockers]
 
-        # order defenders by id to avoid position oscillations
-        defenders = sorted(defenders)
+        # create jobs
+        jobs = {('defender', a) for a in defender_arcs} | {('blocker', a) for a in blocker_arcs}
 
-        # grab the actual list of defenders
-        defenders = [self.team[i] for i in defenders]
+        # distribute the jobs
+        # XXX: it will error if len(defenders) > 5, but that would never happen
+        best_job_map = None
+        best_job_dist = None
+        for job_set in permutations(jobs):
+            job_map = [(i, j[0], j[1]) for i, j in zip(bd_ids, job_set)]
+            job_dist = sum(self.players[i][j].dist_to_arc(a) for i, j, a in job_map)
+            if best_job_dist is None or job_dist < best_job_dist:
+                best_job_dist = job_dist
+                best_job_map = job_map
 
-        # distributing defenders
-        if len(defenders) == 3:
-            defender_arc = {
-                defenders[0].uid: -15.0,
-                defenders[1].uid: 0.0,
-                defenders[2].uid: 15.0
-            }
-        elif len(defenders) == 2:
-            defender_arc = {
-                defenders[0].uid: -10,
-                defenders[1].uid: 10
-            }
-        elif len(defenders) == 1:
-            defender_arc = {
-                defenders[0].uid: 0.0
-            }
+        # assign tactics
+        if gk_id:
+            self.team[gk_id].current_tactic = self.players[gk_id]['goalkeeper']
+        for i, j, a in best_job_map:
+            tactic = self.players[i][j]
+            tactic.arc = a
+            self.team[i].current_tactic = tactic
 
-        # iterate over list of enemies by proximity to the goal
-        # for enemy in self.enemy_team.closest_robots_to_point(self.team.goal):
-        #     # if there are free defenders, assign the closest to the enemy, to follow it
-        #     if len(defenders) > 0:
-        #         defender = enemy.closest_to(defenders)
-        #         defenders.remove(defender)
-        #         self.players[defender.uid]['defender'].enemy = enemy
+    def setup_tactics(self):
+        gk_id = self.goalie
+        # blockers and defenders
+        bd_ids = {r.uid for r in self.team if r.uid != gk_id}
 
-        # for any remaining defender, let them guard the ball
-        for defender in defenders:
-            self.players[defender.uid]['defender'].enemy = self.ball
-
-        # set blockers arc
-        if len(blockers) > 0:
-            self.players[blockers[0]]['blocker'].arc = 0
-        if len(blockers) > 1:
-            self.players[blockers[1]]['blocker'].arc = 30
-        if len(blockers) > 2:
-            self.players[blockers[2]]['blocker'].arc = -30
-
-        for robot in self.team:
-            r_id = robot.uid
-            if r_id == gk_id:
-                robot.current_tactic = self.players[r_id]['goalkeeper']
-            elif r_id in blockers:
-                robot.current_tactic = self.players[r_id]['blocker']
-            else:
-                robot.current_tactic = self.players[r_id]['defender']
-                robot.current_tactic.arc = defender_arc[r_id]
+        # this is a strategy to only call heavy_setup_tactics only once every 300 frames or one the requirements change
+        if self.counter > 300 or gk_id != self.cached_gk_id or bd_ids != self.cached_bd_ids:
+            self.cached_gk_id = gk_id
+            self.cached_bd_ids = bd_ids
+            self.heavy_setup_tactics()
+            self.counter = 0
+        else:
+            self.counter += 1

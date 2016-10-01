@@ -44,10 +44,20 @@ class Blocker(Tactic):
         self.arc = arc
         self.dist = distance
 
-    def _step(self):
+    def point_for_arc(self, arc):
         base_angle = self.ball.angle_to_point(self.goal)
-        self.goto.target = Point(
-            array((self.dist * cos(base_angle + self.arc),
-                   self.dist * sin(base_angle + self.arc))) + array(self.blockpoint)
+        return Point(
+            array((self.dist * cos(base_angle + arc),
+                   self.dist * sin(base_angle + arc))) + array(self.blockpoint)
         )
+
+    def dist_to_arc(self, arc):
+        return self.robot.distance(self.point_for_arc(arc))
+
+    @property
+    def point_to_cover(self):
+        return self.point_for_arc(self.arc)
+
+    def _step(self):
+        self.goto.target = self.point_to_cover
         self.goto.step()

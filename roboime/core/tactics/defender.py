@@ -88,12 +88,22 @@ class Defender(Tactic):
             ]
         )
 
-    def _step(self):
+    def point_for_arc(self, arc):
         base_angle = self.cover.angle_to_point(self.enemy)
-        self.goto.target = Point(
-            array((self.distance * cos(base_angle + self.arc),
-                   self.distance * sin(base_angle + self.arc))) + array(self.cover)
+        return Point(
+            array((self.distance * cos(base_angle + arc),
+                   self.distance * sin(base_angle + arc))) + array(self.cover)
         )
+
+    def dist_to_arc(self, arc):
+        return self.robot.distance(self.point_for_arc(arc))
+
+    @property
+    def point_to_cover(self):
+        return self.point_for_arc(self.arc)
+
+    def _step(self):
+        self.goto.target = self.point_to_cover
         super(Defender, self)._step()
 
     @property

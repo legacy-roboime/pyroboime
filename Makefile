@@ -50,7 +50,6 @@ profile:
 	@rm -f $(PROFILE_OUT)
 	@source $(VIRTUALENV_ACTIVATE) && $(CORE_CMD_PROFILE) || true
 
-
 # target to create the virtualenv, based on the presence
 # of the activation script
 .PHONY: virtualenv
@@ -59,7 +58,6 @@ virtualenv: $(VIRTUALENV_ACTIVATE)
 $(VIRTUALENV_ACTIVATE):
 	@which virtualenv || (echo "virtualenv not found" && exit 1)
 	@virtualenv --python=python3 --prompt=[$(PROJECT)] $(VIRTUALENV)
-
 
 # install dependencies inside the virutalenv, naturally will
 # require the virtualenv
