@@ -65,13 +65,13 @@ $(VIRTUALENV_ACTIVATE):
 # require the virtualenv
 .PHONY: deps
 deps: virtualenv
-	@source $(VIRTUALENV_ACTIVATE) && $(MAKE) pip-deps
+	@. $(VIRTUALENV_ACTIVATE) && $(MAKE) pip-deps
 
 # install dependencies specified on requirements.txt taking
 # into account vialink's pip repository
 .PHONY: pip-deps
 pip-deps:
-	@pip install -r requirements.txt
+	@pip3 install -r requirements.txt
 
 # wipe out the created virtualenv
 .PHONY: clean
