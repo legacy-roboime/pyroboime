@@ -11,10 +11,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
+from itertools import groupby
+
 from numpy import array
 from numpy import sign
 from numpy import linspace
-from itertools import groupby
 
 from ...utils.mathutils import sin, cos
 from ...utils.geom import Line, Point
@@ -57,7 +58,7 @@ class Goalkeeper(Tactic):
         self.angle = angle
         # should parametrize these
         # time in seconds to predict future ball position
-        self.look_ahead_time = 4.0
+        self.look_ahead_time = 10.0
         self.domination_radius = 0.135
         self.safety_ratio = 2.0
 
@@ -91,6 +92,22 @@ class Goalkeeper(Tactic):
             if self.robot is self.world.closest_robot_to_ball():
                 return self.chip.step()
 
+        future_ball = array(self.ball) + self.ball.speed * self.look_ahead_time
+        ball_now, ball_then = Point(self.ball), Point(future_ball)
+        ball_line = Line(ball_now, ball_then)
+
+        if ball_now.equals(ball_then) and ball_line.crosses(self.goal.line):
+            point_to_go = ball_line.intersection(self.goal.line)
+
+            if point_to_go.geom_type == 'Point':
+                self.goto.final_target = self.goal_to_home(point_to_go)
+            else:
+                pass
+
+        # If the ball is in defense area, the goalkeeper must shoot
+        if self.ball.within(self.goal.area):
+            return self.chip.step()
+
         # watch the enemy
         # TODO: get the chain of badguys, (badguy and who can it pass to)
 
@@ -116,22 +133,6 @@ class Goalkeeper(Tactic):
                     pass
             else:
                 pass
-
-        future_ball = array(self.ball) + self.ball.speed * self.look_ahead_time
-        ball_now, ball_then = Point(self.ball), Point(future_ball)
-        ball_line = Line(ball_now, ball_then)
-
-        if ball_now.equals(ball_then) and ball_line.crosses(self.goal.line):
-            point_to_go = ball_line.intersection(self.goal.line)
-
-            if point_to_go.geom_type == 'Point':
-                self.goto.final_target = self.goal_to_home(point_to_go)
-            else:
-                pass
-
-        # If the ball is in defense area, the goalkeeper must shoot
-        if self.ball.within(self.goal.area):
-            return self.chip.step()
 
         self.goto.step()
 

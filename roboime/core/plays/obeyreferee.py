@@ -11,8 +11,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-from numpy.linalg import norm
-
 from .. import Play
 from .stop import Stop
 from .halt import Halt
@@ -20,7 +18,6 @@ from .penalty import Penalty
 from .penaltydefend import PenaltyDefend
 from .indirectkick import IndirectKick
 from ...base import Referee
-from ...utils.geom import Point
 
 
 State = Referee.State
@@ -52,17 +49,17 @@ class ObeyReferee(Play):
     def select_play(self):
         state = self.world.referee.state
 
-        self.main_play.clean()
-
         if state == State.stop:
             self.indirect_kick.reset()
             return self.stop
 
-        if state == State.normal:
-            return self.main_play
-
         if state == State.avoid:
             self.main_play.avoid_id = self.world.referee.more_info
+            return self.main_play
+        else:
+            self.main_play.clean()
+
+        if state == State.normal:
             return self.main_play
 
         if state == State.pre_kickoff_player:
@@ -91,16 +88,13 @@ class ObeyReferee(Play):
             return self.penalty
 
         if state == State.pre_kickoff_opponent or state == State.kickoff_opponent:
-            # TODO: take better defensive position
             return self.stop
 
         if state == State.indirect_opponent or state == State.direct_opponent:
-            # TODO: take better defensive position
             return self.stop
 
         if state == State.pre_penalty_opponent or state == State.penalty_opponent:
             return self.penalty_defend
 
     def step(self):
-        play = self.select_play()
-        return play.step()
+        return self.select_play().step()

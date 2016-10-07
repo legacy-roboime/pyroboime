@@ -40,4 +40,4 @@ zmq:
   # and push to this:
   pull: tcp://*:6664
 robot:
-  max_speed: 2.0
+  max_speed: 4.0

@@ -77,6 +77,9 @@ class Zickler43(Tactic):
 
         self.max_hole_size = -1
 
+    def dist(self):
+        return self.robot.distance(self.ball)
+
     def set_time(self):
         self.time_of_last_kick = self.world.timestamp
 

@@ -43,7 +43,7 @@ class Stop(Play):
         5: {-60, -30, 0, 30, 60},
     }
 
-    default_n_blockers = 3
+    default_n_blockers = 2
 
     def __init__(self, team, **kwargs):
         super(Stop, self).__init__(team, **kwargs)
@@ -54,7 +54,6 @@ class Stop(Play):
             'defender': lambda robot: Defender(robot, enemy=self.ball),
         })
         self.n_blockers = self.default_n_blockers
-
         self.cached_gk_id = None
         self.cached_bd_ids = None
         self.counter = 0
@@ -75,7 +74,6 @@ class Stop(Play):
         jobs = {('defender', a) for a in defender_arcs} | {('blocker', a) for a in blocker_arcs}
 
         # distribute the jobs
-        # XXX: it will error if len(defenders) > 5, but that would never happen
         best_job_map = None
         best_job_dist = None
         for job_set in permutations(jobs):
@@ -86,7 +84,7 @@ class Stop(Play):
                 best_job_map = job_map
 
         # assign tactics
-        if gk_id:
+        if gk_id is not None:
             self.team[gk_id].current_tactic = self.players[gk_id]['goalkeeper']
         for i, j, a in best_job_map:
             tactic = self.players[i][j]

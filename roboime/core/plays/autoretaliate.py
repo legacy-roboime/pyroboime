@@ -11,6 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
+from itertools import permutations
 import logging
 
 from .. import Play
@@ -33,6 +34,26 @@ class AutoRetaliate(Play):
     This is basically it.
     """
 
+    # map the number of robots to a list of arc angles
+    defender_arcs = {
+        0: {},
+        1: {0},
+        2: {-10, 10},
+        3: {-15, 0, 15},
+        4: {-21, -7, 7, 21},
+        5: {-24, -12, 0, 12, 24},
+    }
+    blocker_arcs = {
+        0: {},
+        1: {0},
+        2: {-15, 15},
+        3: {-30, 0, 30},
+        4: {-45, -15, 15, 45},
+        5: {-60, -30, 0, 30, 60},
+    }
+
+    default_n_blockers = 1
+
     def __init__(self, team, **kwargs):
         """
         team: duh
@@ -45,67 +66,78 @@ class AutoRetaliate(Play):
             'blocker': lambda robot: Blocker(robot, arc=0),
             'defender': lambda robot: Defender(robot, enemy=self.ball),
         })
+        self.n_blockers = self.default_n_blockers
+        self.cached_gk_id = None
+        self.cached_av_id = None
+        self.cached_bd_ids = None
+        self.counter = 0
         self.clean()
 
     def clean(self):
         self.avoid_id = None
 
-    def setup_tactics(self):
+    def heavy_setup_tactics(self):
+        gk_id = self.cached_gk_id
+        av_id = self.cached_av_id
+        bd_ids = self.cached_bd_ids
 
-        # list of the ids of the robots in order of proximity to the ball
-        closest_robots = [r.uid for r in self.team.closest_robots_to_ball(can_kick=True)]
+        # first 3 are blockers, the rest are defenders
+        n_atk = min(1, len(bd_ids))
+        n_blockers = min(self.n_blockers, len(bd_ids) - n_atk)
+        n_defenders = len(bd_ids) - n_atk - n_blockers
 
-        # make sure we do not account for the goalkeeper on that list
-        gk_id = self.goalie
-        if len(closest_robots) > 1 and gk_id in closest_robots:
-            closest_robots.remove(gk_id)
+        # get arcs
+        defender_arcs = self.defender_arcs[n_defenders]
+        blocker_arcs = self.blocker_arcs[n_blockers]
 
-        # make sure we do not double-kick
-        av_id = self.avoid_id
-        if av_id is not None:
-            if len(closest_robots) > 1 and av_id == closest_robots[0]:
-                closest_robots[0], closest_robots[1] = closest_robots[1], closest_robots[0]
-            # resort to the goalkeeper if we have to
-            if gk_id and len(closest_robots) == 1 and av_id == closest_robots[0]:
-                closest_robots = [gk_id, av_id]
-                gk_id = None
+        # create jobs
+        jobs = {('attacker', None)} | {('defender', a) for a in defender_arcs} | {('blocker', a) for a in blocker_arcs}
 
-        atk_id = closest_robots[0] if len(closest_robots) > 0 else None
-        blk_id = closest_robots[1] if len(closest_robots) > 1 else None
+        # distribute the jobs
+        best_job_map = None
+        best_job_dist = None
 
-        # gather the defenders (not goalkeeper, attacker or blocker)
-        defenders = [r for r in self.team if r.uid not in [gk_id, atk_id, blk_id]]
-        # order defenders by id to avoid position oscillations
-        defenders = sorted(defenders, key=lambda r: r.uid)
-        # distributing defenders
-        # TODO: make it generic
-        defender_arc = {}
-        if len(defenders) == 3:
-            defender_arc = {
-                defenders[0].uid: -15.0,
-                defenders[1].uid: 0.0,
-                defenders[2].uid: 15.0
-            }
-        elif len(defenders) == 2:
-            defender_arc = {
-                defenders[0].uid: -10,
-                defenders[1].uid: 10
-            }
-        elif len(defenders) == 1:
-            defender_arc = {
-                defenders[0].uid: 0.0
-            }
-
-        # step'em, this is needed to guarantee we're only stepping active robots
-        for robot in self.team:
-            r_id = robot.uid
-            if r_id == gk_id:
-                robot.current_tactic = self.players[r_id]['goalkeeper']
-            elif r_id == atk_id:
-                robot.current_tactic = self.players[r_id]['attacker']
-            elif r_id == blk_id:
-                robot.current_tactic = self.players[r_id]['blocker']
+        def calc_job_dist(i, j, a):
+            tactic = self.players[i][j]
+            if a is None:
+                return tactic.dist()
             else:
-                robot.current_tactic = self.players[r_id]['defender']
-                if (defender_arc and r_id in defender_arc):
-                    robot.current_tactic.arc = defender_arc[r_id]
+                return tactic.dist_to_arc(a)
+
+        for job_set in permutations(jobs):
+            job_map = [(i, j[0], j[1]) for i, j in zip(bd_ids, job_set)]
+
+            # skip if attacker can't kick (disabled or avoid double-kick)
+            for i, j, a in job_map:
+                if j == 'attacker' and (i == av_id or not self.team[i].can_kick):
+                    continue
+
+            job_dist = sum(calc_job_dist(i, j, a) for i, j, a in job_map)
+            if best_job_dist is None or job_dist < best_job_dist:
+                best_job_dist = job_dist
+                best_job_map = job_map
+
+        # assign tactics
+        if gk_id is not None:
+            self.team[gk_id].current_tactic = self.players[gk_id]['goalkeeper']
+        for i, j, a in best_job_map:
+            tactic = self.players[i][j]
+            if a is not None:
+                tactic.arc = a
+            self.team[i].current_tactic = tactic
+
+    def setup_tactics(self):
+        gk_id = self.goalie
+        av_id = self.avoid_id
+        # blockers and defenders
+        bd_ids = {r.uid for r in self.team if r.uid != gk_id}
+
+        # this is a strategy to only call heavy_setup_tactics only once every 300 frames or one the requirements change
+        if self.counter > 300 or gk_id != self.cached_gk_id or bd_ids != self.cached_bd_ids or av_id != self.cached_av_id:
+            self.cached_gk_id = gk_id
+            self.cached_av_id = av_id
+            self.cached_bd_ids = bd_ids
+            self.heavy_setup_tactics()
+            self.counter = 0
+        else:
+            self.counter += 1

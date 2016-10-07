@@ -35,8 +35,8 @@ class KickTo(Skill):
     Meanwhile it's experimental, depending on the results it'll stay or not.
     """
     # TODO: Change parameter back once we have real control.
-    angle_kick_min_error = 10
-    angle_approach_min_error = 5
+    angle_kick_min_error = 0.1
+    angle_approach_min_error = 0.4
     angle_tolerance = 5
     orientation_tolerance = 0.7
     distance_tolerance = 0.14
